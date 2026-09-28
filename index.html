@@ -263,16 +263,18 @@
             width: 100%;
         }
         .clear-btn {
+            flex: 1 1 auto;
+            justify-content: center;
             background-color: #453a22;
             color: #ff5252;
             border: 1px solid #ff5252;
-            padding: 10px 14px;
-            font-size: 13px;
+            padding: 12px 14px;
+            font-size: 13.5px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
-            min-height: 42px;
+            min-height: 46px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -283,16 +285,18 @@
             color: white;
         }
         .new-order-btn {
+            flex: 1 1 auto;
+            justify-content: center;
             background-color: #1f2d1a;
             color: #00e676;
             border: 1px solid #00e676;
-            padding: 10px 14px;
-            font-size: 13px;
+            padding: 12px 14px;
+            font-size: 13.5px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
             font-family: inherit;
-            min-height: 42px;
+            min-height: 46px;
             display: none;
             align-items: center;
             gap: 6px;
@@ -1195,13 +1199,13 @@
 
             <div class="returning-hint">
                 <span class="hint-icon">↩️</span>
-                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load Order"</strong>. A popup will let you choose to <strong>edit</strong> your previous order or <strong>start fresh</strong>.</span>
+                <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
             </div>
 
             <!-- EDIT MODE BANNER -->
             <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
                 <span class="edit-icon">📝</span>
-                <span><strong>Editing your saved order.</strong> Changes will update this order. Want a fresh one instead? Tap <strong>"✨ Start New Order"</strong> below.</span>
+                <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Start New Order</strong> below.</span>
             </div>
 
             <div class="config-row">
@@ -1282,7 +1286,7 @@
 
             <div class="clear-games-row">
                 <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
-                    🗑️ Clear All Games & Selections
+                    🗑️ Clear All Selections
                 </button>
                 <button class="new-order-btn" id="newOrderBtn" onclick="startNewOrder()" title="Submit as a brand new order">
                     ✨ Start New Order
@@ -1377,15 +1381,15 @@
                     <button class="load-choice-btn edit" onclick="chooseEditOrder()">
                         <span class="choice-icon">📝</span>
                         <span class="choice-text">
-                            <strong>Continue Editing</strong>
-                            <small>Load my previous order & update it</small>
+                            <strong>Edit Previous Order</strong>
+                            <small>Load your existing order and update it</small>
                         </span>
                     </button>
                     <button class="load-choice-btn new" onclick="chooseNewOrder()">
                         <span class="choice-icon">✨</span>
                         <span class="choice-text">
                             <strong>Start New Order</strong>
-                            <small>Keep my phone, start fresh</small>
+                            <small>Begin a fresh order from scratch</small>
                         </span>
                     </button>
                 </div>
@@ -1472,12 +1476,10 @@
 
         // Auto-load order from URL
         if (autoLoadOrderId) {
-            // Share-link case: directly load the specific order (no popup — intent is clear)
             setTimeout(() => {
                 loadSpecificOrderById(autoLoadOrderId);
             }, 400);
         } else if (autoLoadPhone) {
-            // Phone-link case: run through the same fetch flow (shows popup if found)
             setTimeout(() => {
                 fetchExistingOrder();
             }, 400);
@@ -1782,7 +1784,7 @@
             selectedGames.clear();
             document.getElementById('androidModeCheck').checked = false;
             document.getElementById('linuxModeCheck').checked = false;
-            currentEditingOrderId = null; // Reset — next save will be a NEW order
+            currentEditingOrderId = null;
             hideEditModeBanner();
             updateNewOrderBtnVisibility();
             toggleServiceFields();
@@ -1803,7 +1805,7 @@
         
         const statusMsg = document.getElementById('statusMsg');
         if (statusMsg) {
-            statusMsg.innerText = '✨ New order mode — saving will create a new record.';
+            statusMsg.innerText = '✨ New order mode. Saving will create a separate order.';
             statusMsg.style.color = '#00e676';
         }
         
@@ -2187,7 +2189,7 @@
                 
                 if (statusMsg) {
                     statusMsg.style.color = '#ffc000';
-                    statusMsg.innerText = '💡 Choose how to proceed in the popup.';
+                    statusMsg.innerText = '💡 Choose an option in the popup to continue.';
                 }
             } else {
                 currentEditingOrderId = null;
@@ -2256,11 +2258,12 @@
     function showLoadChoiceModal(order) {
         const infoBox = document.getElementById('loadChoiceInfo');
         
+        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
         const createdDate = order.created_at 
-            ? new Date(order.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+            ? new Date(order.created_at).toLocaleString('en-MY', dateOpts)
             : 'unknown date';
         const updatedDate = order.updated_at 
-            ? new Date(order.updated_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+            ? new Date(order.updated_at).toLocaleString('en-MY', dateOpts)
             : createdDate;
         const lastTouched = (order.updated_at && order.updated_at !== order.created_at) 
             ? `Last edited: <strong>${updatedDate}</strong>` 
@@ -2272,7 +2275,7 @@
             : (order.service_type === 'system_setup' ? 'System Setup' : 'Games Only');
 
         infoBox.innerHTML = `
-            🔍 Found your previous order:<br>
+            We found your previous order:<br>
             • Service: <strong>${serviceLabel}</strong><br>
             • Games: <strong>${gameCount}</strong> selected<br>
             • ${lastTouched}
@@ -2286,7 +2289,7 @@
         pendingLoadedOrder = null;
         
         const statusMsg = document.getElementById('statusMsg');
-        if (statusMsg && statusMsg.innerText.includes('Choose how to proceed')) {
+        if (statusMsg && statusMsg.innerText.includes('popup')) {
             statusMsg.innerText = '';
         }
     }
@@ -2305,7 +2308,7 @@
         const statusMsg = document.getElementById('statusMsg');
         if (statusMsg) {
             statusMsg.style.color = '#ffc000';
-            statusMsg.innerText = `✅ Loaded your order for editing! (${selectedGames.size} games)`;
+            statusMsg.innerText = `✅ Loaded your order for editing (${selectedGames.size} games)`;
         }
     }
 
@@ -2354,7 +2357,7 @@
         const statusMsg = document.getElementById('statusMsg');
         if (statusMsg) {
             statusMsg.style.color = '#00e676';
-            statusMsg.innerText = '✨ Fresh start! Your phone is kept — pick your new selection below.';
+            statusMsg.innerText = '✨ New order started. Pick your selection below.';
         }
     }
 
