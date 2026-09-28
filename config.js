@@ -1,4 +1,4 @@
-﻿// config.js - Central configuration for pricing, games, and backend credentials
+﻿﻿// config.js - Central configuration for pricing, games, and backend credentials
 
 const APP_CONFIG = {
     // Supabase Backend Credentials
@@ -6,7 +6,7 @@ const APP_CONFIG = {
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13eG5kY2N3emtjc3l2c2x1Y2pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MTY1MjksImV4cCI6MjEwNTk5MjUyOX0.61NvDZ6cPnxLqoxJ4tr-H729a99h_XOAZDXo3zfx25g',
 
     // WhatsApp Contact Number
-    whatsappNumber: '601165676869', // Replace with your actual number
+    whatsappNumber: '601165676869',
 
     // Jailbreak base prices by console model
     jailbreakPrices: {
@@ -29,6 +29,38 @@ const APP_CONFIG = {
     addonPrices: {
         android: 30,
         linux: 30
+    },
+
+    // ===== PROGRESS TRACKER STAGES =====
+    progressStages: [
+        'Order Received',
+        'Confirmed',
+        'In Progress',
+        'Ready for Pickup',
+        'Completed'
+    ],
+
+    // Customer-facing descriptions for each stage
+    progressDescriptions: {
+        'Order Received':   "We've received your order. We'll review it shortly.",
+        'Confirmed':        "Your game list and storage are confirmed. We'll begin work soon.",
+        'In Progress':      "Your console is being prepared. See details below.",
+        'Ready for Pickup': "Your console is ready! Come collect it anytime — payment on pickup.",
+        'Completed':        "Thanks for your business! Enjoy your games."
+    },
+
+    // Sub-stages per service type
+    subStagesByService: {
+        'jailbreak':    ['Modchip Installation', 'System Setup', 'Game Installation'],
+        'system_setup': ['System Setup', 'Game Installation'],
+        'games_only':   ['Game Installation']
+    },
+
+    // Customer-facing description per sub-stage
+    subStageDescriptions: {
+        'Modchip Installation': "Installing the modchip hardware into your console.",
+        'System Setup':         "Configuring bootloader, firmware, and system software.",
+        'Game Installation':    "Copying your selected games onto the SD card."
     }
 };
 
@@ -285,6 +317,7 @@ const games = [
       { name: "Sea of Stars", size: 3.22 },
       { name: "Serious Sam Collection", size: 4.28 },
       { name: "Shin chan 1-2", size: 3.55 },
+      { name: "Shin chan 1-2", size: 3.61 },
       { name: "Shin Megami Tensei 5 Vengeance", size: 14.1 },
       { name: "Shin Megami Tensei V", size: 16.42 },
       { name: "Shinobi Art of Vengeance", size: 6.8 },
@@ -373,5 +406,3 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
-
-
