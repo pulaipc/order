@@ -276,7 +276,7 @@
             letter-spacing: 0.8px;
             color: #ffc000;
             font-weight: 700;
-            margin-bottom: -4px; /* pull items tighter to title */
+            margin-bottom: -4px;
             padding-bottom: 6px;
             border-bottom: 1px solid #2e2716;
         }
@@ -406,8 +406,18 @@
             padding: 10px 12px; border-radius: 6px;
             font-size: 12.5px; line-height: 1.45; display: none;
         }
-        .modal-alert.warning { background: #2d2612; border: 1px solid #ffca28; color: #fff8e1; }
-        .modal-alert.danger { background: #2d2212; border: 1px solid #e65100; color: #ffb74d; }
+        .modal-alert.warning {
+            background: #2d2612;
+            border: 1px solid #ffca28;
+            border-left: 3px solid #ffca28;
+            color: #fff8e1;
+        }
+        .modal-alert.danger {
+            background: #2d2212;
+            border: 1px solid #e65100;
+            border-left: 3px solid #e65100;
+            color: #ffb74d;
+        }
 
         /* ===== LOAD CHOICE MODAL ===== */
         .load-choice-content { max-width: 460px; }
@@ -659,7 +669,6 @@
             <div class="modal-body">
                 <div id="cartModalBody"></div>
 
-                <div id="modalTierWarning" class="modal-alert warning"></div>
                 <div id="sizeWarningBox" class="modal-alert danger">
                     ⚠️ <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. Pricing has adjusted accordingly.
                 </div>
@@ -1601,7 +1610,6 @@
         h1.textContent = '1. Service & Hardware';
         body.appendChild(h1);
 
-        // Service line
         let serviceLabel = 'Games Installation Service';
         let serviceSub = `Client-Stated Free Space: ${freeStorage || 0} GB`;
         let servicePrice = 0;
@@ -1690,6 +1698,18 @@
         h2.className = 'modal-section-title';
         h2.textContent = '2. Selected Games';
         body.appendChild(h2);
+
+        // Tier recommendation banner sits inside Section 2 (right under the header)
+        const tierRec = checkTierRecommendation(count, serviceType);
+        if (tierRec.hasWarning) {
+            const banner = document.createElement('div');
+            banner.className = 'modal-alert warning';
+            banner.style.display = 'flex';
+            banner.style.alignItems = 'flex-start';
+            banner.style.gap = '8px';
+            banner.innerHTML = tierRec.msg;
+            body.appendChild(banner);
+        }
 
         const gamesDetails = document.createElement('details');
         gamesDetails.className = 'cart-details';
@@ -1791,16 +1811,6 @@
         priceBox.innerHTML = html;
 
         $('sizeWarningBox').style.display = details.exceeded ? 'block' : 'none';
-
-        const tierRec = checkTierRecommendation(count, serviceType);
-        const tierBox = $('modalTierWarning');
-        if (tierRec.hasWarning) {
-            tierBox.style.display = 'block';
-            tierBox.innerHTML = tierRec.msg;
-        } else {
-            tierBox.style.display = 'none';
-            tierBox.innerHTML = '';
-        }
     }
 
     function buildShareUrl() {
