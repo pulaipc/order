@@ -152,8 +152,13 @@
         .storage-breakdown {
             font-size: 12px; color: #ffc000; width: 100%; background: #17120a;
             padding: 10px 12px; border-radius: 4px; border: 1px solid #241e12;
-            line-height: 1.55; box-sizing: border-box; word-break: break-word;
+            line-height: 1.6; box-sizing: border-box; word-break: break-word;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
         }
+        .storage-breakdown > * { width: 100%; }
+
         .status-msg {
             text-align: center; font-size: 13.5px; color: #ffc000;
             margin-bottom: 15px; min-height: 20px; transition: opacity 0.4s ease;
@@ -400,7 +405,7 @@
         }
         .remarks-input:focus { border-color: #ffc000; }
 
-        /* ===== ALERT BOXES (simple block layout, no flex) ===== */
+        /* ===== ALERT BOXES ===== */
         .modal-alert {
             padding: 10px 14px;
             border-radius: 6px;
@@ -798,7 +803,7 @@
 
     function updateStorageBreakdownAndCart() {
         if (!state.isStorageConfigured) { updateCartSummary(); return; }
-        $('storageBreakdown').innerHTML = buildStorageBreakdownText();
+        $('storageBreakdown').innerHTML = '<span>' + buildStorageBreakdownText() + '</span>';
         updateCartSummary();
     }
 
@@ -1039,7 +1044,9 @@
             warningText.innerHTML = msg;
             gameWrapper.classList.add('locked');
             submitBtn.disabled = true;
-            breakdown.innerHTML = '📋 ' + msg.replace(/<[^>]+>/g, '');
+            // Show waiting message with vertically centered emoji + text
+            const plain = msg.replace(/<[^>]+>/g, '');
+            breakdown.innerHTML = `<span style="display:flex; align-items:center; gap:6px; line-height:1.4;"><span>📋</span><span>${plain}</span></span>`;
             updateCartSummary();
         };
 
@@ -1082,7 +1089,7 @@
             gameWrapper.classList.remove('locked');
             if (browseBtn) browseBtn.disabled = false;
             submitBtn.disabled = false;
-            breakdown.innerHTML = buildStorageBreakdownText();
+            breakdown.innerHTML = '<span>' + buildStorageBreakdownText() + '</span>';
         } else {
             let userSpace = parseFloat(freeInput.value);
             if (!isNaN(userSpace) && userSpace > 2048) { userSpace = 2048; freeInput.value = 2048; }
@@ -1095,7 +1102,7 @@
                 warningText.innerHTML = 'Please enter your available <strong>Free Storage Space (GB)</strong> above to unlock game selection.';
                 gameWrapper.classList.add('locked');
                 submitBtn.disabled = true;
-                breakdown.innerHTML = 'Service: Games Only | <span style="color:#ff5252;">⚠️ Storage space missing! Enter free GB to continue.</span>';
+                breakdown.innerHTML = '<span>Service: Games Only | <span style="color:#ff5252;">⚠️ Storage space missing! Enter free GB to continue.</span></span>';
             } else {
                 state.usableStorageLimit = userSpace;
                 state.isStorageConfigured = true;
@@ -1104,7 +1111,7 @@
                 warning.style.display = 'none';
                 gameWrapper.classList.remove('locked');
                 submitBtn.disabled = false;
-                breakdown.innerHTML = buildStorageBreakdownText();
+                breakdown.innerHTML = '<span>' + buildStorageBreakdownText() + '</span>';
             }
         }
 
@@ -1383,6 +1390,15 @@
     }
 
     function checkTierRecommendation(count, serviceType) {
+        // Guard: no service type selected → no recommendation
+        if (!serviceType) {
+            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        }
+        // Guard: no games selected yet → no recommendation
+        if (count === 0) {
+            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        }
+
         let target = 0, isFreeGamesNotice = false;
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
@@ -1703,7 +1719,6 @@
         h2.textContent = '2. Selected Games';
         body.appendChild(h2);
 
-        // Tier recommendation banner — displayed as a plain block with natural text flow
         const tierRec = checkTierRecommendation(count, serviceType);
         if (tierRec.hasWarning) {
             const banner = document.createElement('div');
@@ -1786,7 +1801,7 @@
         remarksDetails.addEventListener('toggle', () => { state.modalRemarksExpanded = remarksDetails.open; });
         body.appendChild(remarksDetails);
 
-        // ===== Section 4: Share + price =====
+        // ===== Section 4 content — share link + price breakdown =====
         $('shareLinkInput').value = buildShareUrl();
         $('shareLinkDesc').innerHTML = state.currentEditingOrderId
             ? 'This link reloads <strong style="color:#64b5f6;">this exact order</strong>. Bookmark or share it to edit anytime:'
