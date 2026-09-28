@@ -901,6 +901,108 @@
             background: #1976D2;
         }
 
+        /* LOAD CHOICE MODAL */
+        .load-choice-content {
+            max-width: 460px;
+        }
+        .load-choice-body {
+            padding: 4px 0;
+            gap: 16px;
+        }
+        .load-choice-info {
+            background: #17120a;
+            border: 1px solid #2e2716;
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 13px;
+            color: #ccc;
+            line-height: 1.6;
+        }
+        .load-choice-info strong {
+            color: #ffc000;
+        }
+        .load-choice-question {
+            margin: 0;
+            font-size: 14px;
+            color: #fff;
+            font-weight: 600;
+            text-align: center;
+        }
+        .load-choice-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .load-choice-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: left;
+            transition: all 0.2s;
+            min-height: 62px;
+            width: 100%;
+        }
+        .load-choice-btn.edit {
+            background: #2a2108;
+            border: 1px solid #ffc000;
+            color: #ffe9a8;
+        }
+        .load-choice-btn.edit:hover {
+            background: #3a2d0a;
+            transform: translateY(-1px);
+        }
+        .load-choice-btn.new {
+            background: #1f2d1a;
+            border: 1px solid #00e676;
+            color: #c3ffdb;
+        }
+        .load-choice-btn.new:hover {
+            background: #2b3d22;
+            transform: translateY(-1px);
+        }
+        .load-choice-btn .choice-icon {
+            font-size: 26px;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+        .load-choice-btn .choice-text {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+            flex: 1;
+        }
+        .load-choice-btn .choice-text strong {
+            font-size: 14.5px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .load-choice-btn .choice-text small {
+            font-size: 11.5px;
+            color: inherit;
+            opacity: 0.85;
+            line-height: 1.35;
+        }
+        .load-choice-cancel {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            text-align: center;
+            transition: color 0.2s;
+            width: 100%;
+        }
+        .load-choice-cancel:hover {
+            color: #fff;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
@@ -1093,7 +1195,7 @@
 
             <div class="returning-hint">
                 <span class="hint-icon">↩️</span>
-                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load Order"</strong> to edit your previous selection. New customers can skip this and start below.</span>
+                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load Order"</strong>. A popup will let you choose to <strong>edit</strong> your previous order or <strong>start fresh</strong>.</span>
             </div>
 
             <!-- EDIT MODE BANNER -->
@@ -1259,6 +1361,39 @@
         </div>
     </div>
 
+    <!-- LOAD ORDER CHOICE MODAL -->
+    <div id="loadChoiceModal" class="modal">
+        <div class="modal-content load-choice-content">
+            <div class="modal-header">
+                <h2 id="loadChoiceTitle">🔍 Found Your Order!</h2>
+                <button class="close-modal" onclick="closeLoadChoiceModal()">&times;</button>
+            </div>
+            <div class="modal-body load-choice-body">
+                <div id="loadChoiceInfo" class="load-choice-info">
+                    <!-- Filled dynamically -->
+                </div>
+                <p class="load-choice-question">What would you like to do?</p>
+                <div class="load-choice-actions">
+                    <button class="load-choice-btn edit" onclick="chooseEditOrder()">
+                        <span class="choice-icon">📝</span>
+                        <span class="choice-text">
+                            <strong>Continue Editing</strong>
+                            <small>Load my previous order & update it</small>
+                        </span>
+                    </button>
+                    <button class="load-choice-btn new" onclick="chooseNewOrder()">
+                        <span class="choice-icon">✨</span>
+                        <span class="choice-text">
+                            <strong>Start New Order</strong>
+                            <small>Keep my phone, start fresh</small>
+                        </span>
+                    </button>
+                </div>
+                <button class="load-choice-cancel" onclick="closeLoadChoiceModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
 
     <script>
@@ -1269,6 +1404,7 @@
     let usableStorageLimit = 0; 
     let isStorageConfigured = false;
     let currentEditingOrderId = null;   // Track which order is being edited (null = new order)
+    let pendingLoadedOrder = null;      // Holds order data while choice popup is showing
 
     window.onload = function() {
         const savedSdSource = localStorage.getItem('userSdSource');
@@ -1336,10 +1472,12 @@
 
         // Auto-load order from URL
         if (autoLoadOrderId) {
+            // Share-link case: directly load the specific order (no popup — intent is clear)
             setTimeout(() => {
-                fetchExistingOrder(autoLoadOrderId);
+                loadSpecificOrderById(autoLoadOrderId);
             }, 400);
         } else if (autoLoadPhone) {
+            // Phone-link case: run through the same fetch flow (shows popup if found)
             setTimeout(() => {
                 fetchExistingOrder();
             }, 400);
@@ -2015,58 +2153,13 @@
         }
     }
 
-    async function fetchExistingOrder(fromUrlOrderId = null) {
+    async function fetchExistingOrder() {
         const phoneInput = document.getElementById('phoneInput');
         const phone = phoneInput.value.trim();
         const statusMsg = document.getElementById('statusMsg');
 
-        // Case A: Loading a SPECIFIC order by ID (from share link)
-        if (fromUrlOrderId) {
-            if (statusMsg) {
-                statusMsg.style.color = '#2196F3';
-                statusMsg.innerText = 'Loading shared order...';
-            }
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('orders')
-                    .select('*')
-                    .eq('id', fromUrlOrderId)
-                    .single();
-
-                if (error) throw error;
-                if (!data) {
-                    alert('This shared order link is no longer valid.');
-                    return;
-                }
-
-                currentEditingOrderId = data.id;
-                
-                // Also set phone input from the loaded order
-                if (data.phone_ending) {
-                    document.getElementById('phoneInput').value = data.phone_ending;
-                    localStorage.setItem('userPhone4', data.phone_ending);
-                }
-
-                applyLoadedOrder(data);
-                
-                if (statusMsg) {
-                    statusMsg.style.color = '#ffc000';
-                    statusMsg.innerText = `✅ Loaded shared order! (${selectedGames.size} games)`;
-                }
-            } catch (err) {
-                console.error(err);
-                if (statusMsg) {
-                    statusMsg.style.color = '#ff5252';
-                    statusMsg.innerText = 'Failed to load shared order.';
-                }
-            }
-            return;
-        }
-
-        // Case B: Loading by phone number (latest order)
         if (phone.length !== 4) {
-            alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number in the field to the left first!');
+            alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first!');
             phoneInput.focus();
             phoneInput.classList.add('required-missing');
             return;
@@ -2089,18 +2182,20 @@
 
             if (data && data.length > 0) {
                 const order = data[0];
-                currentEditingOrderId = order.id;
-                applyLoadedOrder(order);
+                pendingLoadedOrder = order;
+                showLoadChoiceModal(order);
                 
                 if (statusMsg) {
                     statusMsg.style.color = '#ffc000';
-                    statusMsg.innerText = `✅ Loaded latest order! (${selectedGames.size} games)`;
+                    statusMsg.innerText = '💡 Choose how to proceed in the popup.';
                 }
             } else {
                 currentEditingOrderId = null;
                 hideEditModeBanner();
                 updateNewOrderBtnVisibility();
-                alert('No previous saved order found for ID "' + phone + '". You can start a new order below!');
+
+                alert(`ℹ️ No previous order found for phone "${phone}".\n\nYou can start a new order below!`);
+
                 if (statusMsg) {
                     statusMsg.style.color = '#ff9800';
                     statusMsg.innerText = 'No order found. Start a new order below!';
@@ -2112,6 +2207,154 @@
                 statusMsg.style.color = '#ff5252';
                 statusMsg.innerText = 'Failed to lookup order.';
             }
+        }
+    }
+
+    async function loadSpecificOrderById(orderId) {
+        const statusMsg = document.getElementById('statusMsg');
+
+        if (statusMsg) {
+            statusMsg.style.color = '#2196F3';
+            statusMsg.innerText = 'Loading shared order...';
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .single();
+
+            if (error) throw error;
+            if (!data) {
+                alert('This shared order link is no longer valid.');
+                return;
+            }
+
+            currentEditingOrderId = data.id;
+            
+            if (data.phone_ending) {
+                document.getElementById('phoneInput').value = data.phone_ending;
+                localStorage.setItem('userPhone4', data.phone_ending);
+            }
+
+            applyLoadedOrder(data);
+            
+            if (statusMsg) {
+                statusMsg.style.color = '#ffc000';
+                statusMsg.innerText = `✅ Loaded shared order! (${selectedGames.size} games)`;
+            }
+        } catch (err) {
+            console.error(err);
+            if (statusMsg) {
+                statusMsg.style.color = '#ff5252';
+                statusMsg.innerText = 'Failed to load shared order.';
+            }
+        }
+    }
+
+    function showLoadChoiceModal(order) {
+        const infoBox = document.getElementById('loadChoiceInfo');
+        
+        const createdDate = order.created_at 
+            ? new Date(order.created_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+            : 'unknown date';
+        const updatedDate = order.updated_at 
+            ? new Date(order.updated_at).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' })
+            : createdDate;
+        const lastTouched = (order.updated_at && order.updated_at !== order.created_at) 
+            ? `Last edited: <strong>${updatedDate}</strong>` 
+            : `Created: <strong>${createdDate}</strong>`;
+
+        const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+        const serviceLabel = order.service_type === 'jailbreak' 
+            ? `Full Jailbreak (${order.console_model || 'N/A'})` 
+            : (order.service_type === 'system_setup' ? 'System Setup' : 'Games Only');
+
+        infoBox.innerHTML = `
+            🔍 Found your previous order:<br>
+            • Service: <strong>${serviceLabel}</strong><br>
+            • Games: <strong>${gameCount}</strong> selected<br>
+            • ${lastTouched}
+        `;
+
+        document.getElementById('loadChoiceModal').style.display = 'flex';
+    }
+
+    function closeLoadChoiceModal() {
+        document.getElementById('loadChoiceModal').style.display = 'none';
+        pendingLoadedOrder = null;
+        
+        const statusMsg = document.getElementById('statusMsg');
+        if (statusMsg && statusMsg.innerText.includes('Choose how to proceed')) {
+            statusMsg.innerText = '';
+        }
+    }
+
+    function chooseEditOrder() {
+        if (!pendingLoadedOrder) {
+            closeLoadChoiceModal();
+            return;
+        }
+
+        const order = pendingLoadedOrder;
+        currentEditingOrderId = order.id;
+        applyLoadedOrder(order);
+        closeLoadChoiceModal();
+
+        const statusMsg = document.getElementById('statusMsg');
+        if (statusMsg) {
+            statusMsg.style.color = '#ffc000';
+            statusMsg.innerText = `✅ Loaded your order for editing! (${selectedGames.size} games)`;
+        }
+    }
+
+    function chooseNewOrder() {
+        // Keep phone number, reset everything else
+        currentEditingOrderId = null;
+        selectedGames.clear();
+        
+        // Reset mode checkboxes
+        document.getElementById('androidModeCheck').checked = false;
+        document.getElementById('linuxModeCheck').checked = false;
+        
+        // Reset remarks
+        document.getElementById('orderRemarks').value = '';
+        
+        // Reset service type to default
+        document.getElementById('serviceTypeSelect').value = 'jailbreak';
+        
+        // Reset console model to default
+        document.getElementById('consoleModelSelect').value = 'OLED';
+        
+        // Reset SD source to own
+        document.getElementById('sdSourceSelect').value = 'own';
+        
+        // Reset free storage input
+        document.getElementById('userFreeStorageInput').value = '';
+        
+        // Reset search
+        document.getElementById('searchInput').value = '';
+        
+        // Re-populate SD card options & refresh UI
+        populateSdCardOptions();
+        toggleServiceFields();
+        updateSdLimit();
+        filterGames();
+        
+        // Hide edit banner & new-order button (since we're now in fresh mode)
+        hideEditModeBanner();
+        updateNewOrderBtnVisibility();
+        
+        // Clear URL params to avoid re-triggering auto-load
+        window.history.replaceState({}, '', window.location.pathname);
+        
+        closeLoadChoiceModal();
+        
+        const statusMsg = document.getElementById('statusMsg');
+        if (statusMsg) {
+            statusMsg.style.color = '#00e676';
+            statusMsg.innerText = '✨ Fresh start! Your phone is kept — pick your new selection below.';
         }
     }
 
@@ -2550,12 +2793,10 @@
     function buildShareUrl() {
         const base = window.location.origin + window.location.pathname;
         
-        // If we're editing a specific order, link to it directly
         if (currentEditingOrderId) {
             return base + '?order=' + encodeURIComponent(currentEditingOrderId);
         }
         
-        // Otherwise fall back to phone-based link
         const phone = document.getElementById('phoneInput').value.trim();
         if (!phone || phone.length !== 4) {
             return base + '?phone=____';
@@ -2706,7 +2947,6 @@
 
             let savedOrderId = null;
 
-            // If editing an existing order, UPDATE by ID
             if (currentEditingOrderId) {
                 const { error } = await supabaseClient
                     .from('orders')
@@ -2717,7 +2957,6 @@
                 savedOrderId = currentEditingOrderId;
                 alert('✅ Order updated successfully!');
             } else {
-                // Otherwise INSERT as a new order
                 orderData.created_at = nowIso;
                 const { data: insertedData, error } = await supabaseClient
                     .from('orders')
@@ -2726,10 +2965,9 @@
 
                 if (error) throw error;
                 
-                // Grab the new order's ID
                 if (insertedData && insertedData.length > 0) {
                     savedOrderId = insertedData[0].id;
-                    currentEditingOrderId = savedOrderId; // Switch into edit mode for subsequent saves
+                    currentEditingOrderId = savedOrderId;
                 }
                 
                 alert('✅ New order saved successfully!');
@@ -2742,7 +2980,6 @@
                 statusMsg.innerText = 'Order successfully saved!';
             }
 
-            // Update edit mode UI
             showEditModeBanner();
             updateNewOrderBtnVisibility();
 
@@ -2802,7 +3039,6 @@
         message += `━━━━━━━━━━━━━━━━━━━\n`;
         message += `💰 *Total Estimated Price:* RM${Math.round(details.price)}`;
 
-        // Add shareable order link
         const shareUrl = buildShareUrl();
         if (shareUrl && !shareUrl.includes('phone=____')) {
             message += `\n\n🔗 *View or edit your order anytime:*\n${shareUrl}`;
