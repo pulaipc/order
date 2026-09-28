@@ -231,7 +231,7 @@
         .submit-btn:hover { background-color: #e6ac00; }
         .submit-btn:disabled { background-color: #4a4020; color: #888; cursor: not-allowed; }
 
-        /* ===== MODALS (whole modal scrolls, no fixed footer) ===== */
+        /* ===== MODALS ===== */
         .modal {
             display: none; position: fixed; z-index: 1000;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -259,7 +259,6 @@
             min-height: 40px; min-width: 40px; flex-shrink: 0;
         }
 
-        /* Everything scrolls together — modal-body is the only scroll container */
         .modal-body {
             overflow-y: auto; flex-grow: 1;
             padding: 16px;
@@ -401,10 +400,15 @@
         }
         .remarks-input:focus { border-color: #ffc000; }
 
-        /* ===== ALERT BOXES ===== */
+        /* ===== ALERT BOXES (simple block layout, no flex) ===== */
         .modal-alert {
-            padding: 10px 12px; border-radius: 6px;
-            font-size: 12.5px; line-height: 1.45; display: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            line-height: 1.55;
+            display: none;
+            word-break: break-word;
+            white-space: normal;
         }
         .modal-alert.warning {
             background: #2d2612;
@@ -412,12 +416,14 @@
             border-left: 3px solid #ffca28;
             color: #fff8e1;
         }
+        .modal-alert.warning strong { color: #ffca28; }
         .modal-alert.danger {
             background: #2d2212;
             border: 1px solid #e65100;
             border-left: 3px solid #e65100;
             color: #ffb74d;
         }
+        .modal-alert.danger strong { color: #ffb74d; }
 
         /* ===== LOAD CHOICE MODAL ===== */
         .load-choice-content { max-width: 460px; }
@@ -659,7 +665,7 @@
         <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review & Submit</button>
     </div>
 
-    <!-- CART MODAL — whole modal-body scrolls, save button is last -->
+    <!-- CART MODAL -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1102,7 +1108,6 @@
             }
         }
 
-        // Overflow: auto-remove excess games
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         if (state.isStorageConfigured && state.usableStorageLimit > 0 && gSize > state.usableStorageLimit) {
@@ -1634,7 +1639,6 @@
         `;
         body.appendChild(sItem);
 
-        // SD card + addons
         if (isJbOrSetup) {
             const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
             const sdItem = document.createElement('div');
@@ -1699,14 +1703,12 @@
         h2.textContent = '2. Selected Games';
         body.appendChild(h2);
 
-        // Tier recommendation banner sits inside Section 2 (right under the header)
+        // Tier recommendation banner — displayed as a plain block with natural text flow
         const tierRec = checkTierRecommendation(count, serviceType);
         if (tierRec.hasWarning) {
             const banner = document.createElement('div');
             banner.className = 'modal-alert warning';
-            banner.style.display = 'flex';
-            banner.style.alignItems = 'flex-start';
-            banner.style.gap = '8px';
+            banner.style.display = 'block';
             banner.innerHTML = tierRec.msg;
             body.appendChild(banner);
         }
@@ -1784,7 +1786,7 @@
         remarksDetails.addEventListener('toggle', () => { state.modalRemarksExpanded = remarksDetails.open; });
         body.appendChild(remarksDetails);
 
-        // ===== Section 4 content — share link + price breakdown =====
+        // ===== Section 4: Share + price =====
         $('shareLinkInput').value = buildShareUrl();
         $('shareLinkDesc').innerHTML = state.currentEditingOrderId
             ? 'This link reloads <strong style="color:#64b5f6;">this exact order</strong>. Bookmark or share it to edit anytime:'
