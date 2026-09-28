@@ -291,21 +291,51 @@
         }
         .remove-btn:hover { background: #ff1744; }
 
-        /* COLLAPSIBLE */
-        .collapsible-header {
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            background: #191309; border: 1px solid #2e2716; border-radius: 6px;
-            padding: 12px 14px; cursor: pointer; transition: background 0.2s;
-            font-size: 13.5px; color: #fff; font-weight: 600; user-select: none;
+        /* NATIVE COLLAPSIBLE (details/summary) */
+        .cart-details {
+            background: #191309;
+            border: 1px solid #2e2716;
+            border-radius: 6px;
+            overflow: hidden;
         }
-        .collapsible-header:hover { background: #201808; }
-        .collapsible-header .chev { color: #ffc000; font-size: 12px; transition: transform 0.2s; }
-        .collapsible-header.open .chev { transform: rotate(180deg); }
-        .collapsible-body {
-            display: none; flex-direction: column; gap: 8px;
-            margin-top: 8px; max-height: 320px; overflow-y: auto; padding-right: 4px;
+        .cart-details[open] {
+            border-color: #4a3d1a;
         }
-        .collapsible-body.open { display: flex; }
+        .cart-details-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            cursor: pointer;
+            font-size: 13.5px;
+            color: #fff;
+            font-weight: 600;
+            user-select: none;
+            list-style: none;
+            transition: background 0.2s;
+        }
+        .cart-details-summary::-webkit-details-marker { display: none; }
+        .cart-details-summary::marker { display: none; }
+        .cart-details-summary:hover {
+            background: #201808;
+        }
+        .cart-details-summary .chev {
+            color: #ffc000;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .cart-details[open] .cart-details-summary .chev {
+            transform: rotate(180deg);
+        }
+        .cart-details-body {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 0 14px 14px 14px;
+            max-height: 320px;
+            overflow-y: auto;
+        }
 
         /* SHARE LINK */
         .share-link-prominent {
@@ -366,7 +396,7 @@
         }
         .remarks-input:focus { border-color: #ffc000; }
 
-        /* ALERT BOXES (2 consolidated styles) */
+        /* ALERT BOXES */
         .modal-alert {
             padding: 10px 12px; border-radius: 6px;
             font-size: 12.5px; line-height: 1.45; display: none;
@@ -690,7 +720,6 @@
             if (isNaN(userSpace) || userSpace <= 0) return { usable: 0, baseOverhead: 0, partitionPerMode: 0 };
             return { usable: userSpace, baseOverhead: 0, partitionPerMode: 0 };
         }
-        // jailbreak or system_setup
         let baseOverhead = 0, partitionPerMode = 0;
         if (maxSdSize <= 64) baseOverhead = 8;
         else if (maxSdSize <= 128) { baseOverhead = 10; partitionPerMode = 10; }
@@ -988,7 +1017,6 @@
         const browseBtn = document.getElementById('browseGamesBtn');
         const submitBtn = document.getElementById('mainSubmitBtn');
 
-        // Guard: no service selected
         if (!serviceType) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1001,7 +1029,6 @@
             return;
         }
 
-        // Guard: jailbreak missing console
         if (serviceType === 'jailbreak' && !consoleModel) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1014,7 +1041,6 @@
             return;
         }
 
-        // Guard: jailbreak/setup missing SD source
         const isJailbreakOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
         if (isJailbreakOrSetup && !sdSource) {
             isStorageConfigured = false;
@@ -1032,7 +1058,6 @@
         const refreshedSdCardValue = sdCardSelect ? sdCardSelect.value : '';
         maxSdSize = parseInt(refreshedSdCardValue) || 0;
 
-        // Guard: jailbreak/setup missing SD card
         if (isJailbreakOrSetup && !refreshedSdCardValue) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1077,7 +1102,6 @@
 
             document.getElementById('storageBreakdown').innerHTML = buildStorageBreakdownText();
         } else {
-            // games_only
             let userSpace = parseFloat(freeInput.value);
             if (!isNaN(userSpace) && userSpace > 2048) { userSpace = 2048; freeInput.value = 2048; }
 
@@ -1102,7 +1126,6 @@
             }
         }
 
-        // Overflow check: auto-remove excess games
         let currentGamesSize = 0;
         selectedGames.forEach(size => { currentGamesSize += size; });
 
@@ -1691,7 +1714,6 @@
             modalBody.appendChild(item);
         }
 
-        // SD card + addons (only for jailbreak/setup)
         if (isJailbreakOrSetup) {
             const displayCardLabel = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
             if (sdSource === 'buy') {
@@ -1754,18 +1776,25 @@
             }
         }
 
-        // ---- 2. Selected Games (collapsible) ----
-        const gamesHeader = document.createElement('div');
-        gamesHeader.className = 'collapsible-header' + (modalGamesExpanded ? ' open' : '');
-        gamesHeader.innerHTML = `
+        // ---- 2. Selected Games (native details) ----
+        const gamesDetails = document.createElement('details');
+        gamesDetails.className = 'cart-details';
+        if (modalGamesExpanded) gamesDetails.open = true;
+
+        const gamesSummary = document.createElement('summary');
+        gamesSummary.className = 'cart-details-summary';
+        gamesSummary.innerHTML = `
             <span>🎮 Selected Games (${count} · ${totalGamesSize.toFixed(1)} GB)</span>
             <span class="chev">▼</span>
         `;
-        modalBody.appendChild(gamesHeader);
+        gamesDetails.appendChild(gamesSummary);
+
+        gamesDetails.addEventListener('toggle', () => {
+            modalGamesExpanded = gamesDetails.open;
+        });
 
         const gamesBody = document.createElement('div');
-        gamesBody.className = 'collapsible-body' + (modalGamesExpanded ? ' open' : '');
-        gamesBody.id = 'cartGamesBody_' + Date.now();
+        gamesBody.className = 'cart-details-body';
 
         if (selectedGames.size === 0) {
             const emptyMsg = document.createElement('p');
@@ -1789,36 +1818,36 @@
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
                 removeBtn.textContent = 'Remove';
-                removeBtn.onclick = (e) => { e.stopPropagation(); removeGameFromCart(gameName); };
+                removeBtn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); removeGameFromCart(gameName); };
                 item.appendChild(titleSpan);
                 item.appendChild(removeBtn);
                 gamesBody.appendChild(item);
                 index++;
             });
         }
-        modalBody.appendChild(gamesBody);
+        gamesDetails.appendChild(gamesBody);
+        modalBody.appendChild(gamesDetails);
 
-        const gamesBodyId = gamesBody.id;
-        gamesHeader.onclick = function() {
-            modalGamesExpanded = !modalGamesExpanded;
-            this.classList.toggle('open', modalGamesExpanded);
-            const body = document.getElementById(gamesBodyId);
-            if (body) body.classList.toggle('open', modalGamesExpanded);
-        };
+        // ---- 3. Remarks (native details) ----
+        const remarksDetails = document.createElement('details');
+        remarksDetails.className = 'cart-details';
+        if (modalRemarksExpanded) remarksDetails.open = true;
 
-        // ---- 3. Remarks (collapsible) ----
-        const remarksHeader = document.createElement('div');
-        remarksHeader.className = 'collapsible-header' + (modalRemarksExpanded ? ' open' : '');
+        const remarksSummary = document.createElement('summary');
+        remarksSummary.className = 'cart-details-summary';
         const remarksHasContent = savedRemarksText.trim().length > 0;
-        remarksHeader.innerHTML = `
+        remarksSummary.innerHTML = `
             <span>📝 Add Remarks ${remarksHasContent ? '· <span style="color:#ffc000; font-size:12px;">(has content)</span>' : '(Optional)'}</span>
             <span class="chev">▼</span>
         `;
-        modalBody.appendChild(remarksHeader);
+        remarksDetails.appendChild(remarksSummary);
+
+        remarksDetails.addEventListener('toggle', () => {
+            modalRemarksExpanded = remarksDetails.open;
+        });
 
         const remarksBody = document.createElement('div');
-        remarksBody.className = 'collapsible-body' + (modalRemarksExpanded ? ' open' : '');
-        remarksBody.id = 'cartRemarksBody_' + Date.now();
+        remarksBody.className = 'cart-details-body';
 
         let remarksTextarea = document.getElementById('orderRemarks');
         if (!remarksTextarea) {
@@ -1828,18 +1857,11 @@
             remarksTextarea.placeholder = 'e.g. mention specific game DLCs, trilogies, or special requests...';
         }
         remarksTextarea.value = savedRemarksText;
-        remarksTextarea.style.display = '';
+        remarksTextarea.style.display = 'block';
         remarksTextarea.oninput = () => { savedRemarksText = remarksTextarea.value; };
         remarksBody.appendChild(remarksTextarea);
-        modalBody.appendChild(remarksBody);
-
-        const remarksBodyId = remarksBody.id;
-        remarksHeader.onclick = function() {
-            modalRemarksExpanded = !modalRemarksExpanded;
-            this.classList.toggle('open', modalRemarksExpanded);
-            const body = document.getElementById(remarksBodyId);
-            if (body) body.classList.toggle('open', modalRemarksExpanded);
-        };
+        remarksDetails.appendChild(remarksBody);
+        modalBody.appendChild(remarksDetails);
 
         // ---- Share link ----
         document.getElementById('shareLinkInput').value = buildShareUrl();
