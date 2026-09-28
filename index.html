@@ -575,6 +575,82 @@
             cursor: pointer;
             flex-shrink: 0;
         }
+
+        /* Hidden games notice */
+        .hidden-games-notice {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background: #2a2412;
+            border: 1px solid #5a4a20;
+            border-left: 3px solid #ffc000;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 12.5px;
+            color: #ffd97a;
+            line-height: 1.45;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .hidden-notice-text {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            min-width: 0;
+            flex: 1;
+        }
+        .hidden-notice-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .hidden-notice-text strong {
+            color: #ffc000;
+        }
+        .hidden-notice-toggle {
+            background: transparent;
+            color: #ffc000;
+            border: 1px solid #ffc000;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11.5px;
+            font-weight: bold;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .hidden-notice-toggle:hover {
+            background: #ffc000;
+            color: #14110a;
+        }
+
+        /* Hidden (locked) game cards */
+        .hidden-games-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .game-card.hidden-game {
+            background: #1a1508;
+            border: 1px dashed #3a3018;
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .game-card.hidden-game .game-title {
+            color: #999;
+        }
+        .game-lock-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            line-height: 1;
+            opacity: 0.7;
+        }
+
         .checkout-bar {
             position: fixed;
             bottom: 0;
@@ -1843,7 +1919,79 @@
             return;
         }
 
+        // Calculate current available space
+        let currentGamesSize = 0;
+        selectedGames.forEach(s => { currentGamesSize += s; });
+        const availableSpace = Math.max(0, usableStorageLimit - currentGamesSize);
+
+        // Split games into "fits" and "doesn't fit"
+        const fittingGames = [];
+        const hiddenGames = [];
+        
         list.forEach(game => {
+            const isSelected = selectedGames.has(game.name);
+            // Always show selected games (so user can uncheck them)
+            if (isSelected) {
+                fittingGames.push(game);
+            } else if (usableStorageLimit <= 0) {
+                // No storage configured yet — show all
+                fittingGames.push(game);
+            } else if (game.size <= availableSpace) {
+                fittingGames.push(game);
+            } else {
+                hiddenGames.push(game);
+            }
+        });
+
+        // Hidden games notice + toggle
+        if (hiddenGames.length > 0) {
+            const notice = document.createElement('div');
+            notice.className = 'hidden-games-notice';
+            
+            const noticeId = 'hiddenGamesNotice_' + Date.now();
+            notice.innerHTML = `
+                <div class="hidden-notice-text">
+                    <span class="hidden-notice-icon">🔒</span>
+                    <span><strong>${hiddenGames.length}</strong> game${hiddenGames.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span>
+                </div>
+                <button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>
+            `;
+            container.appendChild(notice);
+
+            // Hidden games list container (starts collapsed)
+            const hiddenContainer = document.createElement('div');
+            hiddenContainer.className = 'hidden-games-container';
+            hiddenContainer.id = noticeId;
+            hiddenContainer.style.display = 'none';
+
+            hiddenGames.sort((a, b) => a.size - b.size); // Smallest first
+            hiddenGames.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card hidden-game';
+                card.title = `Requires ${game.size} GB (only ${availableSpace.toFixed(1)} GB free)`;
+                card.innerHTML = `
+                    <div class="game-info">
+                        <span class="game-lock-icon">🔒</span>
+                        <span class="game-title">${game.name}</span>
+                    </div>
+                    <span class="game-size" style="color:#888;">${game.size} GB</span>
+                `;
+                hiddenContainer.appendChild(card);
+            });
+            container.appendChild(hiddenContainer);
+        }
+
+        // Render fitting games
+        if (fittingGames.length === 0 && hiddenGames.length > 0) {
+            const emptyMsg = document.createElement('p');
+            emptyMsg.style.textAlign = 'center';
+            emptyMsg.style.color = '#888';
+            emptyMsg.style.margin = '10px 0';
+            emptyMsg.innerText = 'No more games fit in your remaining storage.';
+            container.appendChild(emptyMsg);
+        }
+
+        fittingGames.forEach(game => {
             const isSelected = selectedGames.has(game.name);
             const card = document.createElement('div');
             card.className = `game-card ${isSelected ? 'selected' : ''}`;
@@ -1919,6 +2067,21 @@
             container.appendChild(card);
         });
         updateSdLimit();
+    }
+
+    function toggleHiddenGames(containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        const notice = container.previousElementSibling;
+        const toggleBtn = notice ? notice.querySelector('.hidden-notice-toggle') : null;
+        
+        if (container.style.display === 'none') {
+            container.style.display = 'flex';
+            if (toggleBtn) toggleBtn.textContent = 'Hide';
+        } else {
+            container.style.display = 'none';
+            if (toggleBtn) toggleBtn.textContent = 'Show';
+        }
     }
 
     function toggleGame(name, size, isChecked, cardElement) {
@@ -2313,43 +2476,26 @@
     }
 
     function chooseNewOrder() {
-        // Keep phone number, reset everything else
         currentEditingOrderId = null;
         selectedGames.clear();
         
-        // Reset mode checkboxes
         document.getElementById('androidModeCheck').checked = false;
         document.getElementById('linuxModeCheck').checked = false;
-        
-        // Reset remarks
         document.getElementById('orderRemarks').value = '';
-        
-        // Reset service type to default
         document.getElementById('serviceTypeSelect').value = 'jailbreak';
-        
-        // Reset console model to default
         document.getElementById('consoleModelSelect').value = 'OLED';
-        
-        // Reset SD source to own
         document.getElementById('sdSourceSelect').value = 'own';
-        
-        // Reset free storage input
         document.getElementById('userFreeStorageInput').value = '';
-        
-        // Reset search
         document.getElementById('searchInput').value = '';
         
-        // Re-populate SD card options & refresh UI
         populateSdCardOptions();
         toggleServiceFields();
         updateSdLimit();
         filterGames();
         
-        // Hide edit banner & new-order button (since we're now in fresh mode)
         hideEditModeBanner();
         updateNewOrderBtnVisibility();
         
-        // Clear URL params to avoid re-triggering auto-load
         window.history.replaceState({}, '', window.location.pathname);
         
         closeLoadChoiceModal();
