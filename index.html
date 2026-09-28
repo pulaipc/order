@@ -181,11 +181,11 @@
             gap: 8px;
             width: 100%;
             align-items: stretch;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
         }
         .phone-load-row .phone-input {
             flex: 1 1 auto;
-            min-width: 100px;
+            min-width: 0;
         }
         .load-order-btn {
             flex: 0 0 auto;
@@ -212,12 +212,6 @@
         .load-order-btn .btn-icon {
             font-size: 15px;
             line-height: 1;
-        }
-        @media (max-width: 380px) {
-            .load-order-btn {
-                flex: 1 1 100%;
-                justify-content: center;
-            }
         }
         .returning-hint {
             background: #16202a;
@@ -930,6 +924,15 @@
             .checkout-info {
                 font-size: 12.5px;
             }
+            /* Collapse Load Order button to icon-only on tiny screens */
+            .load-order-btn span:not(.btn-icon) {
+                display: none;
+            }
+            .load-order-btn {
+                padding: 12px 14px;
+                min-width: 46px;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -992,7 +995,7 @@
                     <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
                     <button type="button" class="load-order-btn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
                         <span class="btn-icon">📂</span>
-                        <span>Load My Order</span>
+                        <span class="btn-text">Load Order</span>
                     </button>
                 </div>
                 <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
@@ -1001,7 +1004,7 @@
             <!-- RETURNING USER HINT -->
             <div class="returning-hint">
                 <span class="hint-icon">↩️</span>
-                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load My Order"</strong> to edit your previous selection. New customers can skip this and start below.</span>
+                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load Order"</strong> to edit your previous selection. New customers can skip this and start below.</span>
             </div>
 
             <div class="config-row">
@@ -1855,7 +1858,7 @@
         const statusMsg = document.getElementById('statusMsg');
 
         if (phone.length !== 4) {
-            alert('ℹ️ "Load My Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number in the field to the left first!');
+            alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number in the field to the left first!');
             phoneInput.focus();
             phoneInput.classList.add('required-missing');
             return;
@@ -2501,7 +2504,7 @@
             return;
         }
         const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${businessWhatsAppNumber}?text=${encodedMessage}`;
+        const whatsappUrl = `https://wa.me/${business-WhatsAppNumber}?text=${encodedMessage}`;
         
         window.open(whatsappUrl, '_blank');
     }
