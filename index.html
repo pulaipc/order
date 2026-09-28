@@ -201,16 +201,26 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            transition: background-color 0.2s, color 0.2s;
+            transition: background-color 0.2s, color 0.2s, opacity 0.2s;
         }
-        .load-order-btn:hover {
+        .load-order-btn:hover:not(:disabled) {
             background-color: #2196F3;
             color: #ffffff;
+        }
+        .load-order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .load-order-btn.loading {
+            background-color: #2e2716;
+            color: #2196F3;
+            border-color: #2196F3;
         }
         .load-order-btn .btn-icon {
             font-size: 15px;
             line-height: 1;
         }
+
         .returning-hint {
             background: #16202a;
             border: 1px solid #2196F3;
@@ -456,6 +466,10 @@
             color: #ffc000;
             margin-bottom: 15px;
             min-height: 20px;
+            transition: opacity 0.4s ease;
+        }
+        .status-msg.fading {
+            opacity: 0;
         }
         .jailbreak-notice-card {
             background: #2a2108;
@@ -1240,9 +1254,9 @@
             <div class="field-group">
                 <div class="phone-load-row">
                     <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
-                    <button type="button" class="load-order-btn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
-                        <span class="btn-icon">📂</span>
-                        <span class="btn-text">Load Order</span>
+                    <button type="button" class="load-order-btn" id="loadOrderBtn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
+                        <span class="btn-icon" id="loadOrderIcon">📂</span>
+                        <span class="btn-text" id="loadOrderText">Load Order</span>
                     </button>
                 </div>
                 <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
@@ -1293,7 +1307,7 @@
                 </div>
 
                 <div id="freeStorageContainer" class="free-storage-container">
-                    <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" step="1" inputmode="numeric" oninput="updateSdLimit()">
+                    <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
                     <button type="button" class="guide-btn" onclick="toggleStorageGuide()">❓ How to check free storage?</button>
                     <span class="field-hint">Remaining GB available on your Switch SD card</span>
                 </div>
@@ -1457,6 +1471,8 @@
     let isStorageConfigured = false;
     let currentEditingOrderId = null;   // Track which order is being edited (null = new order)
     let pendingLoadedOrder = null;      // Holds order data while choice popup is showing
+    let currentLoadedPhone = null;      // Track which phone's order is currently loaded
+    let statusMsgTimeout = null;        // For auto-dismissing status messages
 
     window.onload = function() {
         const savedSdSource = localStorage.getItem('userSdSource');
@@ -1534,6 +1550,45 @@
         }
     };
 
+    /* ---------- STATUS MESSAGE HELPER (auto-dismiss) ---------- */
+    function setStatusMessage(text, color = '#ffc000', autoDismissMs = 6000) {
+        const statusMsg = document.getElementById('statusMsg');
+        if (!statusMsg) return;
+
+        // Clear any previous timer
+        if (statusMsgTimeout) {
+            clearTimeout(statusMsgTimeout);
+            statusMsgTimeout = null;
+        }
+
+        statusMsg.classList.remove('fading');
+        statusMsg.style.color = color;
+        statusMsg.innerText = text;
+
+        if (autoDismissMs > 0) {
+            statusMsgTimeout = setTimeout(() => {
+                statusMsg.classList.add('fading');
+                setTimeout(() => {
+                    if (statusMsg.classList.contains('fading')) {
+                        statusMsg.innerText = '';
+                        statusMsg.classList.remove('fading');
+                    }
+                }, 400);
+            }, autoDismissMs);
+        }
+    }
+
+    function clearStatusMessage() {
+        const statusMsg = document.getElementById('statusMsg');
+        if (!statusMsg) return;
+        if (statusMsgTimeout) {
+            clearTimeout(statusMsgTimeout);
+            statusMsgTimeout = null;
+        }
+        statusMsg.classList.remove('fading');
+        statusMsg.innerText = '';
+    }
+
     function populateSdCardOptions() {
         const sdSelect = document.getElementById('sdCardSelect');
         if (!sdSelect) return;
@@ -1606,10 +1661,26 @@
     }
 
     function savePhone() {
-        const phone = document.getElementById('phoneInput').value.trim();
+        const phoneInput = document.getElementById('phoneInput');
+        const phone = phoneInput.value.trim();
         localStorage.setItem('userPhone4', phone);
         if (phone.length >= 4) {
-            document.getElementById('phoneInput').classList.remove('required-missing');
+            phoneInput.classList.remove('required-missing');
+        }
+
+        // FIX #1: Hide edit-mode banner if phone becomes invalid while editing
+        if (currentEditingOrderId && phone.length < 4) {
+            hideEditModeBanner();
+        } else if (currentEditingOrderId && phone.length === 4 && currentLoadedPhone === phone) {
+            // Same phone, still editing — ensure banner is visible
+            showEditModeBanner();
+        }
+
+        // FIX #5: Guard auto-exit check (only run if editing an order)
+        if (currentEditingOrderId && currentLoadedPhone && phone !== currentLoadedPhone) {
+            if (phone.length === 4) {
+                autoExitEditModeForNewPhone(phone);
+            }
         }
     }
 
@@ -1769,7 +1840,13 @@
             document.getElementById('storageBreakdown').innerHTML = breakdownText;
 
         } else {
-            const userSpace = parseFloat(freeInput.value);
+            let userSpace = parseFloat(freeInput.value);
+
+            // FIX #4: Cap free storage input at reasonable max
+            if (!isNaN(userSpace) && userSpace > 2048) {
+                userSpace = 2048;
+                freeInput.value = 2048;
+            }
 
             if (isNaN(userSpace) || userSpace <= 0) {
                 usableStorageLimit = 0;
@@ -1833,15 +1910,12 @@
             document.getElementById('androidModeCheck').checked = false;
             document.getElementById('linuxModeCheck').checked = false;
             currentEditingOrderId = null;
+            currentLoadedPhone = null;
             hideEditModeBanner();
             toggleServiceFields();
             updateSdLimit();
             filterGames();
-            const statusMsg = document.getElementById('statusMsg');
-            if (statusMsg) {
-                statusMsg.style.color = '#ff5252';
-                statusMsg.innerText = 'Selections cleared.';
-            }
+            setStatusMessage('Selections cleared.', '#ff5252', 4000);
         }
     }
 
@@ -1853,6 +1927,36 @@
     function hideEditModeBanner() {
         const banner = document.getElementById('editModeBanner');
         if (banner) banner.style.display = 'none';
+    }
+
+    function autoExitEditModeForNewPhone(newPhone) {
+        // Silently exit edit mode — no confirm needed since user already changed the phone
+        currentEditingOrderId = null;
+        currentLoadedPhone = null;
+        selectedGames.clear();
+
+        // Reset all form state to defaults (keep the new phone number)
+        document.getElementById('androidModeCheck').checked = false;
+        document.getElementById('linuxModeCheck').checked = false;
+        document.getElementById('orderRemarks').value = '';
+        document.getElementById('serviceTypeSelect').value = 'jailbreak';
+        document.getElementById('consoleModelSelect').value = 'OLED';
+        document.getElementById('sdSourceSelect').value = 'own';
+        document.getElementById('userFreeStorageInput').value = '';
+        document.getElementById('searchInput').value = '';
+
+        // Clear URL params so we don't accidentally re-load the old order
+        window.history.replaceState({}, '', window.location.pathname);
+
+        // Refresh UI
+        populateSdCardOptions();
+        toggleServiceFields();
+        updateSdLimit();
+        filterGames();
+
+        hideEditModeBanner();
+
+        setStatusMessage(`✨ Cleared previous order. Now starting a new order for phone "${newPhone}".`, '#00e676', 6000);
     }
 
     function renderGames(list) {
@@ -1876,11 +1980,9 @@
         
         list.forEach(game => {
             const isSelected = selectedGames.has(game.name);
-            // Always show selected games (so user can uncheck them)
             if (isSelected) {
                 fittingGames.push(game);
             } else if (usableStorageLimit <= 0) {
-                // No storage configured yet — show all
                 fittingGames.push(game);
             } else if (game.size <= availableSpace) {
                 fittingGames.push(game);
@@ -1904,13 +2006,12 @@
             `;
             container.appendChild(notice);
 
-            // Hidden games list container (starts collapsed)
             const hiddenContainer = document.createElement('div');
             hiddenContainer.className = 'hidden-games-container';
             hiddenContainer.id = noticeId;
             hiddenContainer.style.display = 'none';
 
-            hiddenGames.sort((a, b) => a.size - b.size); // Smallest first
+            hiddenGames.sort((a, b) => a.size - b.size);
             hiddenGames.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
@@ -2039,8 +2140,6 @@
             if (cardElement) cardElement.classList.remove('selected');
         }
         updateSdLimit();
-        
-        // Re-filter to dynamically update hidden games based on new remaining storage
         filterGames();
     }
 
@@ -2270,7 +2369,9 @@
     async function fetchExistingOrder() {
         const phoneInput = document.getElementById('phoneInput');
         const phone = phoneInput.value.trim();
-        const statusMsg = document.getElementById('statusMsg');
+        const loadBtn = document.getElementById('loadOrderBtn');
+        const loadBtnText = document.getElementById('loadOrderText');
+        const loadBtnIcon = document.getElementById('loadOrderIcon');
 
         if (phone.length !== 4) {
             alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first!');
@@ -2279,10 +2380,17 @@
             return;
         }
 
-        if (statusMsg) {
-            statusMsg.style.color = '#2196F3';
-            statusMsg.innerText = 'Searching for your saved order...';
+        // FIX #13: Loading state on button
+        const originalText = loadBtnText ? loadBtnText.textContent : 'Load Order';
+        const originalIcon = loadBtnIcon ? loadBtnIcon.textContent : '📂';
+        if (loadBtn) {
+            loadBtn.disabled = true;
+            loadBtn.classList.add('loading');
         }
+        if (loadBtnIcon) loadBtnIcon.textContent = '⏳';
+        if (loadBtnText) loadBtnText.textContent = 'Searching...';
+
+        setStatusMessage('Searching for your saved order...', '#2196F3', 0);
 
         try {
             const { data, error } = await supabaseClient
@@ -2298,38 +2406,31 @@
                 const order = data[0];
                 pendingLoadedOrder = order;
                 showLoadChoiceModal(order);
-                
-                if (statusMsg) {
-                    statusMsg.style.color = '#ffc000';
-                    statusMsg.innerText = '💡 Choose an option in the popup to continue.';
-                }
+                setStatusMessage('💡 Choose an option in the popup to continue.', '#ffc000', 0);
             } else {
                 currentEditingOrderId = null;
+                currentLoadedPhone = null;
                 hideEditModeBanner();
 
                 alert(`ℹ️ No previous order found for phone "${phone}".\n\nYou can start a new order below!`);
-
-                if (statusMsg) {
-                    statusMsg.style.color = '#ff9800';
-                    statusMsg.innerText = 'No order found. Start a new order below!';
-                }
+                setStatusMessage('No order found. Start a new order below!', '#ff9800', 5000);
             }
         } catch (err) {
             console.error(err);
-            if (statusMsg) {
-                statusMsg.style.color = '#ff5252';
-                statusMsg.innerText = 'Failed to lookup order.';
+            setStatusMessage('Failed to lookup order.', '#ff5252', 5000);
+        } finally {
+            // Restore button state
+            if (loadBtn) {
+                loadBtn.disabled = false;
+                loadBtn.classList.remove('loading');
             }
+            if (loadBtnIcon) loadBtnIcon.textContent = originalIcon;
+            if (loadBtnText) loadBtnText.textContent = originalText;
         }
     }
 
     async function loadSpecificOrderById(orderId) {
-        const statusMsg = document.getElementById('statusMsg');
-
-        if (statusMsg) {
-            statusMsg.style.color = '#2196F3';
-            statusMsg.innerText = 'Loading shared order...';
-        }
+        setStatusMessage('Loading shared order...', '#2196F3', 0);
 
         try {
             const { data, error } = await supabaseClient
@@ -2345,6 +2446,7 @@
             }
 
             currentEditingOrderId = data.id;
+            currentLoadedPhone = data.phone_ending || null;
             
             if (data.phone_ending) {
                 document.getElementById('phoneInput').value = data.phone_ending;
@@ -2352,17 +2454,10 @@
             }
 
             applyLoadedOrder(data);
-            
-            if (statusMsg) {
-                statusMsg.style.color = '#ffc000';
-                statusMsg.innerText = `✅ Loaded shared order! (${selectedGames.size} games)`;
-            }
+            setStatusMessage(`✅ Loaded shared order! (${selectedGames.size} games)`, '#ffc000', 6000);
         } catch (err) {
             console.error(err);
-            if (statusMsg) {
-                statusMsg.style.color = '#ff5252';
-                statusMsg.innerText = 'Failed to load shared order.';
-            }
+            setStatusMessage('Failed to load shared order.', '#ff5252', 5000);
         }
     }
 
@@ -2399,9 +2494,10 @@
         document.getElementById('loadChoiceModal').style.display = 'none';
         pendingLoadedOrder = null;
         
+        // Clear status message if it's the "choose an option" one
         const statusMsg = document.getElementById('statusMsg');
         if (statusMsg && statusMsg.innerText.includes('popup')) {
-            statusMsg.innerText = '';
+            clearStatusMessage();
         }
     }
 
@@ -2413,18 +2509,16 @@
 
         const order = pendingLoadedOrder;
         currentEditingOrderId = order.id;
+        currentLoadedPhone = order.phone_ending || null;
         applyLoadedOrder(order);
         closeLoadChoiceModal();
 
-        const statusMsg = document.getElementById('statusMsg');
-        if (statusMsg) {
-            statusMsg.style.color = '#ffc000';
-            statusMsg.innerText = `✅ Loaded your order for editing (${selectedGames.size} games)`;
-        }
+        setStatusMessage(`✅ Loaded your order for editing (${selectedGames.size} games)`, '#ffc000', 6000);
     }
 
     function chooseNewOrder() {
         currentEditingOrderId = null;
+        currentLoadedPhone = null;
         selectedGames.clear();
         
         document.getElementById('androidModeCheck').checked = false;
@@ -2447,11 +2541,7 @@
         
         closeLoadChoiceModal();
         
-        const statusMsg = document.getElementById('statusMsg');
-        if (statusMsg) {
-            statusMsg.style.color = '#00e676';
-            statusMsg.innerText = '✨ New order started. Pick your selection below.';
-        }
+        setStatusMessage('✨ New order started. Pick your selection below.', '#00e676', 5000);
     }
 
     function applyLoadedOrder(order) {
@@ -2835,7 +2925,6 @@
         breakdownBox.innerHTML = breakdownHtml;
         modalBody.appendChild(breakdownBox);
 
-        // Shareable link row
         const shareLinkTitle = document.createElement('div');
         shareLinkTitle.className = 'modal-section-title';
         shareLinkTitle.style.marginTop = '10px';
@@ -2953,6 +3042,13 @@
     }
 
     async function submitOrUpdateOrder() {
+        // FIX #2: Guard submit — storage must be configured
+        if (!isStorageConfigured) {
+            alert('Please configure your storage settings before saving.');
+            closeCartModal();
+            return;
+        }
+
         if (!validatePhoneProvided()) return;
 
         const phone = document.getElementById('phoneInput').value.trim();
@@ -2989,7 +3085,6 @@
             }
         }
 
-        // Safety check: if editing existing order, confirm before overwriting
         if (currentEditingOrderId) {
             const confirmEdit = confirm(
                 `📝 You are EDITING an existing order.\n\n` +
@@ -3050,6 +3145,7 @@
 
                 if (error) throw error;
                 savedOrderId = currentEditingOrderId;
+                currentLoadedPhone = phone;
                 alert('✅ Order updated successfully!');
             } else {
                 orderData.created_at = nowIso;
@@ -3060,21 +3156,33 @@
 
                 if (error) throw error;
                 
-                if (insertedData && insertedData.length > 0) {
+                // FIX #7: Fallback if insert doesn't return data
+                if (insertedData && insertedData.length > 0 && insertedData[0].id) {
                     savedOrderId = insertedData[0].id;
+                } else {
+                    // Fallback: query for the just-inserted order
+                    const { data: fallbackData } = await supabaseClient
+                        .from('orders')
+                        .select('id')
+                        .eq('phone_ending', phone)
+                        .eq('created_at', nowIso)
+                        .limit(1);
+                    
+                    if (fallbackData && fallbackData.length > 0) {
+                        savedOrderId = fallbackData[0].id;
+                    }
+                }
+
+                if (savedOrderId) {
                     currentEditingOrderId = savedOrderId;
+                    currentLoadedPhone = phone;
                 }
                 
                 alert('✅ New order saved successfully!');
             }
 
             closeCartModal();
-            
-            const statusMsg = document.getElementById('statusMsg');
-            if (statusMsg) {
-                statusMsg.innerText = 'Order successfully saved!';
-            }
-
+            setStatusMessage('Order successfully saved!', '#00e676', 5000);
             showEditModeBanner();
 
             shareOrderViaWhatsApp();
@@ -3146,7 +3254,23 @@
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${businessWhatsAppNumber}?text=${encodedMessage}`;
         
-        window.open(whatsappUrl, '_blank');
+        // FIX #15: More reliable WhatsApp open on mobile browsers
+        // Using an anchor with target="_blank" works on more browsers than window.open
+        try {
+            const waLink = document.createElement('a');
+            waLink.href = whatsappUrl;
+            waLink.target = '_blank';
+            waLink.rel = 'noopener noreferrer';
+            waLink.style.display = 'none';
+            document.body.appendChild(waLink);
+            waLink.click();
+            setTimeout(() => {
+                document.body.removeChild(waLink);
+            }, 100);
+        } catch (err) {
+            // Fallback to window.open
+            window.open(whatsappUrl, '_blank');
+        }
     }
     </script>
 </body>
