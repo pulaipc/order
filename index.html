@@ -172,6 +172,105 @@
             border: 2px solid #ff5252 !important;
             background-color: #2c1a1a !important;
         }
+
+        /* ============================ */
+        /* PHONE + LOAD ORDER ROW       */
+        /* ============================ */
+        .phone-load-row {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .phone-load-row .phone-input {
+            flex: 1 1 auto;
+            min-width: 100px;
+        }
+        .load-order-btn {
+            flex: 0 0 auto;
+            background-color: #2e2716;
+            color: #2196F3;
+            border: 1px solid #2196F3;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .load-order-btn:hover {
+            background-color: #2196F3;
+            color: #ffffff;
+        }
+        .load-order-btn .btn-icon {
+            font-size: 15px;
+            line-height: 1;
+        }
+        @media (max-width: 380px) {
+            .load-order-btn {
+                flex: 1 1 100%;
+                justify-content: center;
+            }
+        }
+        .returning-hint {
+            background: #16202a;
+            border: 1px solid #2196F3;
+            border-left: 3px solid #2196F3;
+            color: #cfe6ff;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            margin-top: 8px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+        .returning-hint .hint-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .returning-hint strong {
+            color: #64b5f6;
+        }
+
+        /* ============================ */
+        /* CLEAR GAMES (standalone)     */
+        /* ============================ */
+        .clear-games-row {
+            display: flex;
+            justify-content: flex-start;
+            width: 100%;
+        }
+        .clear-btn {
+            background-color: #453a22;
+            color: #ff5252;
+            border: 1px solid #ff5252;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .clear-btn:hover {
+            background-color: #ff5252;
+            color: white;
+        }
+
         .guide-btn {
             background: #2e2716;
             color: #ffc000;
@@ -218,48 +317,6 @@
             color: #888;
             margin-top: 4px;
             line-height: 1.35;
-        }
-        .btn-group-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            width: 100%;
-        }
-        .btn-group {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .lookup-btn, .clear-btn {
-            flex: 1 1 auto;
-            padding: 12px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            white-space: nowrap;
-            font-family: inherit;
-            min-height: 44px;
-        }
-        .lookup-btn {
-            background-color: #2e2716;
-            color: #2196F3;
-            border: 1px solid #2196F3;
-        }
-        .lookup-btn:hover {
-            background-color: #2196F3;
-            color: #ffffff;
-        }
-        .clear-btn {
-            background-color: #453a22;
-            color: #ff5252;
-            border: 1px solid #ff5252;
-            font-weight: bold;
-            flex: 0 1 auto;
-        }
-        .clear-btn:hover {
-            background-color: #ff5252;
-            color: white;
         }
         .storage-warning-banner {
             background: #3a1c00;
@@ -806,9 +863,6 @@
             .mode-wrapper {
                 flex: 1;
             }
-            .btn-group .lookup-btn {
-                flex: 1 1 auto;
-            }
             .checkout-bar {
                 flex-direction: row;
                 align-items: center;
@@ -932,12 +986,25 @@
         </details>
 
         <div class="config-card">
-            <div class="config-row">
-                <div class="field-group">
+            <!-- PHONE + LOAD ORDER (Grouped Together) -->
+            <div class="field-group">
+                <div class="phone-load-row">
                     <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
-                    <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
+                    <button type="button" class="load-order-btn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
+                        <span class="btn-icon">📂</span>
+                        <span>Load My Order</span>
+                    </button>
                 </div>
+                <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
+            </div>
 
+            <!-- RETURNING USER HINT -->
+            <div class="returning-hint">
+                <span class="hint-icon">↩️</span>
+                <span><strong>Returning customer?</strong> Enter your phone digits above, then tap <strong>"Load My Order"</strong> to edit your previous selection. New customers can skip this and start below.</span>
+            </div>
+
+            <div class="config-row">
                 <div class="field-group">
                     <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
                         <option value="jailbreak">Full Jailbreak (Free 3 Games)</option>
@@ -975,14 +1042,6 @@
                     <button type="button" class="guide-btn" onclick="toggleStorageGuide()">❓ How to check free storage?</button>
                     <span class="field-hint">Remaining GB available on your Switch SD card</span>
                 </div>
-
-                <div class="btn-group-wrapper">
-                    <div class="btn-group">
-                        <button class="lookup-btn" onclick="fetchExistingOrder()" title="Returning customer? Load your saved game list">📂 Load Saved Order</button>
-                        <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">Clear Games</button>
-                    </div>
-                    <span class="field-hint">Retrieve existing order or reset game choices</span>
-                </div>
             </div>
 
             <div id="storageGuideBox" class="storage-guide-box">
@@ -1019,6 +1078,13 @@
 
             <div id="storageBreakdown" class="storage-breakdown">
                 Usable Space: <span id="maxUsableLabel">--</span> GB
+            </div>
+
+            <!-- CLEAR GAMES (Standalone row at bottom of config card) -->
+            <div class="clear-games-row">
+                <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
+                    🗑️ Clear All Games & Selections
+                </button>
             </div>
         </div>
 
@@ -1789,7 +1855,7 @@
         const statusMsg = document.getElementById('statusMsg');
 
         if (phone.length !== 4) {
-            alert('ℹ️ "Load Saved Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number in the top field!');
+            alert('ℹ️ "Load My Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number in the field to the left first!');
             phoneInput.focus();
             phoneInput.classList.add('required-missing');
             return;
@@ -1850,7 +1916,7 @@
 
                 if (statusMsg) {
                     statusMsg.style.color = '#ffc000';
-                    statusMsg.innerText = `Loaded previous order! (${selectedGames.size} games found)`;
+                    statusMsg.innerText = `✅ Loaded previous order! (${selectedGames.size} games found)`;
                 }
             } else {
                 alert('No previous saved order found for ID "' + phone + '". If this is your first visit, you can start picking games below!');
