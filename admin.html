@@ -833,10 +833,7 @@
                                 <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
                             </div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">📋 Copy List for Script</button>
-                            <div style="font-size:12px; color:#888;">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
-                        </div>
+                        <div style="font-size:12px; color:#888;">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
                     </div>
                     <div class="order-body">
                         <div>
@@ -845,8 +842,11 @@
                             <strong>Remarks:</strong> ${order.remarks || 'None'}
                         </div>
                         <div>
-                            <strong>Games (${gameList.length}):</strong>
-                            <div style="max-height:80px; overflow-y:auto; font-size:12px; margin-top:4px;">${gamesPreview}</div>
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                                <strong>Games (${gameList.length}):</strong>
+                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">📋 Copy List for Script</button>
+                            </div>
+                            <div style="max-height:80px; overflow-y:auto; font-size:12px;">${gamesPreview}</div>
                         </div>
                     </div>
                     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
