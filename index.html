@@ -534,8 +534,10 @@
             gap: 12px;
             border: 1px solid #2e2716;
             cursor: pointer;
-            transition: border-color 0.2s, background-color 0.2s;
+            transition: border-color 0.15s, background-color 0.15s;
             min-height: 52px;
+            /* Hint to browser: this element's class will change frequently */
+            will-change: border-color, background-color;
         }
         .game-card.selected {
             border-color: #ffc000;
@@ -1480,6 +1482,7 @@
     let pendingLoadedOrder = null;
     let currentLoadedPhone = null;
     let statusMsgTimeout = null;
+    let gamesRerenderTimer = null;
 
     window.onload = function() {
         // Parse URL params — supports ?phone=XXXX (latest) or ?order=UUID (specific)
@@ -1503,7 +1506,7 @@
             }
         }
 
-        // Restore saved service type (only if previously chosen)
+        // Restore saved service type
         const savedService = localStorage.getItem('userServiceType');
         if (savedService && ['jailbreak', 'system_setup', 'games_only'].includes(savedService)) {
             document.getElementById('serviceTypeSelect').value = savedService;
@@ -1521,7 +1524,7 @@
             document.getElementById('sdSourceSelect').value = savedSdSource;
         }
 
-        // Populate SD card options (with placeholder)
+        // Populate SD card options
         populateSdCardOptions();
 
         // Restore saved SD card size
@@ -1594,6 +1597,78 @@
         statusMsg.innerText = '';
     }
 
+    /* ---------- LIGHTWEIGHT UPDATE (no full re-render) ---------- */
+    function updateStorageBreakdownAndCart() {
+        const serviceType = document.getElementById('serviceTypeSelect').value;
+        const consoleModel = document.getElementById('consoleModelSelect').value;
+        const sdSource = document.getElementById('sdSourceSelect').value;
+        
+        let currentGamesSize = 0;
+        selectedGames.forEach(size => { currentGamesSize += size; });
+
+        if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
+            if (!isStorageConfigured) {
+                updateCartSummary();
+                return;
+            }
+
+            let baseSystemOverhead = 0;
+            let partitionPerMode = 0;
+            if (maxSdSize <= 64) {
+                baseSystemOverhead = 8;
+            } else if (maxSdSize <= 128) {
+                baseSystemOverhead = 10;
+                partitionPerMode = 10;
+            } else if (maxSdSize <= 256) {
+                baseSystemOverhead = 16;
+                partitionPerMode = 16;
+            } else if (maxSdSize <= 512) {
+                baseSystemOverhead = 20;
+                partitionPerMode = 20;
+            } else {
+                baseSystemOverhead = 32;
+                partitionPerMode = 32;
+            }
+
+            const androidChecked = document.getElementById('androidModeCheck');
+            const linuxChecked = document.getElementById('linuxModeCheck');
+            let totalDeduction = baseSystemOverhead;
+            if (androidChecked.checked) totalDeduction += partitionPerMode;
+            if (linuxChecked.checked) totalDeduction += partitionPerMode;
+            usableStorageLimit = Math.max(0, maxSdSize - totalDeduction);
+
+            let formattedSdSize = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
+            let cardSourceDesc = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
+            let serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModel})` : 'System Setup';
+            let breakdownText = `Service: ${serviceLabel} | SD: ${formattedSdSize} (${cardSourceDesc}) | System OS: -${baseSystemOverhead}GB`;
+            if (androidChecked.checked) breakdownText += ` | Android: -${partitionPerMode}GB`;
+            if (linuxChecked.checked) breakdownText += ` | Linux: -${partitionPerMode}GB`;
+            breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usableStorageLimit} GB</strong>`;
+            document.getElementById('storageBreakdown').innerHTML = breakdownText;
+
+        } else if (serviceType === 'games_only') {
+            if (!isStorageConfigured) {
+                updateCartSummary();
+                return;
+            }
+            const userSpace = usableStorageLimit;
+            let breakdownText = `Service: Games Only | Stated Free Storage: ${userSpace} GB`;
+            breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usableStorageLimit - currentGamesSize).toFixed(1)} GB</strong>`;
+            document.getElementById('storageBreakdown').innerHTML = breakdownText;
+        }
+
+        updateCartSummary();
+    }
+
+    /* ---------- DEBOUNCED FULL RE-RENDER ---------- */
+    function scheduleGamesRerender() {
+        if (gamesRerenderTimer) clearTimeout(gamesRerenderTimer);
+        gamesRerenderTimer = setTimeout(() => {
+            gamesRerenderTimer = null;
+            filterGames();
+        }, 120);
+    }
+
     function populateSdCardOptions() {
         const sdSelect = document.getElementById('sdCardSelect');
         if (!sdSelect) return;
@@ -1603,7 +1678,6 @@
         
         sdSelect.innerHTML = '';
 
-        // Placeholder option — forces explicit selection
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.disabled = true;
@@ -1683,14 +1757,12 @@
             phoneInput.classList.remove('required-missing');
         }
 
-        // Hide edit-mode banner if phone becomes invalid while editing
         if (currentEditingOrderId && phone.length < 4) {
             hideEditModeBanner();
         } else if (currentEditingOrderId && phone.length === 4 && currentLoadedPhone === phone) {
             showEditModeBanner();
         }
 
-        // Guard auto-exit check
         if (currentEditingOrderId && currentLoadedPhone && phone !== currentLoadedPhone) {
             if (phone.length === 4) {
                 autoExitEditModeForNewPhone(phone);
@@ -1713,7 +1785,6 @@
         const jailbreakNoticeCard = document.getElementById('jailbreakNoticeCard');
         const gameSectionWrapper = document.getElementById('gameSectionWrapper');
 
-        // If nothing is selected yet, hide everything optional
         if (!serviceType) {
             consoleModelGroup.style.display = 'none';
             sdSourceGroup.style.display = 'none';
@@ -1789,7 +1860,6 @@
         const browseBtn = document.getElementById('browseGamesBtn');
         const submitBtn = document.getElementById('mainSubmitBtn');
 
-        // Handle "nothing selected yet" state
         if (!serviceType) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1806,7 +1876,6 @@
             return;
         }
 
-        // Jailbreak requires console model
         if (serviceType === 'jailbreak' && !consoleModel) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1823,7 +1892,6 @@
             return;
         }
 
-        // Jailbreak/System Setup requires SD source
         if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !sdSource) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1840,14 +1908,12 @@
             return;
         }
 
-        // Populate SD card dropdown based on selected source (own vs buy)
+        // Populate SD card dropdown based on selected source
         populateSdCardOptions();
 
-        // Re-read SD card value after populating
         const refreshedSdCardValue = sdCardSelect ? sdCardSelect.value : '';
         maxSdSize = parseInt(refreshedSdCardValue) || 0;
 
-        // Jailbreak/System Setup requires SD card size
         if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !refreshedSdCardValue) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
@@ -1944,7 +2010,6 @@
         } else {
             let userSpace = parseFloat(freeInput.value);
 
-            // Cap free storage input at reasonable max
             if (!isNaN(userSpace) && userSpace > 2048) {
                 userSpace = 2048;
                 freeInput.value = 2048;
@@ -2001,10 +2066,10 @@
             gamesToRemove.forEach(name => selectedGames.delete(name));
         }
         
-        // Always re-render the game list so hidden games update when storage changes
+        // Debounced re-render (not immediate) so rapid config changes don't lag
         const gameSectionEl = document.getElementById('gameSectionWrapper');
         if (gameSectionEl && gameSectionEl.style.display !== 'none') {
-            filterGames();
+            scheduleGamesRerender();
         }
         
         updateCartSummary();
@@ -2212,7 +2277,8 @@
             card.appendChild(sizeSpan);
             container.appendChild(card);
         });
-        updateSdLimit();
+        // NOTE: intentionally NOT calling updateSdLimit() here — it would create a
+        // render → update → render loop. The caller updates storage breakdown separately.
     }
 
     function toggleHiddenGames(containerId) {
@@ -2230,6 +2296,8 @@
         }
     }
 
+    /* PERFORMANCE: lightweight toggle — updates only the card + storage summary,
+       then schedules a debounced re-render for hidden-games list update. */
     function toggleGame(name, size, isChecked, cardElement) {
         if (isChecked) {
             selectedGames.set(name, size);
@@ -2238,8 +2306,12 @@
             selectedGames.delete(name);
             if (cardElement) cardElement.classList.remove('selected');
         }
-        updateSdLimit();
-        filterGames();
+        
+        // Light update: storage breakdown + cart summary (no full re-render)
+        updateStorageBreakdownAndCart();
+        
+        // Debounced full re-render so hidden games list refreshes, but not on every tap
+        scheduleGamesRerender();
     }
 
     function filterGames() {
