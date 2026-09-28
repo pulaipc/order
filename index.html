@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Pulai PC Jailbreak & Game Service</title>
-    <!-- Include Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
@@ -175,8 +174,6 @@
             border: 2px solid #ff5252 !important;
             background-color: #2c1a1a !important;
         }
-
-        /* PHONE + LOAD ORDER ROW */
         .phone-load-row {
             display: flex;
             gap: 8px;
@@ -223,7 +220,6 @@
             font-size: 15px;
             line-height: 1;
         }
-
         .returning-hint {
             background: #16202a;
             border: 1px solid #2196F3;
@@ -267,8 +263,6 @@
         .edit-mode-banner strong {
             color: #ffc000;
         }
-
-        /* CLEAR BUTTON (full-width) */
         .clear-games-row {
             display: flex;
             gap: 8px;
@@ -297,7 +291,6 @@
             background-color: #ff5252;
             color: white;
         }
-
         .guide-btn {
             background: #2e2716;
             color: #ffc000;
@@ -620,7 +613,6 @@
             color: #14110a;
         }
 
-        /* Hidden (locked) game cards */
         .hidden-games-container {
             display: flex;
             flex-direction: column;
@@ -703,7 +695,6 @@
         }
         .modal-content {
             background: #221c10;
-            padding: 16px;
             border-radius: 8px;
             width: 100%;
             max-width: 520px;
@@ -712,14 +703,15 @@
             flex-direction: column;
             border: 1px solid #3a3018;
             box-sizing: border-box;
+            overflow: hidden;
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #3a3018;
-            padding-bottom: 10px;
-            margin-bottom: 14px;
+            padding: 14px 16px;
+            flex-shrink: 0;
             gap: 10px;
         }
         .modal-header h2 {
@@ -741,14 +733,25 @@
             min-width: 40px;
             flex-shrink: 0;
         }
+        /* Scrollable body (service config + games + remarks) */
         .modal-body {
             overflow-y: auto;
             flex-grow: 1;
-            margin-bottom: 14px;
+            padding: 14px 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
             -webkit-overflow-scrolling: touch;
+        }
+        /* Fixed footer (share + breakdown + save) */
+        .modal-footer-fixed {
+            border-top: 1px solid #3a3018;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            flex-shrink: 0;
+            background: #221c10;
         }
         .modal-section-title {
             font-size: 11.5px;
@@ -790,7 +793,6 @@
             color: #aaa;
             line-height: 1.35;
         }
-        /* Game items in the modal: title can shrink, Remove button stays right-aligned */
         .cart-item > span:first-child {
             flex: 1 1 auto;
             min-width: 0;
@@ -827,27 +829,113 @@
         .remove-btn:hover {
             background: #ff1744;
         }
-        .warning-box {
-            background: #2d2212;
-            border: 1px solid #e65100;
-            color: #ffb74d;
-            padding: 10px 12px;
+
+        /* COLLAPSIBLE SECTIONS (games list + remarks) */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background: #191309;
+            border: 1px solid #2e2716;
             border-radius: 6px;
-            font-size: 12.5px;
-            margin-bottom: 10px;
-            display: none;
-            line-height: 1.45;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-size: 13.5px;
+            color: #fff;
+            font-weight: 600;
+            user-select: none;
         }
-        .modal-tier-warning {
-            background: #2d2612;
-            border: 1px solid #ffca28;
-            color: #fff8e1;
-            padding: 10px 12px;
+        .collapsible-header:hover {
+            background: #201808;
+        }
+        .collapsible-header .chev {
+            color: #ffc000;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .collapsible-header.open .chev {
+            transform: rotate(180deg);
+        }
+        .collapsible-body {
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+            max-height: 320px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .collapsible-body.open {
+            display: flex;
+        }
+
+        /* Share link — more prominent */
+        .share-link-prominent {
+            background: linear-gradient(135deg, #1a2433 0%, #16202a 100%);
+            border: 1px solid #2196F3;
+            border-left: 4px solid #2196F3;
             border-radius: 6px;
-            font-size: 12.5px;
-            display: none;
-            line-height: 1.45;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
+        .share-link-prominent-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #64b5f6;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .share-link-desc {
+            font-size: 11.5px;
+            color: #cfe6ff;
+            line-height: 1.4;
+        }
+        .share-link-row {
+            display: flex;
+            gap: 6px;
+            align-items: stretch;
+            width: 100%;
+        }
+        .share-link-input {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 10px 12px;
+            background: #0d1620;
+            border: 1px solid #2196F3;
+            color: #64b5f6;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+            outline: none;
+            box-sizing: border-box;
+        }
+        .copy-link-btn {
+            flex: 0 0 auto;
+            background: #2196F3;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: bold;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.2s, color 0.2s;
+            min-height: 40px;
+        }
+        .copy-link-btn:hover {
+            background: #1976D2;
+        }
+
+        /* Price breakdown pinned above Save */
         .price-breakdown-box {
             background: #191309;
             border: 1px solid #2e2716;
@@ -856,7 +944,15 @@
             font-size: 12.5px;
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 6px;
+        }
+        .price-breakdown-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
+            font-weight: bold;
+            margin-bottom: 2px;
         }
         .price-breakdown-row {
             display: flex;
@@ -879,18 +975,10 @@
             margin-top: 2px;
             color: #fff;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
         }
-        .remarks-container {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .remarks-container label {
-            font-size: 13px;
-            color: #aaa;
-        }
+
+        /* Remarks textarea */
         .remarks-input {
             width: 100%;
             padding: 12px;
@@ -898,193 +986,37 @@
             border: 1px solid #4a4020;
             color: #fff;
             border-radius: 6px;
-            font-size: 16px;
+            font-size: 15px;
             box-sizing: border-box;
             resize: vertical;
-            min-height: 60px;
+            min-height: 70px;
             font-family: inherit;
             outline: none;
         }
         .remarks-input:focus {
             border-color: #ffc000;
         }
-        .modal-footer {
-            border-top: 1px solid #3a3018;
-            padding-top: 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .modal-footer > span {
-            flex: 1 1 100%;
-            order: 2;
-        }
-        .modal-footer > div {
-            flex: 1 1 100%;
-            order: 1;
-        }
-        .modal-footer .submit-btn {
-            width: 100%;
-        }
 
-        /* Shareable link box */
-        .share-link-box {
-            background: #191309;
-            border: 1px solid #2e2716;
+        /* Alert boxes in modal */
+        .warning-box {
+            background: #2d2212;
+            border: 1px solid #e65100;
+            color: #ffb74d;
+            padding: 10px 12px;
             border-radius: 6px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .share-link-desc {
-            font-size: 12px;
-            color: #aaa;
+            font-size: 12.5px;
+            display: none;
             line-height: 1.45;
         }
-        .share-link-row {
-            display: flex;
-            gap: 6px;
-            align-items: stretch;
-            width: 100%;
-        }
-        .share-link-input {
-            flex: 1 1 auto;
-            min-width: 0;
+        .modal-tier-warning {
+            background: #2d2612;
+            border: 1px solid #ffca28;
+            color: #fff8e1;
             padding: 10px 12px;
-            background: #221c10;
-            border: 1px solid #3a3018;
-            color: #ffc000;
             border-radius: 6px;
             font-size: 12.5px;
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .share-link-input:focus {
-            border-color: #ffc000;
-        }
-        .copy-link-btn {
-            flex: 0 0 auto;
-            background: #2196F3;
-            color: #fff;
-            border: none;
-            padding: 10px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12.5px;
-            font-weight: bold;
-            font-family: inherit;
-            white-space: nowrap;
-            transition: background 0.2s, color 0.2s;
-            min-height: 40px;
-        }
-        .copy-link-btn:hover {
-            background: #1976D2;
-        }
-
-        /* LOAD CHOICE MODAL */
-        .load-choice-content {
-            max-width: 460px;
-        }
-        .load-choice-body {
-            padding: 4px 0;
-            gap: 16px;
-        }
-        .load-choice-info {
-            background: #17120a;
-            border: 1px solid #2e2716;
-            border-radius: 6px;
-            padding: 12px 14px;
-            font-size: 13px;
-            color: #ccc;
-            line-height: 1.6;
-        }
-        .load-choice-info strong {
-            color: #ffc000;
-        }
-        .load-choice-question {
-            margin: 0;
-            font-size: 14px;
-            color: #fff;
-            font-weight: 600;
-            text-align: center;
-        }
-        .load-choice-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .load-choice-btn {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 14px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: inherit;
-            text-align: left;
-            transition: all 0.2s;
-            min-height: 62px;
-            width: 100%;
-        }
-        .load-choice-btn.edit {
-            background: #2a2108;
-            border: 1px solid #ffc000;
-            color: #ffe9a8;
-        }
-        .load-choice-btn.edit:hover {
-            background: #3a2d0a;
-            transform: translateY(-1px);
-        }
-        .load-choice-btn.new {
-            background: #1f2d1a;
-            border: 1px solid #00e676;
-            color: #c3ffdb;
-        }
-        .load-choice-btn.new:hover {
-            background: #2b3d22;
-            transform: translateY(-1px);
-        }
-        .load-choice-btn .choice-icon {
-            font-size: 26px;
-            flex-shrink: 0;
-            line-height: 1;
-        }
-        .load-choice-btn .choice-text {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 0;
-            flex: 1;
-        }
-        .load-choice-btn .choice-text strong {
-            font-size: 14.5px;
-            font-weight: 700;
-            color: #fff;
-        }
-        .load-choice-btn .choice-text small {
-            font-size: 11.5px;
-            color: inherit;
-            opacity: 0.85;
-            line-height: 1.35;
-        }
-        .load-choice-cancel {
-            background: transparent;
-            border: none;
-            color: #888;
-            padding: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            font-family: inherit;
-            text-align: center;
-            transition: color 0.2s;
-            width: 100%;
-        }
-        .load-choice-cancel:hover {
-            color: #fff;
+            display: none;
+            line-height: 1.45;
         }
 
         /* Scrollbar */
@@ -1154,20 +1086,8 @@
                 min-width: 180px;
                 padding: 12px 24px;
             }
-            .modal-footer > span {
-                flex: 1 1 auto;
-                order: 1;
-            }
-            .modal-footer > div {
-                flex: 0 0 auto;
-                order: 2;
-            }
-            .modal-footer .submit-btn {
-                width: auto;
-            }
         }
 
-        /* DESKTOP (>= 900px) */
         @media (min-width: 900px) {
             .field-group {
                 flex: 1;
@@ -1282,7 +1202,6 @@
                 <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
             </div>
 
-            <!-- EDIT MODE BANNER -->
             <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
                 <span class="edit-icon">📝</span>
                 <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
@@ -1417,64 +1336,70 @@
         <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review & Submit</button>
     </div>
 
+    <!-- CART MODAL (restructured) -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Your Selected Games & Setup</h2>
                 <button class="close-modal" onclick="closeCartModal()">&times;</button>
             </div>
+
+            <!-- Scrollable body: service config + games + remarks -->
             <div id="cartModalBody" class="modal-body"></div>
 
-            <div id="modalTierWarning" class="modal-tier-warning"></div>
-            
-            <div id="sizeWarningBox" class="warning-box">
-                ⚠️ <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. Pricing has adjusted accordingly.
-            </div>
-
-            <div class="remarks-container">
-                <label for="orderRemarks">Remarks / Notes (Optional):</label>
-                <textarea id="orderRemarks" class="remarks-input" placeholder="e.g. mention specific game DLCs, trilogies, or special requests..."></textarea>
-                <span class="field-hint">Add special notes, preferred game versions, or custom requests</span>
-            </div>
-
-            <div class="modal-footer">
-                <span id="modalTotal" style="color: #aaa; font-size: 12px; line-height: 1.4;">0 games total</span>
-                <div>
-                    <button class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
+            <!-- Fixed footer: alerts + share + breakdown + save -->
+            <div class="modal-footer-fixed">
+                <div id="modalTierWarning" class="modal-tier-warning"></div>
+                <div id="sizeWarningBox" class="warning-box">
+                    ⚠️ <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. Pricing has adjusted accordingly.
                 </div>
+
+                <!-- Prominent share link -->
+                <div class="share-link-prominent">
+                    <div class="share-link-prominent-title">🔗 Save or share your order</div>
+                    <div class="share-link-desc" id="shareLinkDesc">Bookmark this link to edit your order anytime:</div>
+                    <div class="share-link-row">
+                        <input type="text" class="share-link-input" id="shareLinkInput" readonly value="">
+                        <button class="copy-link-btn" onclick="copyShareLink(this)">📋 Copy</button>
+                    </div>
+                </div>
+
+                <!-- Price breakdown (just above Save) -->
+                <div id="modalPriceBreakdown" class="price-breakdown-box"></div>
+
+                <!-- Save button -->
+                <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
             </div>
         </div>
     </div>
 
     <!-- LOAD ORDER CHOICE MODAL -->
     <div id="loadChoiceModal" class="modal">
-        <div class="modal-content load-choice-content">
+        <div class="modal-content load-choice-content" style="max-width:460px;">
             <div class="modal-header">
                 <h2 id="loadChoiceTitle">🔍 Found Your Order!</h2>
                 <button class="close-modal" onclick="closeLoadChoiceModal()">&times;</button>
             </div>
-            <div class="modal-body load-choice-body">
-                <div id="loadChoiceInfo" class="load-choice-info">
-                    <!-- Filled dynamically -->
-                </div>
-                <p class="load-choice-question">What would you like to do?</p>
-                <div class="load-choice-actions">
-                    <button class="load-choice-btn edit" onclick="chooseEditOrder()">
-                        <span class="choice-icon">📝</span>
-                        <span class="choice-text">
-                            <strong>Edit Previous Order</strong>
-                            <small>Load your existing order and update it</small>
+            <div class="modal-body" style="padding:4px 16px;">
+                <div id="loadChoiceInfo" style="background:#17120a; border:1px solid #2e2716; border-radius:6px; padding:12px 14px; font-size:13px; color:#ccc; line-height:1.6;"></div>
+                <p style="margin:0; font-size:14px; color:#fff; font-weight:600; text-align:center; padding-top:8px;">What would you like to do?</p>
+                <div style="display:flex; flex-direction:column; gap:10px;">
+                    <button class="load-choice-btn edit" onclick="chooseEditOrder()" style="display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:8px; cursor:pointer; font-family:inherit; text-align:left; min-height:62px; width:100%; background:#2a2108; border:1px solid #ffc000; color:#ffe9a8;">
+                        <span style="font-size:26px; flex-shrink:0; line-height:1;">📝</span>
+                        <span style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
+                            <strong style="font-size:14.5px; font-weight:700; color:#fff;">Edit Previous Order</strong>
+                            <small style="font-size:11.5px; opacity:0.85; line-height:1.35;">Load your existing order and update it</small>
                         </span>
                     </button>
-                    <button class="load-choice-btn new" onclick="chooseNewOrder()">
-                        <span class="choice-icon">✨</span>
-                        <span class="choice-text">
-                            <strong>Start New Order</strong>
-                            <small>Begin a fresh order from scratch</small>
+                    <button class="load-choice-btn new" onclick="chooseNewOrder()" style="display:flex; align-items:center; gap:14px; padding:14px 16px; border-radius:8px; cursor:pointer; font-family:inherit; text-align:left; min-height:62px; width:100%; background:#1f2d1a; border:1px solid #00e676; color:#c3ffdb;">
+                        <span style="font-size:26px; flex-shrink:0; line-height:1;">✨</span>
+                        <span style="display:flex; flex-direction:column; gap:2px; min-width:0; flex:1;">
+                            <strong style="font-size:14.5px; font-weight:700; color:#fff;">Start New Order</strong>
+                            <small style="font-size:11.5px; opacity:0.85; line-height:1.35;">Begin a fresh order from scratch</small>
                         </span>
                     </button>
                 </div>
-                <button class="load-choice-cancel" onclick="closeLoadChoiceModal()">Cancel</button>
+                <button style="background:transparent; border:none; color:#888; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="closeLoadChoiceModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1493,9 +1418,10 @@
     let currentLoadedPhone = null;
     let statusMsgTimeout = null;
     let gamesRerenderTimer = null;
+    let modalGamesExpanded = false;
+    let modalRemarksExpanded = false;
 
     window.onload = function() {
-        // Parse URL params — supports ?phone=XXXX (latest) or ?order=UUID (specific)
         const urlParams = new URLSearchParams(window.location.search);
         const urlPhone = urlParams.get('phone');
         const urlOrderId = urlParams.get('order');
@@ -1516,28 +1442,23 @@
             }
         }
 
-        // Restore saved service type
         const savedService = localStorage.getItem('userServiceType');
         if (savedService && ['jailbreak', 'system_setup', 'games_only'].includes(savedService)) {
             document.getElementById('serviceTypeSelect').value = savedService;
         }
 
-        // Restore saved console model
         const savedModel = localStorage.getItem('userConsoleModel');
         if (savedModel && ['OLED', 'V1_V2', 'LITE'].includes(savedModel)) {
             document.getElementById('consoleModelSelect').value = savedModel;
         }
 
-        // Restore saved SD source
         const savedSdSource = localStorage.getItem('userSdSource');
         if (savedSdSource && ['own', 'buy'].includes(savedSdSource)) {
             document.getElementById('sdSourceSelect').value = savedSdSource;
         }
 
-        // Populate SD card options
         populateSdCardOptions();
 
-        // Restore saved SD card size
         const savedSd = localStorage.getItem('userSdSelect');
         if (savedSd) {
             const sdCardSelect = document.getElementById('sdCardSelect');
@@ -1547,7 +1468,6 @@
             }
         }
 
-        // Restore saved free storage
         const savedFreeStorage = localStorage.getItem('userFreeStorage');
         if (savedFreeStorage) {
             document.getElementById('userFreeStorageInput').value = savedFreeStorage;
@@ -1557,7 +1477,6 @@
         updateSdLimit();
         filterGames();
 
-        // Auto-load order from URL
         if (autoLoadOrderId) {
             setTimeout(() => {
                 loadSpecificOrderById(autoLoadOrderId);
@@ -1569,20 +1488,13 @@
         }
     };
 
-    /* ---------- STATUS MESSAGE HELPER (auto-dismiss) ---------- */
     function setStatusMessage(text, color = '#ffc000', autoDismissMs = 6000) {
         const statusMsg = document.getElementById('statusMsg');
         if (!statusMsg) return;
-
-        if (statusMsgTimeout) {
-            clearTimeout(statusMsgTimeout);
-            statusMsgTimeout = null;
-        }
-
+        if (statusMsgTimeout) { clearTimeout(statusMsgTimeout); statusMsgTimeout = null; }
         statusMsg.classList.remove('fading');
         statusMsg.style.color = color;
         statusMsg.innerText = text;
-
         if (autoDismissMs > 0) {
             statusMsgTimeout = setTimeout(() => {
                 statusMsg.classList.add('fading');
@@ -1599,15 +1511,11 @@
     function clearStatusMessage() {
         const statusMsg = document.getElementById('statusMsg');
         if (!statusMsg) return;
-        if (statusMsgTimeout) {
-            clearTimeout(statusMsgTimeout);
-            statusMsgTimeout = null;
-        }
+        if (statusMsgTimeout) { clearTimeout(statusMsgTimeout); statusMsgTimeout = null; }
         statusMsg.classList.remove('fading');
         statusMsg.innerText = '';
     }
 
-    /* ---------- LIGHTWEIGHT UPDATE (no full re-render) ---------- */
     function updateStorageBreakdownAndCart() {
         const serviceType = document.getElementById('serviceTypeSelect').value;
         const consoleModel = document.getElementById('consoleModelSelect').value;
@@ -1617,28 +1525,13 @@
         selectedGames.forEach(size => { currentGamesSize += size; });
 
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (!isStorageConfigured) {
-                updateCartSummary();
-                return;
-            }
-
-            let baseSystemOverhead = 0;
-            let partitionPerMode = 0;
-            if (maxSdSize <= 64) {
-                baseSystemOverhead = 8;
-            } else if (maxSdSize <= 128) {
-                baseSystemOverhead = 10;
-                partitionPerMode = 10;
-            } else if (maxSdSize <= 256) {
-                baseSystemOverhead = 16;
-                partitionPerMode = 16;
-            } else if (maxSdSize <= 512) {
-                baseSystemOverhead = 20;
-                partitionPerMode = 20;
-            } else {
-                baseSystemOverhead = 32;
-                partitionPerMode = 32;
-            }
+            if (!isStorageConfigured) { updateCartSummary(); return; }
+            let baseSystemOverhead = 0, partitionPerMode = 0;
+            if (maxSdSize <= 64) { baseSystemOverhead = 8; }
+            else if (maxSdSize <= 128) { baseSystemOverhead = 10; partitionPerMode = 10; }
+            else if (maxSdSize <= 256) { baseSystemOverhead = 16; partitionPerMode = 16; }
+            else if (maxSdSize <= 512) { baseSystemOverhead = 20; partitionPerMode = 20; }
+            else { baseSystemOverhead = 32; partitionPerMode = 32; }
 
             const androidChecked = document.getElementById('androidModeCheck');
             const linuxChecked = document.getElementById('linuxModeCheck');
@@ -1655,46 +1548,32 @@
             if (linuxChecked.checked) breakdownText += ` | Linux: -${partitionPerMode}GB`;
             breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usableStorageLimit} GB</strong>`;
             document.getElementById('storageBreakdown').innerHTML = breakdownText;
-
         } else if (serviceType === 'games_only') {
-            if (!isStorageConfigured) {
-                updateCartSummary();
-                return;
-            }
+            if (!isStorageConfigured) { updateCartSummary(); return; }
             const userSpace = usableStorageLimit;
             let breakdownText = `Service: Games Only | Stated Free Storage: ${userSpace} GB`;
             breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usableStorageLimit - currentGamesSize).toFixed(1)} GB</strong>`;
             document.getElementById('storageBreakdown').innerHTML = breakdownText;
         }
-
         updateCartSummary();
     }
 
-    /* ---------- DEBOUNCED FULL RE-RENDER ---------- */
     function scheduleGamesRerender() {
         if (gamesRerenderTimer) clearTimeout(gamesRerenderTimer);
-        gamesRerenderTimer = setTimeout(() => {
-            gamesRerenderTimer = null;
-            filterGames();
-        }, 120);
+        gamesRerenderTimer = setTimeout(() => { gamesRerenderTimer = null; filterGames(); }, 120);
     }
 
     function populateSdCardOptions() {
         const sdSelect = document.getElementById('sdCardSelect');
         if (!sdSelect) return;
-
         const sdSource = document.getElementById('sdSourceSelect') ? document.getElementById('sdSourceSelect').value : '';
         const currentValue = sdSelect.value;
-        
         sdSelect.innerHTML = '';
-
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.disabled = true;
         placeholder.textContent = '— Please select card —';
-        if (!currentValue) {
-            placeholder.selected = true;
-        }
+        if (!currentValue) placeholder.selected = true;
         sdSelect.appendChild(placeholder);
 
         if (sdSource === 'own') {
@@ -1706,14 +1585,11 @@
                 { size: '1024', label: '1 TB Card' },
                 { size: '2048', label: '2 TB Card' }
             ];
-
             ownSizes.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.size;
                 option.textContent = item.label;
-                if (currentValue === item.size) {
-                    option.selected = true;
-                }
+                if (currentValue === item.size) option.selected = true;
                 sdSelect.appendChild(option);
             });
         } else if (sdSource === 'buy') {
@@ -1725,17 +1601,12 @@
                         hasValidOptions = true;
                         const option = document.createElement('option');
                         option.value = size;
-                        
                         let displaySize = size >= 1000 ? `${(size / 1024).toFixed(0)} TB` : `${size} GB`;
                         option.textContent = `${displaySize} Card (RM${numericPrice})`;
-
-                        if (currentValue === size) {
-                            option.selected = true;
-                        }
+                        if (currentValue === size) option.selected = true;
                         sdSelect.appendChild(option);
                     }
                 });
-
                 if (!hasValidOptions) {
                     const option = document.createElement('option');
                     option.value = '256';
@@ -1763,20 +1634,11 @@
         const phoneInput = document.getElementById('phoneInput');
         const phone = phoneInput.value.trim();
         localStorage.setItem('userPhone4', phone);
-        if (phone.length >= 4) {
-            phoneInput.classList.remove('required-missing');
-        }
-
-        if (currentEditingOrderId && phone.length < 4) {
-            hideEditModeBanner();
-        } else if (currentEditingOrderId && phone.length === 4 && currentLoadedPhone === phone) {
-            showEditModeBanner();
-        }
-
+        if (phone.length >= 4) phoneInput.classList.remove('required-missing');
+        if (currentEditingOrderId && phone.length < 4) { hideEditModeBanner(); }
+        else if (currentEditingOrderId && phone.length === 4 && currentLoadedPhone === phone) { showEditModeBanner(); }
         if (currentEditingOrderId && currentLoadedPhone && phone !== currentLoadedPhone) {
-            if (phone.length === 4) {
-                autoExitEditModeForNewPhone(phone);
-            }
+            if (phone.length === 4) { autoExitEditModeForNewPhone(phone); }
         }
     }
 
@@ -1833,10 +1695,8 @@
             sdCardGroup.style.display = 'none';
             freeStorageContainer.style.display = 'flex';
             jailbreakModesContainer.style.display = 'none';
-            
             document.getElementById('androidModeCheck').checked = false;
             document.getElementById('linuxModeCheck').checked = false;
-            
             jailbreakNoticeCard.style.display = 'none';
             gameSectionWrapper.style.display = 'block';
         }
@@ -1845,7 +1705,6 @@
 
     function revealGameSection() {
         if (!validatePhoneProvided()) return;
-
         if (!isStorageConfigured) {
             alert('Please enter your available Free Storage Space (GB) first!');
             document.getElementById('userFreeStorageInput').focus();
@@ -1872,46 +1731,29 @@
         if (!serviceType) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
-            
-            if (warningBanner) {
-                warningBanner.style.display = 'flex';
-                warningText.innerHTML = 'Please select a <strong>Service Type</strong> above to begin.';
-            }
+            if (warningBanner) { warningBanner.style.display = 'flex'; warningText.innerHTML = 'Please select a <strong>Service Type</strong> above to begin.'; }
             if (gameWrapper) gameWrapper.classList.add('locked');
             if (submitBtn) submitBtn.disabled = true;
-            
             document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for service selection...`;
             updateCartSummary();
             return;
         }
 
         if (serviceType === 'jailbreak' && !consoleModel) {
-            isStorageConfigured = false;
-            usableStorageLimit = 0;
-            
-            if (warningBanner) {
-                warningBanner.style.display = 'flex';
-                warningText.innerHTML = 'Please select your <strong>Console Model</strong> to continue.';
-            }
+            isStorageConfigured = false; usableStorageLimit = 0;
+            if (warningBanner) { warningBanner.style.display = 'flex'; warningText.innerHTML = 'Please select your <strong>Console Model</strong> to continue.'; }
             if (gameWrapper) gameWrapper.classList.add('locked');
             if (submitBtn) submitBtn.disabled = true;
-            
             document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for console model selection...`;
             updateCartSummary();
             return;
         }
 
         if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !sdSource) {
-            isStorageConfigured = false;
-            usableStorageLimit = 0;
-            
-            if (warningBanner) {
-                warningBanner.style.display = 'flex';
-                warningText.innerHTML = 'Please select your <strong>SD Card Source</strong> to continue.';
-            }
+            isStorageConfigured = false; usableStorageLimit = 0;
+            if (warningBanner) { warningBanner.style.display = 'flex'; warningText.innerHTML = 'Please select your <strong>SD Card Source</strong> to continue.'; }
             if (gameWrapper) gameWrapper.classList.add('locked');
             if (submitBtn) submitBtn.disabled = true;
-            
             document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for SD card source selection...`;
             updateCartSummary();
             return;
@@ -1923,16 +1765,10 @@
         maxSdSize = parseInt(refreshedSdCardValue) || 0;
 
         if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !refreshedSdCardValue) {
-            isStorageConfigured = false;
-            usableStorageLimit = 0;
-            
-            if (warningBanner) {
-                warningBanner.style.display = 'flex';
-                warningText.innerHTML = 'Please select your <strong>SD Card Capacity</strong> to continue.';
-            }
+            isStorageConfigured = false; usableStorageLimit = 0;
+            if (warningBanner) { warningBanner.style.display = 'flex'; warningText.innerHTML = 'Please select your <strong>SD Card Capacity</strong> to continue.'; }
             if (gameWrapper) gameWrapper.classList.add('locked');
             if (submitBtn) submitBtn.disabled = true;
-            
             document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for SD card selection...`;
             updateCartSummary();
             return;
@@ -1954,14 +1790,8 @@
             const linuxChecked = document.getElementById('linuxModeCheck');
 
             if (maxSdSize < 128) {
-                if (androidChecked.checked) {
-                    androidChecked.checked = false;
-                    alert('Android Mode requires an SD card of 128GB or larger.');
-                }
-                if (linuxChecked.checked) {
-                    linuxChecked.checked = false;
-                    alert('Linux Mode requires an SD card of 128GB or larger.');
-                }
+                if (androidChecked.checked) { androidChecked.checked = false; alert('Android Mode requires an SD card of 128GB or larger.'); }
+                if (linuxChecked.checked) { linuxChecked.checked = false; alert('Linux Mode requires an SD card of 128GB or larger.'); }
                 androidChecked.disabled = true;
                 linuxChecked.disabled = true;
             } else {
@@ -1969,24 +1799,12 @@
                 linuxChecked.disabled = false;
             }
 
-            let baseSystemOverhead = 0;
-            let partitionPerMode = 0;
-
-            if (maxSdSize <= 64) {
-                baseSystemOverhead = 8;
-            } else if (maxSdSize <= 128) {
-                baseSystemOverhead = 10;
-                partitionPerMode = 10;
-            } else if (maxSdSize <= 256) {
-                baseSystemOverhead = 16;
-                partitionPerMode = 16;
-            } else if (maxSdSize <= 512) {
-                baseSystemOverhead = 20;
-                partitionPerMode = 20;
-            } else {
-                baseSystemOverhead = 32;
-                partitionPerMode = 32;
-            }
+            let baseSystemOverhead = 0, partitionPerMode = 0;
+            if (maxSdSize <= 64) { baseSystemOverhead = 8; }
+            else if (maxSdSize <= 128) { baseSystemOverhead = 10; partitionPerMode = 10; }
+            else if (maxSdSize <= 256) { baseSystemOverhead = 16; partitionPerMode = 16; }
+            else if (maxSdSize <= 512) { baseSystemOverhead = 20; partitionPerMode = 20; }
+            else { baseSystemOverhead = 32; partitionPerMode = 32; }
 
             let totalDeduction = baseSystemOverhead;
             if (androidChecked.checked) totalDeduction += partitionPerMode;
@@ -2005,41 +1823,27 @@
             let cardSourceDesc = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
             let serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModelValue})` : 'System Setup';
             let breakdownText = `Service: ${serviceLabel} | SD: ${formattedSdSize} (${cardSourceDesc}) | System OS: -${baseSystemOverhead}GB`;
-
             if (androidChecked.checked) breakdownText += ` | Android: -${partitionPerMode}GB`;
             if (linuxChecked.checked) breakdownText += ` | Linux: -${partitionPerMode}GB`;
 
             let currentGamesSize = 0;
             selectedGames.forEach(size => { currentGamesSize += size; });
-
             breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usableStorageLimit} GB</strong>`;
             document.getElementById('storageBreakdown').innerHTML = breakdownText;
 
         } else {
             let userSpace = parseFloat(freeInput.value);
-
-            if (!isNaN(userSpace) && userSpace > 2048) {
-                userSpace = 2048;
-                freeInput.value = 2048;
-            }
+            if (!isNaN(userSpace) && userSpace > 2048) { userSpace = 2048; freeInput.value = 2048; }
 
             if (isNaN(userSpace) || userSpace <= 0) {
-                usableStorageLimit = 0;
-                isStorageConfigured = false;
-
+                usableStorageLimit = 0; isStorageConfigured = false;
                 if (freeInput) freeInput.classList.add('required-missing');
-                if (warningBanner) {
-                    warningBanner.style.display = 'flex';
-                    warningText.innerHTML = 'Please enter your available <strong>Free Storage Space (GB)</strong> above to unlock game selection.';
-                }
+                if (warningBanner) { warningBanner.style.display = 'flex'; warningText.innerHTML = 'Please enter your available <strong>Free Storage Space (GB)</strong> above to unlock game selection.'; }
                 if (gameWrapper) gameWrapper.classList.add('locked');
                 if (submitBtn) submitBtn.disabled = true;
-
                 document.getElementById('storageBreakdown').innerHTML = `Service: Games Only | <span style="color:#ff5252;">⚠️ Storage space missing! Enter free GB to continue.</span>`;
             } else {
-                usableStorageLimit = userSpace;
-                isStorageConfigured = true;
-
+                usableStorageLimit = userSpace; isStorageConfigured = true;
                 localStorage.setItem('userFreeStorage', userSpace);
                 if (freeInput) freeInput.classList.remove('required-missing');
                 if (warningBanner) warningBanner.style.display = 'none';
@@ -2048,10 +1852,8 @@
 
                 let currentGamesSize = 0;
                 selectedGames.forEach(size => { currentGamesSize += size; });
-
                 let breakdownText = `Service: Games Only | Stated Free Storage: ${userSpace} GB`;
                 breakdownText += `<br>📊 <strong>Selected Games: ${currentGamesSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usableStorageLimit - currentGamesSize).toFixed(1)} GB</strong>`;
-                
                 document.getElementById('storageBreakdown').innerHTML = breakdownText;
             }
         }
@@ -2061,24 +1863,14 @@
 
         if (isStorageConfigured && usableStorageLimit > 0 && currentGamesSize > usableStorageLimit) {
             alert(`⚠️ Your new storage limit (${usableStorageLimit} GB) is smaller than your selected games (${currentGamesSize.toFixed(1)} GB). Excess games will be automatically removed.`);
-            
             let accumulatedSize = 0;
             const gamesToRemove = [];
-            selectedGames.forEach((size, name) => {
-                accumulatedSize += size;
-                if (accumulatedSize > usableStorageLimit) {
-                    gamesToRemove.push(name);
-                }
-            });
-
+            selectedGames.forEach((size, name) => { accumulatedSize += size; if (accumulatedSize > usableStorageLimit) gamesToRemove.push(name); });
             gamesToRemove.forEach(name => selectedGames.delete(name));
         }
         
         const gameSectionEl = document.getElementById('gameSectionWrapper');
-        if (gameSectionEl && gameSectionEl.style.display !== 'none') {
-            scheduleGamesRerender();
-        }
-        
+        if (gameSectionEl && gameSectionEl.style.display !== 'none') { scheduleGamesRerender(); }
         updateCartSummary();
     }
 
@@ -2098,21 +1890,13 @@
         }
     }
 
-    function showEditModeBanner() {
-        const banner = document.getElementById('editModeBanner');
-        if (banner) banner.style.display = 'flex';
-    }
-
-    function hideEditModeBanner() {
-        const banner = document.getElementById('editModeBanner');
-        if (banner) banner.style.display = 'none';
-    }
+    function showEditModeBanner() { const b = document.getElementById('editModeBanner'); if (b) b.style.display = 'flex'; }
+    function hideEditModeBanner() { const b = document.getElementById('editModeBanner'); if (b) b.style.display = 'none'; }
 
     function autoExitEditModeForNewPhone(newPhone) {
         currentEditingOrderId = null;
         currentLoadedPhone = null;
         selectedGames.clear();
-
         document.getElementById('androidModeCheck').checked = false;
         document.getElementById('linuxModeCheck').checked = false;
         document.getElementById('orderRemarks').value = '';
@@ -2121,16 +1905,12 @@
         document.getElementById('sdSourceSelect').value = '';
         document.getElementById('userFreeStorageInput').value = '';
         document.getElementById('searchInput').value = '';
-
         window.history.replaceState({}, '', window.location.pathname);
-
         populateSdCardOptions();
         toggleServiceFields();
         updateSdLimit();
         filterGames();
-
         hideEditModeBanner();
-
         setStatusMessage(`✨ Cleared previous order. Now starting a new order for phone "${newPhone}".`, '#00e676', 6000);
     }
 
@@ -2153,21 +1933,15 @@
         
         list.forEach(game => {
             const isSelected = selectedGames.has(game.name);
-            if (isSelected) {
-                fittingGames.push(game);
-            } else if (usableStorageLimit <= 0) {
-                fittingGames.push(game);
-            } else if (game.size <= availableSpace) {
-                fittingGames.push(game);
-            } else {
-                hiddenGames.push(game);
-            }
+            if (isSelected) fittingGames.push(game);
+            else if (usableStorageLimit <= 0) fittingGames.push(game);
+            else if (game.size <= availableSpace) fittingGames.push(game);
+            else hiddenGames.push(game);
         });
 
         if (hiddenGames.length > 0) {
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
-            
             const noticeId = 'hiddenGamesNotice_' + Date.now() + Math.random().toString(36).slice(2);
             notice.innerHTML = `
                 <div class="hidden-notice-text">
@@ -2218,27 +1992,20 @@
 
             card.onclick = (e) => {
                 if (!validatePhoneProvided()) return;
-
                 if (!isStorageConfigured) {
                     alert('Please enter your available Free Storage Space (GB) at the top before picking games!');
                     document.getElementById('userFreeStorageInput').focus();
                     return;
                 }
-
                 const cb = card.querySelector('input');
-                if (e.target !== cb) {
-                    cb.checked = !cb.checked;
-                }
-
+                if (e.target !== cb) cb.checked = !cb.checked;
                 let currentGamesSize = 0;
                 selectedGames.forEach(s => { currentGamesSize += s; });
-
                 if (cb.checked && usableStorageLimit > 0 && (currentGamesSize + game.size > usableStorageLimit)) {
                     alert(`Cannot add "${game.name}" (${game.size} GB). It exceeds your available remaining space (${usableStorageLimit} GB)!`);
                     cb.checked = false;
                     return;
                 }
-
                 toggleGame(game.name, game.size, cb.checked, card);
             };
 
@@ -2247,10 +2014,7 @@
             cb.checked = isSelected;
             cb.onclick = (e) => e.stopPropagation();
             cb.onchange = (e) => {
-                if (!validatePhoneProvided()) {
-                    cb.checked = false;
-                    return;
-                }
+                if (!validatePhoneProvided()) { cb.checked = false; return; }
                 if (!isStorageConfigured) {
                     alert('Please enter your available Free Storage Space (GB) first!');
                     cb.checked = false;
@@ -2291,7 +2055,6 @@
         if (!container) return;
         const notice = container.previousElementSibling;
         const toggleBtn = notice ? notice.querySelector('.hidden-notice-toggle') : null;
-        
         if (container.style.display === 'none') {
             container.style.display = 'flex';
             if (toggleBtn) toggleBtn.textContent = 'Hide';
@@ -2309,7 +2072,6 @@
             selectedGames.delete(name);
             if (cardElement) cardElement.classList.remove('selected');
         }
-        
         updateStorageBreakdownAndCart();
         scheduleGamesRerender();
     }
@@ -2317,24 +2079,17 @@
     function filterGames() {
         const searchInput = document.getElementById('searchInput');
         if (!searchInput) return;
-
         const query = searchInput.value.toLowerCase();
         const clearBtn = document.getElementById('clearSearchBtn');
-        
         clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-
         const sourceList = typeof games !== 'undefined' ? games : [];
         const filtered = sourceList.filter(g => g.name.toLowerCase().includes(query));
-
         filtered.sort((a, b) => {
             const aSelected = selectedGames.has(a.name) ? 1 : 0;
             const bSelected = selectedGames.has(b.name) ? 1 : 0;
-            if (aSelected !== bSelected) {
-                return bSelected - aSelected; 
-            }
-            return a.name.localeCompare(b.name); 
+            if (aSelected !== bSelected) return bSelected - aSelected;
+            return a.name.localeCompare(b.name);
         });
-
         renderGames(filtered);
     }
 
@@ -2347,153 +2102,78 @@
     function calculatePriceDetails(count, totalGameSizeGb) {
         const serviceType = document.getElementById('serviceTypeSelect').value;
         const consoleModel = document.getElementById('consoleModelSelect').value;
-        
-        let androidPrice = 0;
-        let linuxPrice = 0;
-        let sdCardPrice = 0;
-        let serviceBasePrice = 0;
-
+        let androidPrice = 0, linuxPrice = 0, sdCardPrice = 0, serviceBasePrice = 0;
         if (serviceType === 'jailbreak') {
             serviceBasePrice = (APP_CONFIG && APP_CONFIG.jailbreakPrices && APP_CONFIG.jailbreakPrices[consoleModel]) || 190;
         } else if (serviceType === 'system_setup') {
             serviceBasePrice = (APP_CONFIG && APP_CONFIG.systemSetupPrice) || 50;
         }
-
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             if (document.getElementById('androidModeCheck').checked) androidPrice = APP_CONFIG.addonPrices.android || 30;
             if (document.getElementById('linuxModeCheck').checked) linuxPrice = APP_CONFIG.addonPrices.linux || 30;
-            
             const sdSource = document.getElementById('sdSourceSelect').value;
             if (sdSource === 'buy') {
                 sdCardPrice = (APP_CONFIG && APP_CONFIG.sdCardRetailPrices && APP_CONFIG.sdCardRetailPrices[maxSdSize]) || 0;
             }
         }
-
         let baseOnlyPrice = androidPrice + linuxPrice;
-
         if (count <= 0) {
-            return { 
-                price: serviceBasePrice + sdCardPrice + baseOnlyPrice, 
-                exceeded: false,
-                serviceBasePrice,
-                sdCardPrice,
-                androidPrice,
-                linuxPrice,
-                gamesPrice: 0
-            };
+            return { price: serviceBasePrice + sdCardPrice + baseOnlyPrice, exceeded: false, serviceBasePrice, sdCardPrice, androidPrice, linuxPrice, gamesPrice: 0 };
         }
-
         let chargeableCount = count;
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             chargeableCount = Math.max(0, count - 3);
         }
-
         let countTierPrice = 0;
         let targetGbLimit = 100;
-
-        if (chargeableCount <= 10) {
-            countTierPrice = chargeableCount * 3.0; 
-            targetGbLimit = 125; 
-        } else if (chargeableCount <= 19) {
-            countTierPrice = chargeableCount * 3.0; 
-            targetGbLimit = 240; 
-        } else if (chargeableCount <= 39) {
-            countTierPrice = chargeableCount * 2.5; 
-            targetGbLimit = 460; 
-        } else {
-            countTierPrice = chargeableCount * 2.0;
-            targetGbLimit = totalGameSizeGb;
-        }
+        if (chargeableCount <= 10) { countTierPrice = chargeableCount * 3.0; targetGbLimit = 125; }
+        else if (chargeableCount <= 19) { countTierPrice = chargeableCount * 3.0; targetGbLimit = 240; }
+        else if (chargeableCount <= 39) { countTierPrice = chargeableCount * 2.5; targetGbLimit = 460; }
+        else { countTierPrice = chargeableCount * 2.0; targetGbLimit = totalGameSizeGb; }
 
         let sizeTierPrice = 0;
-        if (totalGameSizeGb <= 100) {
-            sizeTierPrice = (totalGameSizeGb / 100) * 30;
-        } else if (totalGameSizeGb <= 200) {
-            sizeTierPrice = 30 + ((totalGameSizeGb - 100) / 100) * 20; 
-        } else if (totalGameSizeGb <= 400) {
-            sizeTierPrice = 50 + ((totalGameSizeGb - 200) / 200) * 30; 
-        } else {
-            sizeTierPrice = 80 + ((totalGameSizeGb - 400) / 100) * 20;
-        }
+        if (totalGameSizeGb <= 100) sizeTierPrice = (totalGameSizeGb / 100) * 30;
+        else if (totalGameSizeGb <= 200) sizeTierPrice = 30 + ((totalGameSizeGb - 100) / 100) * 20;
+        else if (totalGameSizeGb <= 400) sizeTierPrice = 50 + ((totalGameSizeGb - 200) / 200) * 30;
+        else sizeTierPrice = 80 + ((totalGameSizeGb - 400) / 100) * 20;
 
         let gamesPrice = countTierPrice;
         let isExceeded = false;
-
         if (totalGameSizeGb > targetGbLimit && sizeTierPrice > countTierPrice) {
             gamesPrice = sizeTierPrice;
             isExceeded = true;
         }
-
         let finalPrice = Math.round(serviceBasePrice + sdCardPrice + gamesPrice + baseOnlyPrice);
-
-        return { 
-            price: finalPrice, 
-            exceeded: isExceeded,
-            serviceBasePrice,
-            sdCardPrice,
-            androidPrice,
-            linuxPrice,
-            gamesPrice
-        };
+        return { price: finalPrice, exceeded: isExceeded, serviceBasePrice, sdCardPrice, androidPrice, linuxPrice, gamesPrice };
     }
 
     function checkTierRecommendation(count, serviceType) {
         let targetCount = 0;
         let isFreeGamesNotice = false;
-
         const hasFreeGames = (serviceType === 'jailbreak' || serviceType === 'system_setup');
-
         if (hasFreeGames) {
-            if (count < 3) {
-                targetCount = 3;
-                isFreeGamesNotice = true;
-            } else if (count > 3 && count <= 13) {
-                targetCount = 13; 
-            } else if (count >= 14 && count <= 23) {
-                targetCount = 23; 
-            } else if (count >= 23 && count <= 43) {
-                targetCount = 43; 
-            }
+            if (count < 3) { targetCount = 3; isFreeGamesNotice = true; }
+            else if (count > 3 && count <= 13) targetCount = 13;
+            else if (count >= 14 && count <= 23) targetCount = 23;
+            else if (count >= 23 && count <= 43) targetCount = 43;
         } else {
-            if (count > 0 && count <= 10) {
-                targetCount = 10;
-            } else if (count >= 11 && count <= 20) {
-                targetCount = 20;
-            } else if (count >= 20 && count <= 40) {
-                targetCount = 40;
-            }
+            if (count > 0 && count <= 10) targetCount = 10;
+            else if (count >= 11 && count <= 20) targetCount = 20;
+            else if (count >= 20 && count <= 40) targetCount = 40;
         }
-
         if (targetCount > 0 && count < targetCount) {
             let diff = targetCount - count;
-
             if (hasFreeGames) {
                 const serviceLabel = (serviceType === 'jailbreak') ? 'Full Jailbreak' : 'System Setup';
                 if (isFreeGamesNotice) {
-                    return {
-                        hasWarning: true,
-                        targetCount: targetCount,
-                        remaining: diff,
-                        msg: `🎁 <strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your ${serviceLabel} package includes <strong>3 FREE games</strong>—you can select <strong>${diff} more free game(s)</strong>!`
-                    };
+                    return { hasWarning: true, targetCount, remaining: diff, msg: `🎁 <strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your ${serviceLabel} package includes <strong>3 FREE games</strong>—you can select <strong>${diff} more free game(s)</strong>!` };
                 } else {
-                    return {
-                        hasWarning: true,
-                        targetCount: targetCount,
-                        remaining: diff,
-                        msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong> (${count - 3} paid). You can choose <strong>${diff} more game(s)</strong> (up to ${targetCount} total) to enter a better pricing tier!`
-                    };
+                    return { hasWarning: true, targetCount, remaining: diff, msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong> (${count - 3} paid). You can choose <strong>${diff} more game(s)</strong> (up to ${targetCount} total) to enter a better pricing tier!` };
                 }
             } else {
-                return {
-                    hasWarning: true,
-                    targetCount: targetCount,
-                    remaining: diff,
-                    msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong>. You can choose <strong>${diff} more game(s)</strong> (up to ${targetCount} games) to enjoy a better pricing tier rate!`
-                };
+                return { hasWarning: true, targetCount, remaining: diff, msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong>. You can choose <strong>${diff} more game(s)</strong> (up to ${targetCount} games) to enjoy a better pricing tier rate!` };
             }
         }
-
         return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
     }
 
@@ -2502,33 +2182,26 @@
         const serviceType = document.getElementById('serviceTypeSelect').value;
         let totalGamesSize = 0;
         selectedGames.forEach(size => { totalGamesSize += size; });
-
         const remainderSize = Math.max(0, usableStorageLimit - totalGamesSize);
         const details = calculatePriceDetails(count, totalGamesSize);
-
         document.getElementById('selectedCount').innerText = count;
         document.getElementById('selectedSize').innerText = totalGamesSize.toFixed(1);
         document.getElementById('remainderSize').innerText = remainderSize.toFixed(1);
         document.getElementById('selectedPrice').innerText = `RM${Math.round(details.price)}`;
-
         const tierRec = checkTierRecommendation(count, serviceType);
         const banner = document.getElementById('tierWarningBanner');
         const bannerText = document.getElementById('tierWarningText');
-
         if (tierRec.hasWarning) {
             banner.style.display = 'flex';
             bannerText.innerHTML = tierRec.msg;
         } else {
             banner.style.display = 'none';
         }
-
         const subtext = document.getElementById('checkoutSubtext');
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (count === 0) {
-                subtext.innerHTML = '3 free games included! Tap here to review & add remarks';
-            } else if (count <= 3) {
-                subtext.innerHTML = `(${count} free games selected, ${3 - count} more free available) | Tap to review`;
-            } else {
+            if (count === 0) subtext.innerHTML = '3 free games included! Tap here to review & add remarks';
+            else if (count <= 3) subtext.innerHTML = `(${count} free games selected, ${3 - count} more free available) | Tap to review`;
+            else {
                 const chargeable = count - 3;
                 subtext.innerHTML = `(3 free + ${chargeable} addon${chargeable !== 1 ? 's' : ''}) ${tierRec.hasWarning ? '⚠️ Package limit incomplete' : ''} | Tap to review`;
             }
@@ -2543,25 +2216,18 @@
         const loadBtn = document.getElementById('loadOrderBtn');
         const loadBtnText = document.getElementById('loadOrderText');
         const loadBtnIcon = document.getElementById('loadOrderIcon');
-
         if (phone.length !== 4) {
             alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first!');
             phoneInput.focus();
             phoneInput.classList.add('required-missing');
             return;
         }
-
         const originalText = loadBtnText ? loadBtnText.textContent : 'Load Order';
         const originalIcon = loadBtnIcon ? loadBtnIcon.textContent : '📂';
-        if (loadBtn) {
-            loadBtn.disabled = true;
-            loadBtn.classList.add('loading');
-        }
+        if (loadBtn) { loadBtn.disabled = true; loadBtn.classList.add('loading'); }
         if (loadBtnIcon) loadBtnIcon.textContent = '⏳';
         if (loadBtnText) loadBtnText.textContent = 'Searching...';
-
         setStatusMessage('Searching for your saved order...', '#2196F3', 0);
-
         try {
             const { data, error } = await supabaseClient
                 .from('orders')
@@ -2569,9 +2235,7 @@
                 .eq('phone_ending', phone)
                 .order('created_at', { ascending: false })
                 .limit(1);
-
             if (error) throw error;
-
             if (data && data.length > 0) {
                 const order = data[0];
                 pendingLoadedOrder = order;
@@ -2581,7 +2245,6 @@
                 currentEditingOrderId = null;
                 currentLoadedPhone = null;
                 hideEditModeBanner();
-
                 alert(`ℹ️ No previous order found for phone "${phone}".\n\nYou can start a new order below!`);
                 setStatusMessage('No order found. Start a new order below!', '#ff9800', 5000);
             }
@@ -2589,10 +2252,7 @@
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#ff5252', 5000);
         } finally {
-            if (loadBtn) {
-                loadBtn.disabled = false;
-                loadBtn.classList.remove('loading');
-            }
+            if (loadBtn) { loadBtn.disabled = false; loadBtn.classList.remove('loading'); }
             if (loadBtnIcon) loadBtnIcon.textContent = originalIcon;
             if (loadBtnText) loadBtnText.textContent = originalText;
         }
@@ -2600,28 +2260,16 @@
 
     async function loadSpecificOrderById(orderId) {
         setStatusMessage('Loading shared order...', '#2196F3', 0);
-
         try {
-            const { data, error } = await supabaseClient
-                .from('orders')
-                .select('*')
-                .eq('id', orderId)
-                .single();
-
+            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
             if (error) throw error;
-            if (!data) {
-                alert('This shared order link is no longer valid.');
-                return;
-            }
-
+            if (!data) { alert('This shared order link is no longer valid.'); return; }
             currentEditingOrderId = data.id;
             currentLoadedPhone = data.phone_ending || null;
-            
             if (data.phone_ending) {
                 document.getElementById('phoneInput').value = data.phone_ending;
                 localStorage.setItem('userPhone4', data.phone_ending);
             }
-
             applyLoadedOrder(data);
             setStatusMessage(`✅ Loaded shared order! (${selectedGames.size} games)`, '#ffc000', 6000);
         } catch (err) {
@@ -2632,55 +2280,35 @@
 
     function showLoadChoiceModal(order) {
         const infoBox = document.getElementById('loadChoiceInfo');
-        
         const dateOpts = { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-        const createdDate = order.created_at 
-            ? new Date(order.created_at).toLocaleString('en-MY', dateOpts)
-            : 'unknown date';
-        const updatedDate = order.updated_at 
-            ? new Date(order.updated_at).toLocaleString('en-MY', dateOpts)
-            : createdDate;
-        const lastTouched = (order.updated_at && order.updated_at !== order.created_at) 
-            ? `Last edited: <strong>${updatedDate}</strong>` 
-            : `Created: <strong>${createdDate}</strong>`;
-
+        const createdDate = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', dateOpts) : 'unknown date';
+        const updatedDate = order.updated_at ? new Date(order.updated_at).toLocaleString('en-MY', dateOpts) : createdDate;
+        const lastTouched = (order.updated_at && order.updated_at !== order.created_at) ? `Last edited: <strong>${updatedDate}</strong>` : `Created: <strong>${createdDate}</strong>`;
         const gameCount = Array.isArray(order.games) ? order.games.length : 0;
-        const serviceLabel = order.service_type === 'jailbreak' 
-            ? `Full Jailbreak (${order.console_model || 'N/A'})` 
-            : (order.service_type === 'system_setup' ? 'System Setup' : 'Games Only');
-
+        const serviceLabel = order.service_type === 'jailbreak' ? `Full Jailbreak (${order.console_model || 'N/A'})` : (order.service_type === 'system_setup' ? 'System Setup' : 'Games Only');
         infoBox.innerHTML = `
             We found your previous order:<br>
             • Service: <strong>${serviceLabel}</strong><br>
             • Games: <strong>${gameCount}</strong> selected<br>
             • ${lastTouched}
         `;
-
         document.getElementById('loadChoiceModal').style.display = 'flex';
     }
 
     function closeLoadChoiceModal() {
         document.getElementById('loadChoiceModal').style.display = 'none';
         pendingLoadedOrder = null;
-        
         const statusMsg = document.getElementById('statusMsg');
-        if (statusMsg && statusMsg.innerText.includes('popup')) {
-            clearStatusMessage();
-        }
+        if (statusMsg && statusMsg.innerText.includes('popup')) { clearStatusMessage(); }
     }
 
     function chooseEditOrder() {
-        if (!pendingLoadedOrder) {
-            closeLoadChoiceModal();
-            return;
-        }
-
+        if (!pendingLoadedOrder) { closeLoadChoiceModal(); return; }
         const order = pendingLoadedOrder;
         currentEditingOrderId = order.id;
         currentLoadedPhone = order.phone_ending || null;
         applyLoadedOrder(order);
         closeLoadChoiceModal();
-
         setStatusMessage(`✅ Loaded your order for editing (${selectedGames.size} games)`, '#ffc000', 6000);
     }
 
@@ -2688,7 +2316,6 @@
         currentEditingOrderId = null;
         currentLoadedPhone = null;
         selectedGames.clear();
-        
         document.getElementById('androidModeCheck').checked = false;
         document.getElementById('linuxModeCheck').checked = false;
         document.getElementById('orderRemarks').value = '';
@@ -2697,24 +2324,18 @@
         document.getElementById('sdSourceSelect').value = '';
         document.getElementById('userFreeStorageInput').value = '';
         document.getElementById('searchInput').value = '';
-        
         populateSdCardOptions();
         toggleServiceFields();
         updateSdLimit();
         filterGames();
-        
         hideEditModeBanner();
-        
         window.history.replaceState({}, '', window.location.pathname);
-        
         closeLoadChoiceModal();
-        
         setStatusMessage('✨ New order started. Pick your selection below.', '#00e676', 5000);
     }
 
     function applyLoadedOrder(order) {
         selectedGames.clear();
-        
         const sourceGames = typeof games !== 'undefined' ? games : [];
         if (order.games && Array.isArray(order.games)) {
             order.games.forEach(gameName => {
@@ -2723,13 +2344,10 @@
                 selectedGames.set(gameName, size);
             });
         }
-        
         if (order.remarks) document.getElementById('orderRemarks').value = order.remarks;
         if (order.service_type) document.getElementById('serviceTypeSelect').value = order.service_type;
         if (order.sd_source) document.getElementById('sdSourceSelect').value = order.sd_source;
-        
         populateSdCardOptions();
-
         if (order.sd_card_size) {
             const sdCardSelect = document.getElementById('sdCardSelect');
             if (sdCardSelect.querySelector(`option[value="${order.sd_card_size}"]`)) {
@@ -2739,22 +2357,20 @@
         }
         if (order.free_storage_gb) document.getElementById('userFreeStorageInput').value = order.free_storage_gb;
         if (order.console_model) document.getElementById('consoleModelSelect').value = order.console_model;
-
         document.getElementById('androidModeCheck').checked = !!order.android_mode;
         document.getElementById('linuxModeCheck').checked = !!order.linux_mode;
-
         toggleServiceFields();
         updateSdLimit();
         filterGames();
-        
         if (selectedGames.size > 0) revealGameSection();
-        
         showEditModeBanner();
     }
 
+    /* ============================================================
+       NEW CART MODAL — restructured layout
+       ============================================================ */
     function openCartModal() {
         if (!validatePhoneProvided()) return;
-
         if (!isStorageConfigured) {
             alert('Please complete your configuration (service type, model, storage) before proceeding!');
             const sType = document.getElementById('serviceTypeSelect').value;
@@ -2766,6 +2382,12 @@
             return;
         }
 
+        renderCartModalContent();
+        document.getElementById('cartModal').style.display = 'flex';
+    }
+
+    /* Render the cart modal — separated so remove/update can re-render just the body */
+    function renderCartModalContent() {
         const modalBody = document.getElementById('cartModalBody');
         modalBody.innerHTML = '';
 
@@ -2779,12 +2401,12 @@
         const count = selectedGames.size;
         let totalGamesSize = 0;
         selectedGames.forEach(size => { totalGamesSize += size; });
-
         const details = calculatePriceDetails(count, totalGamesSize);
 
+        // ---- 1. Service & Hardware Configuration (always visible) ----
         const serviceSectionTitle = document.createElement('div');
         serviceSectionTitle.className = 'modal-section-title';
-        serviceSectionTitle.innerText = '1. Service & Hardware Configuration';
+        serviceSectionTitle.innerText = '1. Service & Hardware';
         modalBody.appendChild(serviceSectionTitle);
 
         if (serviceType === 'jailbreak') {
@@ -2797,7 +2419,6 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                     <span style="font-weight:bold; color:#ffc000;">RM${details.serviceBasePrice}</span>
-                    <span class="lock-badge">🔒 Core Service</span>
                 </div>
             `;
             modalBody.appendChild(serviceItem);
@@ -2836,7 +2457,7 @@
                 androidItem.className = 'cart-item';
                 androidItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🤖 Android Mode Partition</span>
+                        <span class="cart-item-title">🤖 Android Mode</span>
                         <span class="cart-item-sub">LineageOS dual-boot setup</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -2852,7 +2473,7 @@
                 linuxItem.className = 'cart-item';
                 linuxItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🐧 Linux Mode Partition</span>
+                        <span class="cart-item-title">🐧 Linux Mode</span>
                         <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -2872,7 +2493,6 @@
                 </div>
                 <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                     <span style="font-weight:bold; color:#ffc000;">RM${details.serviceBasePrice}</span>
-                    <span class="lock-badge">🔒 Core Service</span>
                 </div>
             `;
             modalBody.appendChild(serviceItem);
@@ -2911,7 +2531,7 @@
                 androidItem.className = 'cart-item';
                 androidItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🤖 Android Mode Partition</span>
+                        <span class="cart-item-title">🤖 Android Mode</span>
                         <span class="cart-item-sub">LineageOS dual-boot setup</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -2927,7 +2547,7 @@
                 linuxItem.className = 'cart-item';
                 linuxItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🐧 Linux Mode Partition</span>
+                        <span class="cart-item-title">🐧 Linux Mode</span>
                         <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -2945,65 +2565,96 @@
                     <span class="cart-item-title">Games Installation Service</span>
                     <span class="cart-item-sub">Client-Stated Free Space: ${freeStorageInput || 0} GB</span>
                 </div>
-                <span class="lock-badge">🔒 Games Only</span>
             `;
             modalBody.appendChild(gamesOnlyItem);
         }
 
-        const gamesSectionTitle = document.createElement('div');
-        gamesSectionTitle.className = 'modal-section-title';
-        gamesSectionTitle.style.marginTop = '10px';
-        gamesSectionTitle.innerText = `2. Selected Games (${count} games - ${totalGamesSize.toFixed(1)} GB)`;
-        modalBody.appendChild(gamesSectionTitle);
+        // ---- 2. Selected Games (collapsible) ----
+        const gamesHeader = document.createElement('div');
+        gamesHeader.className = 'collapsible-header' + (modalGamesExpanded ? ' open' : '');
+        gamesHeader.onclick = () => {
+            modalGamesExpanded = !modalGamesExpanded;
+            gamesHeader.classList.toggle('open', modalGamesExpanded);
+            gamesBody.classList.toggle('open', modalGamesExpanded);
+        };
+        gamesHeader.innerHTML = `
+            <span>🎮 Selected Games (${count} · ${totalGamesSize.toFixed(1)} GB)</span>
+            <span class="chev">▼</span>
+        `;
+        modalBody.appendChild(gamesHeader);
 
+        const gamesBody = document.createElement('div');
+        gamesBody.className = 'collapsible-body' + (modalGamesExpanded ? ' open' : '');
         if (selectedGames.size === 0) {
             const emptyGames = document.createElement('p');
             emptyGames.style.textAlign = 'center';
             emptyGames.style.color = '#888';
             emptyGames.style.margin = '5px 0';
             emptyGames.style.fontSize = '13px';
-            emptyGames.innerText = (serviceType === 'jailbreak' || serviceType === 'system_setup') ? 'No games selected yet (3 Free Games available!).' : 'No games selected.';
-            modalBody.appendChild(emptyGames);
+            emptyGames.innerText = (serviceType === 'jailbreak' || serviceType === 'system_setup') ? 'No games selected yet (3 Free Games available!)' : 'No games selected.';
+            gamesBody.appendChild(emptyGames);
         } else {
             let index = 1;
             selectedGames.forEach((size, gameName) => {
                 const item = document.createElement('div');
                 item.className = 'cart-item';
-                
                 let gameTag = '';
                 if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
                     gameTag = index <= 3 ? ' <span style="color:#ffc000; font-size:10px;">[FREE]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
                 }
-
                 const titleSpan = document.createElement('span');
                 titleSpan.innerHTML = `${index}. ${gameName} ${gameTag} <span style="color:#ffc000; font-size:0.85em;">(${size} GB)</span>`;
-
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'remove-btn';
                 removeBtn.textContent = 'Remove';
-                removeBtn.onclick = () => removeGameFromCart(gameName);
-
+                removeBtn.onclick = (e) => { e.stopPropagation(); removeGameFromCart(gameName); };
                 item.appendChild(titleSpan);
                 item.appendChild(removeBtn);
-                modalBody.appendChild(item);
+                gamesBody.appendChild(item);
                 index++;
             });
         }
+        modalBody.appendChild(gamesBody);
 
-        const breakdownTitle = document.createElement('div');
-        breakdownTitle.className = 'modal-section-title';
-        breakdownTitle.style.marginTop = '10px';
-        breakdownTitle.innerText = '3. Payment Breakdown';
-        modalBody.appendChild(breakdownTitle);
+        // ---- 3. Remarks (collapsible, hidden by default) ----
+        const remarksHeader = document.createElement('div');
+        remarksHeader.className = 'collapsible-header' + (modalRemarksExpanded ? ' open' : '');
+        remarksHeader.onclick = () => {
+            modalRemarksExpanded = !modalRemarksExpanded;
+            remarksHeader.classList.toggle('open', modalRemarksExpanded);
+            remarksBody.classList.toggle('open', modalRemarksExpanded);
+        };
+        const remarksHasContent = document.getElementById('orderRemarks').value.trim().length > 0;
+        remarksHeader.innerHTML = `
+            <span>📝 Add Remarks ${remarksHasContent ? '· <span style="color:#ffc000; font-size:12px;">(has content)</span>' : '(Optional)'}</span>
+            <span class="chev">▼</span>
+        `;
+        modalBody.appendChild(remarksHeader);
 
-        const breakdownBox = document.createElement('div');
-        breakdownBox.className = 'price-breakdown-box';
+        const remarksBody = document.createElement('div');
+        remarksBody.className = 'collapsible-body' + (modalRemarksExpanded ? ' open' : '');
+        const remarksTextarea = document.getElementById('orderRemarks');
+        remarksBody.appendChild(remarksTextarea);
+        modalBody.appendChild(remarksBody);
 
-        let breakdownHtml = '';
+        // ---- Fixed footer content ----
+        // Share link
+        const shareInput = document.getElementById('shareLinkInput');
+        if (shareInput) shareInput.value = buildShareUrl();
+        const shareDesc = document.getElementById('shareLinkDesc');
+        if (shareDesc) {
+            shareDesc.innerHTML = currentEditingOrderId 
+                ? 'This link reloads <strong style="color:#64b5f6;">this exact order</strong>. Bookmark or share it to edit anytime:'
+                : 'Save this link to reload your order later (points to your latest order once saved):';
+        }
+
+        // Price breakdown
+        const priceBox = document.getElementById('modalPriceBreakdown');
+        let breakdownHtml = `<div class="price-breakdown-title">💰 Payment Breakdown</div>`;
         if (serviceType === 'jailbreak') {
             breakdownHtml += `
                 <div class="price-breakdown-row">
-                    <span>Full Jailbreak Service (${consoleModel}):</span>
+                    <span>Full Jailbreak (${consoleModel})</span>
                     <span>RM${details.serviceBasePrice}</span>
                 </div>
             `;
@@ -3011,39 +2662,28 @@
                 let displayCardLabel = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
                 breakdownHtml += `
                     <div class="price-breakdown-row">
-                        <span>New ${displayCardLabel} SD Card:</span>
+                        <span>New ${displayCardLabel} SD Card</span>
                         <span>RM${details.sdCardPrice}</span>
                     </div>
                 `;
             }
             if (androidChecked) {
-                breakdownHtml += `
-                    <div class="price-breakdown-row">
-                        <span>Android Mode:</span>
-                        <span>RM${details.androidPrice}</span>
-                    </div>
-                `;
+                breakdownHtml += `<div class="price-breakdown-row"><span>Android Mode</span><span>RM${details.androidPrice}</span></div>`;
             }
             if (linuxChecked) {
-                breakdownHtml += `
-                    <div class="price-breakdown-row">
-                        <span>Linux Mode:</span>
-                        <span>RM${details.linuxPrice}</span>
-                    </div>
-                `;
+                breakdownHtml += `<div class="price-breakdown-row"><span>Linux Mode</span><span>RM${details.linuxPrice}</span></div>`;
             }
-            
             const chargeableCount = Math.max(0, count - 3);
             breakdownHtml += `
                 <div class="price-breakdown-row">
-                    <span>Games Price (${count} games: 3 Free + ${chargeableCount} Addon${chargeableCount !== 1 ? 's' : ''}):</span>
+                    <span>Games (${chargeableCount} addon${chargeableCount !== 1 ? 's' : ''} · 3 FREE)</span>
                     <span>RM${Math.round(details.gamesPrice)}</span>
                 </div>
             `;
         } else if (serviceType === 'system_setup') {
             breakdownHtml += `
                 <div class="price-breakdown-row">
-                    <span>System Setup Service:</span>
+                    <span>System Setup Service</span>
                     <span>RM${details.serviceBasePrice}</span>
                 </div>
             `;
@@ -3051,78 +2691,45 @@
                 let displayCardLabel = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
                 breakdownHtml += `
                     <div class="price-breakdown-row">
-                        <span>New ${displayCardLabel} SD Card:</span>
+                        <span>New ${displayCardLabel} SD Card</span>
                         <span>RM${details.sdCardPrice}</span>
                     </div>
                 `;
             }
             if (androidChecked) {
-                breakdownHtml += `
-                    <div class="price-breakdown-row">
-                        <span>Android Mode:</span>
-                        <span>RM${details.androidPrice}</span>
-                    </div>
-                `;
+                breakdownHtml += `<div class="price-breakdown-row"><span>Android Mode</span><span>RM${details.androidPrice}</span></div>`;
             }
             if (linuxChecked) {
-                breakdownHtml += `
-                    <div class="price-breakdown-row">
-                        <span>Linux Mode:</span>
-                        <span>RM${details.linuxPrice}</span>
-                    </div>
-                `;
+                breakdownHtml += `<div class="price-breakdown-row"><span>Linux Mode</span><span>RM${details.linuxPrice}</span></div>`;
             }
             const setupChargeableCount = Math.max(0, count - 3);
             breakdownHtml += `
                 <div class="price-breakdown-row">
-                    <span>Games Price (${count} games: 3 Free + ${setupChargeableCount} Addon${setupChargeableCount !== 1 ? 's' : ''}):</span>
+                    <span>Games (${setupChargeableCount} addon${setupChargeableCount !== 1 ? 's' : ''} · 3 FREE)</span>
                     <span>RM${Math.round(details.gamesPrice)}</span>
                 </div>
             `;
         } else {
             breakdownHtml += `
                 <div class="price-breakdown-row">
-                    <span>Games Price (${count} games):</span>
+                    <span>Games Installation (${count} games)</span>
                     <span>RM${Math.round(details.gamesPrice)}</span>
                 </div>
             `;
         }
-
         breakdownHtml += `
             <div class="price-breakdown-row total-row">
-                <span>Total Estimated Payable:</span>
+                <span>Total</span>
                 <span style="color:#ffc000;">RM${Math.round(details.price)}</span>
             </div>
         `;
+        priceBox.innerHTML = breakdownHtml;
 
-        breakdownBox.innerHTML = breakdownHtml;
-        modalBody.appendChild(breakdownBox);
-
-        const shareLinkTitle = document.createElement('div');
-        shareLinkTitle.className = 'modal-section-title';
-        shareLinkTitle.style.marginTop = '10px';
-        shareLinkTitle.innerText = '4. Share / Bookmark This Order';
-        modalBody.appendChild(shareLinkTitle);
-
-        const shareBox = document.createElement('div');
-        shareBox.className = 'share-link-box';
-        const linkDesc = currentEditingOrderId 
-            ? 'This link points directly to THIS specific order. Share or bookmark it to reload anytime:'
-            : 'Save this link to reload your order later (points to your latest order once saved):';
-
-        shareBox.innerHTML = `
-            <div class="share-link-desc">${linkDesc}</div>
-            <div class="share-link-row">
-                <input type="text" class="share-link-input" id="shareLinkInput" readonly value="${buildShareUrl()}">
-                <button class="copy-link-btn" onclick="copyShareLink(this)">📋 Copy</button>
-            </div>
-        `;
-        modalBody.appendChild(shareBox);
-
-        const remainderSize = Math.max(0, usableStorageLimit - totalGamesSize);
+        // Size warning banner
         const warningBox = document.getElementById('sizeWarningBox');
         warningBox.style.display = details.exceeded ? 'block' : 'none';
 
+        // Tier warning
         const tierRec = checkTierRecommendation(count, serviceType);
         const modalTierBox = document.getElementById('modalTierWarning');
         if (tierRec.hasWarning) {
@@ -3132,45 +2739,26 @@
             modalTierBox.style.display = 'none';
             modalTierBox.innerHTML = '';
         }
-
-        let summaryText = `${count} games total`;
-        if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (count <= 3) {
-                summaryText = `${count} games (${count} free)`;
-            } else {
-                const chargeable = count - 3;
-                summaryText = `${count} games (3 free + ${chargeable} addon${chargeable !== 1 ? 's' : ''})`;
-            }
-        }
-
-        document.getElementById('modalTotal').innerHTML = `${summaryText} (<span style="color:#ffc000;">${totalGamesSize.toFixed(1)} GB</span> | <span style="color:#ffb74d;">${remainderSize.toFixed(1)} GB left</span>)<br>Total: <strong style="color:#ffc000; font-size:14px;">RM${Math.round(details.price)}</strong>`;
-        document.getElementById('cartModal').style.display = 'flex';
     }
 
     function buildShareUrl() {
         const base = window.location.origin + window.location.pathname;
-        
         if (currentEditingOrderId) {
             return base + '?order=' + encodeURIComponent(currentEditingOrderId);
         }
-        
         const phone = document.getElementById('phoneInput').value.trim();
-        if (!phone || phone.length !== 4) {
-            return base + '?phone=____';
-        }
+        if (!phone || phone.length !== 4) return base + '?phone=____';
         return base + '?phone=' + encodeURIComponent(phone);
     }
 
     function copyShareLink(btnEl) {
         const input = document.getElementById('shareLinkInput');
         if (!input) return;
-        
         const value = input.value || '';
         if (!value || value.includes('phone=____')) {
             alert('Please enter your 4-digit phone number first.');
             return;
         }
-        
         navigator.clipboard.writeText(value).then(() => {
             const original = btnEl.innerHTML;
             btnEl.innerHTML = '✅ Copied!';
@@ -3181,46 +2769,40 @@
                 btnEl.style.background = '#2196F3';
                 btnEl.style.color = '#fff';
             }, 1800);
-        }).catch(err => {
-            alert('Failed to copy: ' + err);
-        });
+        }).catch(err => { alert('Failed to copy: ' + err); });
     }
 
     function removeSdCardFromCart() {
         document.getElementById('sdSourceSelect').value = 'own';
         updateSdLimit();
-        openCartModal();
+        renderCartModalContent();
+        updateStorageBreakdownAndCart();
     }
 
     function removeAndroidFromCart() {
         document.getElementById('androidModeCheck').checked = false;
         updateSdLimit();
-        openCartModal();
+        renderCartModalContent();
+        updateStorageBreakdownAndCart();
     }
 
     function removeLinuxFromCart() {
         document.getElementById('linuxModeCheck').checked = false;
         updateSdLimit();
-        openCartModal();
+        renderCartModalContent();
+        updateStorageBreakdownAndCart();
     }
 
     function closeCartModal() {
         document.getElementById('cartModal').style.display = 'none';
     }
 
-    /* FIX: After removing a game from the cart, refresh BOTH the storage breakdown
-       + the checkout bar (bottom banner) AND the game list — then reopen the modal. */
     function removeGameFromCart(gameName) {
         selectedGames.delete(gameName);
-        
-        // Refresh game list (reveals newly-fit games in the hidden list)
         filterGames();
-        
-        // Refresh storage breakdown + checkout bar (bottom banner)
         updateStorageBreakdownAndCart();
-        
-        // Re-render cart modal with fresh data
-        openCartModal();
+        // Re-render cart modal content without closing
+        renderCartModalContent();
     }
 
     async function submitOrUpdateOrder() {
@@ -3231,33 +2813,19 @@
         }
 
         const serviceTypeCheck = document.getElementById('serviceTypeSelect').value;
-        if (!serviceTypeCheck) {
-            alert('Please select a Service Type first.');
-            return;
-        }
-
+        if (!serviceTypeCheck) { alert('Please select a Service Type first.'); return; }
         if (serviceTypeCheck === 'jailbreak' && !document.getElementById('consoleModelSelect').value) {
-            alert('Please select your Console Model.');
-            return;
+            alert('Please select your Console Model.'); return;
         }
-
         if ((serviceTypeCheck === 'jailbreak' || serviceTypeCheck === 'system_setup')) {
-            if (!document.getElementById('sdSourceSelect').value) {
-                alert('Please select your SD Card Source (own or purchase new).');
-                return;
-            }
-            if (!document.getElementById('sdCardSelect').value) {
-                alert('Please select your SD Card Capacity.');
-                return;
-            }
+            if (!document.getElementById('sdSourceSelect').value) { alert('Please select your SD Card Source (own or purchase new).'); return; }
+            if (!document.getElementById('sdCardSelect').value) { alert('Please select your SD Card Capacity.'); return; }
         }
-
         if (!validatePhoneProvided()) return;
 
         const phone = document.getElementById('phoneInput').value.trim();
         const serviceType = serviceTypeCheck;
         const count = selectedGames.size;
-
         const hasFreeGamesService = (serviceType === 'jailbreak' || serviceType === 'system_setup');
         const submitServiceLabel = (serviceType === 'jailbreak') ? 'Jailbreak' : 'System Setup';
 
@@ -3297,7 +2865,7 @@
             if (!confirmEdit) return;
         }
 
-        const btn = document.querySelector('#cartModal .submit-btn');
+        const btn = document.getElementById('modalSaveBtn');
         btn.innerText = 'Saving...';
         btn.disabled = true;
         btn.style.pointerEvents = 'none';
@@ -3306,20 +2874,17 @@
         const remarksText = document.getElementById('orderRemarks').value.trim();
         const consoleModel = document.getElementById('consoleModelSelect').value;
         const freeStorageInput = document.getElementById('userFreeStorageInput').value;
-        
         const sdSource = (serviceType === 'jailbreak' || serviceType === 'system_setup') ? document.getElementById('sdSourceSelect').value : 'own';
         const androidSelected = (serviceType === 'jailbreak' || serviceType === 'system_setup') ? document.getElementById('androidModeCheck').checked : false;
         const linuxSelected = (serviceType === 'jailbreak' || serviceType === 'system_setup') ? document.getElementById('linuxModeCheck').checked : false;
         
         let totalGamesSize = 0;
         selectedGames.forEach(size => { totalGamesSize += size; });
-        
         const details = calculatePriceDetails(count, totalGamesSize);
         const finalPrice = Math.round(details.price);
 
         try {
             const nowIso = new Date().toISOString();
-            
             const orderData = {
                 phone_ending: phone,
                 games: gameNamesArray,
@@ -3341,53 +2906,29 @@
             let savedOrderId = null;
 
             if (currentEditingOrderId) {
-                const { error } = await supabaseClient
-                    .from('orders')
-                    .update(orderData)
-                    .eq('id', currentEditingOrderId);
-
+                const { error } = await supabaseClient.from('orders').update(orderData).eq('id', currentEditingOrderId);
                 if (error) throw error;
                 savedOrderId = currentEditingOrderId;
                 currentLoadedPhone = phone;
                 alert('✅ Order updated successfully!');
             } else {
                 orderData.created_at = nowIso;
-                const { data: insertedData, error } = await supabaseClient
-                    .from('orders')
-                    .insert([orderData])
-                    .select();
-
+                const { data: insertedData, error } = await supabaseClient.from('orders').insert([orderData]).select();
                 if (error) throw error;
-                
                 if (insertedData && insertedData.length > 0 && insertedData[0].id) {
                     savedOrderId = insertedData[0].id;
                 } else {
-                    const { data: fallbackData } = await supabaseClient
-                        .from('orders')
-                        .select('id')
-                        .eq('phone_ending', phone)
-                        .eq('created_at', nowIso)
-                        .limit(1);
-                    
-                    if (fallbackData && fallbackData.length > 0) {
-                        savedOrderId = fallbackData[0].id;
-                    }
+                    const { data: fallbackData } = await supabaseClient.from('orders').select('id').eq('phone_ending', phone).eq('created_at', nowIso).limit(1);
+                    if (fallbackData && fallbackData.length > 0) savedOrderId = fallbackData[0].id;
                 }
-
-                if (savedOrderId) {
-                    currentEditingOrderId = savedOrderId;
-                    currentLoadedPhone = phone;
-                }
-                
+                if (savedOrderId) { currentEditingOrderId = savedOrderId; currentLoadedPhone = phone; }
                 alert('✅ New order saved successfully!');
             }
 
             closeCartModal();
             setStatusMessage('Order successfully saved!', '#00e676', 5000);
             showEditModeBanner();
-
             shareOrderViaWhatsApp();
-
         } catch (err) {
             console.error(err);
             alert('Failed to save order: ' + (err.message || 'Check console details.'));
@@ -3406,7 +2947,6 @@
         const androidChecked = document.getElementById('androidModeCheck').checked;
         const linuxChecked = document.getElementById('linuxModeCheck').checked;
         const remarks = document.getElementById('orderRemarks').value.trim();
-        
         const count = selectedGames.size;
         let totalGamesSize = 0;
         selectedGames.forEach(size => { totalGamesSize += size; });
@@ -3415,12 +2955,10 @@
         let message = `🎮 *New Pulai PC Order / Inquiry*\n`;
         message += `━━━━━━━━━━━\n`;
         message += `📱 *Phone ID (Last 4):* ${phone}\n`;
-
         let serviceLabel = 'Games Only';
         if (serviceType === 'jailbreak') serviceLabel = `Full Jailbreak (${consoleModel})`;
         else if (serviceType === 'system_setup') serviceLabel = 'System Setup';
         message += `🔧 *Service Type:* ${serviceLabel}\n`;
-
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             let displayCardLabel = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
             message += `💾 *SD Card:* ${displayCardLabel} (${sdSource === 'buy' ? 'New Purchase' : 'Own Card'})\n`;
@@ -3430,31 +2968,22 @@
             const freeStorageInput = document.getElementById('userFreeStorageInput').value;
             message += `📊 *Free Storage:* ${freeStorageInput || 0} GB\n`;
         }
-
         message += `━━━━━━━━━━━\n`;
         message += `📦 *Selected Games:* ${count} games (${totalGamesSize.toFixed(1)} GB total)\n`;
-
         if (remarks) {
             message += `━━━━━━━━━━━\n`;
             message += `📝 *Remarks:* ${remarks}\n`;
         }
-
         message += `━━━━━━━━━━━\n`;
         message += `💰 *Total Estimated Price:* RM${Math.round(details.price)}`;
-
         const shareUrl = buildShareUrl();
         if (shareUrl && !shareUrl.includes('phone=____')) {
             message += `\n\n🔗 *View or edit your order anytime:*\n${shareUrl}`;
         }
-
         const businessWhatsAppNumber = (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.whatsappNumber) ? APP_CONFIG.whatsappNumber : '';
-        if (!businessWhatsAppNumber) {
-            alert('WhatsApp number is not configured in APP_CONFIG.');
-            return;
-        }
+        if (!businessWhatsAppNumber) { alert('WhatsApp number is not configured in APP_CONFIG.'); return; }
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${businessWhatsAppNumber}?text=${encodedMessage}`;
-        
         try {
             const waLink = document.createElement('a');
             waLink.href = whatsappUrl;
@@ -3463,9 +2992,7 @@
             waLink.style.display = 'none';
             document.body.appendChild(waLink);
             waLink.click();
-            setTimeout(() => {
-                document.body.removeChild(waLink);
-            }, 100);
+            setTimeout(() => { document.body.removeChild(waLink); }, 100);
         } catch (err) {
             window.open(whatsappUrl, '_blank');
         }
