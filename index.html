@@ -536,7 +536,6 @@
             cursor: pointer;
             transition: border-color 0.15s, background-color 0.15s;
             min-height: 52px;
-            /* Hint to browser: this element's class will change frequently */
             will-change: border-color, background-color;
         }
         .game-card.selected {
@@ -768,7 +767,6 @@
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            flex-wrap: wrap;
         }
         .cart-item.fixed-item {
             background: #251d08;
@@ -791,6 +789,18 @@
             font-size: 11.5px;
             color: #aaa;
             line-height: 1.35;
+        }
+        /* Game items in the modal: title can shrink, Remove button stays right-aligned */
+        .cart-item > span:first-child {
+            flex: 1 1 auto;
+            min-width: 0;
+            word-break: break-word;
+            line-height: 1.4;
+        }
+        .cart-item > .remove-btn {
+            flex-shrink: 0;
+            align-self: flex-start;
+            margin-top: 2px;
         }
         .lock-badge {
             font-size: 11px;
@@ -1843,7 +1853,6 @@
         }
         document.getElementById('jailbreakNoticeCard').style.display = 'none';
         document.getElementById('gameSectionWrapper').style.display = 'block';
-        // Re-render games now that the section is visible
         filterGames();
     }
 
@@ -1908,7 +1917,6 @@
             return;
         }
 
-        // Populate SD card dropdown based on selected source
         populateSdCardOptions();
 
         const refreshedSdCardValue = sdCardSelect ? sdCardSelect.value : '';
@@ -2066,7 +2074,6 @@
             gamesToRemove.forEach(name => selectedGames.delete(name));
         }
         
-        // Debounced re-render (not immediate) so rapid config changes don't lag
         const gameSectionEl = document.getElementById('gameSectionWrapper');
         if (gameSectionEl && gameSectionEl.style.display !== 'none') {
             scheduleGamesRerender();
@@ -2277,8 +2284,6 @@
             card.appendChild(sizeSpan);
             container.appendChild(card);
         });
-        // NOTE: intentionally NOT calling updateSdLimit() here — it would create a
-        // render → update → render loop. The caller updates storage breakdown separately.
     }
 
     function toggleHiddenGames(containerId) {
@@ -2296,8 +2301,6 @@
         }
     }
 
-    /* PERFORMANCE: lightweight toggle — updates only the card + storage summary,
-       then schedules a debounced re-render for hidden-games list update. */
     function toggleGame(name, size, isChecked, cardElement) {
         if (isChecked) {
             selectedGames.set(name, size);
@@ -2307,10 +2310,7 @@
             if (cardElement) cardElement.classList.remove('selected');
         }
         
-        // Light update: storage breakdown + cart summary (no full re-render)
         updateStorageBreakdownAndCart();
-        
-        // Debounced full re-render so hidden games list refreshes, but not on every tap
         scheduleGamesRerender();
     }
 
@@ -2795,7 +2795,7 @@
                     <span class="cart-item-title">Full Jailbreak (${consoleModel})</span>
                     <span class="cart-item-sub">Console modification + 3 FREE Games</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                     <span style="font-weight:bold; color:#ffc000;">RM${details.serviceBasePrice}</span>
                     <span class="lock-badge">🔒 Core Service</span>
                 </div>
@@ -2811,7 +2811,7 @@
                         <span class="cart-item-title">Purchase ${displayCardLabel} SD Card</span>
                         <span class="cart-item-sub">Brand new pre-configured card</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.sdCardPrice}</span>
                         <button class="remove-btn" onclick="removeSdCardFromCart()">Remove</button>
                     </div>
@@ -2839,7 +2839,7 @@
                         <span class="cart-item-title">🤖 Android Mode Partition</span>
                         <span class="cart-item-sub">LineageOS dual-boot setup</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.androidPrice}</span>
                         <button class="remove-btn" onclick="removeAndroidFromCart()">Remove</button>
                     </div>
@@ -2855,7 +2855,7 @@
                         <span class="cart-item-title">🐧 Linux Mode Partition</span>
                         <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.linuxPrice}</span>
                         <button class="remove-btn" onclick="removeLinuxFromCart()">Remove</button>
                     </div>
@@ -2870,7 +2870,7 @@
                     <span class="cart-item-title">System Setup</span>
                     <span class="cart-item-sub">Console modding & configuration + 3 FREE Games</span>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                     <span style="font-weight:bold; color:#ffc000;">RM${details.serviceBasePrice}</span>
                     <span class="lock-badge">🔒 Core Service</span>
                 </div>
@@ -2886,7 +2886,7 @@
                         <span class="cart-item-title">Purchase ${displayCardLabel} SD Card</span>
                         <span class="cart-item-sub">Brand new pre-configured card</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.sdCardPrice}</span>
                         <button class="remove-btn" onclick="removeSdCardFromCart()">Remove</button>
                     </div>
@@ -2914,7 +2914,7 @@
                         <span class="cart-item-title">🤖 Android Mode Partition</span>
                         <span class="cart-item-sub">LineageOS dual-boot setup</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.androidPrice}</span>
                         <button class="remove-btn" onclick="removeAndroidFromCart()">Remove</button>
                     </div>
@@ -2930,7 +2930,7 @@
                         <span class="cart-item-title">🐧 Linux Mode Partition</span>
                         <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
                         <span style="font-weight:bold; color:#ffc000;">+RM${details.linuxPrice}</span>
                         <button class="remove-btn" onclick="removeLinuxFromCart()">Remove</button>
                     </div>
@@ -3208,9 +3208,18 @@
         document.getElementById('cartModal').style.display = 'none';
     }
 
+    /* FIX: After removing a game from the cart, refresh BOTH the storage breakdown
+       + the checkout bar (bottom banner) AND the game list — then reopen the modal. */
     function removeGameFromCart(gameName) {
         selectedGames.delete(gameName);
+        
+        // Refresh game list (reveals newly-fit games in the hidden list)
         filterGames();
+        
+        // Refresh storage breakdown + checkout bar (bottom banner)
+        updateStorageBreakdownAndCart();
+        
+        // Re-render cart modal with fresh data
         openCartModal();
     }
 
