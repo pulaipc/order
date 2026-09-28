@@ -1839,8 +1839,15 @@
             return;
         }
 
+        // Populate SD card dropdown based on selected source (own vs buy)
+        populateSdCardOptions();
+
+        // Re-read SD card value after populating
+        const refreshedSdCardValue = sdCardSelect ? sdCardSelect.value : '';
+        maxSdSize = parseInt(refreshedSdCardValue) || 0;
+
         // Jailbreak/System Setup requires SD card size
-        if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !sdCardValue) {
+        if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !refreshedSdCardValue) {
             isStorageConfigured = false;
             usableStorageLimit = 0;
             
@@ -1860,7 +1867,6 @@
 
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             localStorage.setItem('userSdSource', sdSource);
-            maxSdSize = parseInt(sdCardValue) || 0;
             localStorage.setItem('userSdSelect', maxSdSize);
 
             let consoleModelValue = null;
