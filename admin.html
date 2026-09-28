@@ -303,11 +303,30 @@
         }
         .customer-info > div:first-child {
             word-break: break-word;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
         }
         .order-date {
             font-size: 11px;
             color: #888;
             white-space: nowrap;
+        }
+        .order-number-badge {
+            background: #2e2716;
+            color: #ffc000;
+            border: 1px solid #3a3018;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .order-number-badge.multi {
+            background: #2d1a08;
+            color: #ffb74d;
+            border-color: #ff9800;
         }
 
         .order-body {
@@ -558,7 +577,6 @@
             color: #14110a;
         }
 
-        /* Compact Vertical Downwards List */
         .modal-game-list {
             display: flex;
             flex-direction: column;
@@ -717,7 +735,6 @@
             cursor: not-allowed;
         }
 
-        /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -733,9 +750,7 @@
             background: #5a4a20;
         }
 
-        /* ==================== */
-        /* TABLET (>= 600px)    */
-        /* ==================== */
+        /* TABLET (>= 600px) */
         @media (min-width: 600px) {
             body {
                 padding: 20px;
@@ -783,9 +798,6 @@
             }
         }
 
-        /* ==================== */
-        /* DESKTOP (>= 900px)   */
-        /* ==================== */
         @media (min-width: 900px) {
             .header-left .site-logo {
                 width: 52px;
@@ -802,9 +814,6 @@
             }
         }
 
-        /* ==================== */
-        /* SMALL PHONES (< 380px) */
-        /* ==================== */
         @media (max-width: 380px) {
             body {
                 padding: 10px;
@@ -841,7 +850,6 @@
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
     <div id="loginOverlay">
         <div class="login-card">
             <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
@@ -853,7 +861,6 @@
         </div>
     </div>
 
-    <!-- MAIN DASHBOARD -->
     <div class="admin-container" id="adminDashboard" style="display:none;">
         <div class="header-bar">
             <div class="header-left">
@@ -875,7 +882,7 @@
         </div>
 
         <div class="controls-row">
-            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search phone, WhatsApp, or game..." onkeyup="filterAndRenderOrders()">
+            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search phone, WhatsApp, game, or remarks..." onkeyup="filterAndRenderOrders()">
             <div class="filter-buttons-wrapper">
                 <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                 <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
@@ -888,7 +895,6 @@
         <div id="ordersContainer" class="orders-grid"></div>
     </div>
 
-    <!-- FULL ORDER DETAILS MODAL POPUP -->
     <div id="orderModalOverlay" onclick="closeModalOnBackdrop(event)">
         <div class="modal-card">
             <div class="modal-header">
@@ -927,7 +933,6 @@
         </div>
     </div>
 
-    <!-- REMARKS EDIT MODAL -->
     <div id="remarksModalOverlay" onclick="closeRemarksModalOnBackdrop(event)">
         <div class="remarks-modal-card">
             <div class="remarks-modal-header">
@@ -952,6 +957,7 @@
         let currentStatusFilter = 'ALL';
         let currentModalGames = [];
         let currentRemarksOrderId = null;
+        let orderCountByPhone = {};   // Track how many orders each phone has
 
         window.onload = async function() {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1015,6 +1021,14 @@
 
                 if (error) throw error;
                 allOrders = data || [];
+                
+                // Count orders per phone to detect multiple orders
+                orderCountByPhone = {};
+                allOrders.forEach(o => {
+                    const p = o.phone_ending || '';
+                    orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
+                });
+                
                 updateStats();
                 filterAndRenderOrders();
             } catch (err) {
@@ -1089,7 +1103,6 @@
             filterAndRenderOrders();
         }
 
-        /* ---------- REMARKS EDIT ---------- */
         function openRemarksModal(orderId) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) {
@@ -1243,10 +1256,16 @@
                     ? order.remarks
                     : '<span style="color:#777; font-style:italic;">None</span>';
 
+                // Multi-order badge
+                const phoneCount = orderCountByPhone[order.phone_ending] || 1;
+                const multiBadge = phoneCount > 1 
+                    ? `<span class="order-number-badge multi">📚 ${phoneCount} orders from this phone</span>`
+                    : `<span class="order-number-badge">🆕 1st order</span>`;
+
                 card.innerHTML = `
                     <div class="order-header">
                         <div class="customer-info">
-                            <div>📱 Phone Input: ${order.phone_ending || 'N/A'}</div>
+                            <div>📱 Phone Input: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
                             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                 ${waDisplay}
                                 <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
@@ -1445,6 +1464,14 @@
                 alert('Delete failed: ' + error.message);
             } else {
                 allOrders = allOrders.filter(o => String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId));
+                
+                // Re-count per phone
+                orderCountByPhone = {};
+                allOrders.forEach(o => {
+                    const p = o.phone_ending || '';
+                    orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
+                });
+                
                 updateStats();
                 filterAndRenderOrders();
             }
