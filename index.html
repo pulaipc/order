@@ -162,6 +162,9 @@
             background-size: 18px;
             padding-right: 38px;
         }
+        .sd-select option:disabled, .service-select option:disabled, .model-select option:disabled, .sd-source-select option:disabled {
+            color: #666;
+        }
         .free-storage-container {
             display: none;
             flex-direction: column;
@@ -1276,6 +1279,7 @@
             <div class="config-row">
                 <div class="field-group">
                     <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
+                        <option value="" disabled selected>— Please select service —</option>
                         <option value="jailbreak">Full Jailbreak (Free 3 Games)</option>
                         <option value="system_setup">System Setup</option>
                         <option value="games_only">Games Only</option>
@@ -1285,6 +1289,7 @@
 
                 <div class="field-group" id="consoleModelGroup">
                     <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
+                        <option value="" disabled selected>— Please select model —</option>
                         <option value="OLED">OLED (RM300)</option>
                         <option value="V1_V2">V1/V2 (RM190)</option>
                         <option value="LITE">LITE (RM230)</option>
@@ -1294,6 +1299,7 @@
 
                 <div class="field-group" id="sdSourceGroup">
                     <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
+                        <option value="" disabled selected>— Please select —</option>
                         <option value="own">Bring Own SD Card</option>
                         <option value="buy">Purchase New SD Card</option>
                     </select>
@@ -1302,6 +1308,7 @@
 
                 <div class="field-group" id="sdCardGroup">
                     <select id="sdCardSelect" class="sd-select" onchange="updateSdLimit()">
+                        <option value="" disabled selected>— Please select card —</option>
                     </select>
                     <span class="field-hint">Total capacity of memory card used</span>
                 </div>
@@ -1358,7 +1365,7 @@
 
         <div id="storageWarningBanner" class="storage-warning-banner">
             <span class="warning-icon">⚠️</span>
-            <span id="storageWarningText">Please enter your <strong>Phone ID (4 digits)</strong> and storage capacity to unlock game selection.</span>
+            <span id="storageWarningText">Please select a <strong>Service Type</strong> above to begin.</span>
         </div>
 
         <div id="tierWarningBanner" class="tier-warning-banner">
@@ -1366,7 +1373,7 @@
             <span id="tierWarningText">You can add more games to reach your package limit at no extra cost!</span>
         </div>
 
-        <div id="jailbreakNoticeCard" class="jailbreak-notice-card">
+        <div id="jailbreakNoticeCard" class="jailbreak-notice-card" style="display:none;">
             <h3>🎁 You get 3 Free Games with your Full Jailbreak!</h3>
             <p>Your jailbreak service package includes your first 3 games free. Pick 3 free games + additional addon games if desired!</p>
             <button id="browseGamesBtn" class="browse-games-btn" onclick="revealGameSection()">Browse & Choose Games</button>
@@ -1466,22 +1473,15 @@
     const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
     let selectedGames = new Map(); 
-    let maxSdSize = 256; 
+    let maxSdSize = 0; 
     let usableStorageLimit = 0; 
     let isStorageConfigured = false;
-    let currentEditingOrderId = null;   // Track which order is being edited (null = new order)
-    let pendingLoadedOrder = null;      // Holds order data while choice popup is showing
-    let currentLoadedPhone = null;      // Track which phone's order is currently loaded
-    let statusMsgTimeout = null;        // For auto-dismissing status messages
+    let currentEditingOrderId = null;
+    let pendingLoadedOrder = null;
+    let currentLoadedPhone = null;
+    let statusMsgTimeout = null;
 
     window.onload = function() {
-        const savedSdSource = localStorage.getItem('userSdSource');
-        if (savedSdSource) {
-            document.getElementById('sdSourceSelect').value = savedSdSource;
-        }
-
-        populateSdCardOptions();
-
         // Parse URL params — supports ?phone=XXXX (latest) or ?order=UUID (specific)
         const urlParams = new URLSearchParams(window.location.search);
         const urlPhone = urlParams.get('phone');
@@ -1503,35 +1503,41 @@
             }
         }
 
+        // Restore saved service type (only if previously chosen)
         const savedService = localStorage.getItem('userServiceType');
-        if (savedService) {
+        if (savedService && ['jailbreak', 'system_setup', 'games_only'].includes(savedService)) {
             document.getElementById('serviceTypeSelect').value = savedService;
         }
 
+        // Restore saved console model
+        const savedModel = localStorage.getItem('userConsoleModel');
+        if (savedModel && ['OLED', 'V1_V2', 'LITE'].includes(savedModel)) {
+            document.getElementById('consoleModelSelect').value = savedModel;
+        }
+
+        // Restore saved SD source
+        const savedSdSource = localStorage.getItem('userSdSource');
+        if (savedSdSource && ['own', 'buy'].includes(savedSdSource)) {
+            document.getElementById('sdSourceSelect').value = savedSdSource;
+        }
+
+        // Populate SD card options (with placeholder)
+        populateSdCardOptions();
+
+        // Restore saved SD card size
         const savedSd = localStorage.getItem('userSdSelect');
         if (savedSd) {
             const sdCardSelect = document.getElementById('sdCardSelect');
             if (sdCardSelect.querySelector(`option[value="${savedSd}"]`)) {
                 sdCardSelect.value = savedSd;
                 maxSdSize = parseInt(savedSd);
-            } else if (sdCardSelect.options.length > 0) {
-                maxSdSize = parseInt(sdCardSelect.value);
-            }
-        } else {
-            const sdCardSelect = document.getElementById('sdCardSelect');
-            if (sdCardSelect.options.length > 0) {
-                maxSdSize = parseInt(sdCardSelect.value);
             }
         }
 
+        // Restore saved free storage
         const savedFreeStorage = localStorage.getItem('userFreeStorage');
         if (savedFreeStorage) {
             document.getElementById('userFreeStorageInput').value = savedFreeStorage;
-        }
-
-        const savedModel = localStorage.getItem('userConsoleModel');
-        if (savedModel) {
-            document.getElementById('consoleModelSelect').value = savedModel;
         }
         
         toggleServiceFields();
@@ -1555,7 +1561,6 @@
         const statusMsg = document.getElementById('statusMsg');
         if (!statusMsg) return;
 
-        // Clear any previous timer
         if (statusMsgTimeout) {
             clearTimeout(statusMsgTimeout);
             statusMsgTimeout = null;
@@ -1593,10 +1598,20 @@
         const sdSelect = document.getElementById('sdCardSelect');
         if (!sdSelect) return;
 
-        const sdSource = document.getElementById('sdSourceSelect') ? document.getElementById('sdSourceSelect').value : 'own';
+        const sdSource = document.getElementById('sdSourceSelect') ? document.getElementById('sdSourceSelect').value : '';
         const currentValue = sdSelect.value;
         
         sdSelect.innerHTML = '';
+
+        // Placeholder option — forces explicit selection
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.disabled = true;
+        placeholder.textContent = '— Please select card —';
+        if (!currentValue) {
+            placeholder.selected = true;
+        }
+        sdSelect.appendChild(placeholder);
 
         if (sdSource === 'own') {
             const ownSizes = [
@@ -1612,12 +1627,12 @@
                 const option = document.createElement('option');
                 option.value = item.size;
                 option.textContent = item.label;
-                if (currentValue ? item.size === currentValue : item.size === '256') {
+                if (currentValue === item.size) {
                     option.selected = true;
                 }
                 sdSelect.appendChild(option);
             });
-        } else {
+        } else if (sdSource === 'buy') {
             if (typeof APP_CONFIG !== 'undefined' && APP_CONFIG.sdCardRetailPrices) {
                 let hasValidOptions = false;
                 Object.entries(APP_CONFIG.sdCardRetailPrices).forEach(([size, price]) => {
@@ -1630,7 +1645,7 @@
                         let displaySize = size >= 1000 ? `${(size / 1024).toFixed(0)} TB` : `${size} GB`;
                         option.textContent = `${displaySize} Card (RM${numericPrice})`;
 
-                        if (currentValue ? size === currentValue : size === '256') {
+                        if (currentValue === size) {
                             option.selected = true;
                         }
                         sdSelect.appendChild(option);
@@ -1645,6 +1660,7 @@
                 }
             }
         }
+        // If sdSource is empty, only the placeholder shows
     }
 
     function validatePhoneProvided() {
@@ -1668,15 +1684,14 @@
             phoneInput.classList.remove('required-missing');
         }
 
-        // FIX #1: Hide edit-mode banner if phone becomes invalid while editing
+        // Hide edit-mode banner if phone becomes invalid while editing
         if (currentEditingOrderId && phone.length < 4) {
             hideEditModeBanner();
         } else if (currentEditingOrderId && phone.length === 4 && currentLoadedPhone === phone) {
-            // Same phone, still editing — ensure banner is visible
             showEditModeBanner();
         }
 
-        // FIX #5: Guard auto-exit check (only run if editing an order)
+        // Guard auto-exit check
         if (currentEditingOrderId && currentLoadedPhone && phone !== currentLoadedPhone) {
             if (phone.length === 4) {
                 autoExitEditModeForNewPhone(phone);
@@ -1698,6 +1713,19 @@
         const jailbreakModesContainer = document.getElementById('jailbreakModesContainer');
         const jailbreakNoticeCard = document.getElementById('jailbreakNoticeCard');
         const gameSectionWrapper = document.getElementById('gameSectionWrapper');
+
+        // If nothing is selected yet, hide everything optional
+        if (!serviceType) {
+            consoleModelGroup.style.display = 'none';
+            sdSourceGroup.style.display = 'none';
+            sdCardGroup.style.display = 'none';
+            freeStorageContainer.style.display = 'none';
+            jailbreakModesContainer.style.display = 'none';
+            jailbreakNoticeCard.style.display = 'none';
+            gameSectionWrapper.style.display = 'none';
+            updateSdLimit();
+            return;
+        }
         
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             consoleModelGroup.style.display = (serviceType === 'jailbreak') ? 'flex' : 'none';
@@ -1719,7 +1747,7 @@
                 jailbreakNoticeCard.style.display = 'none';
                 gameSectionWrapper.style.display = 'block';
             }
-        } else {
+        } else if (serviceType === 'games_only') {
             consoleModelGroup.style.display = 'none';
             sdSourceGroup.style.display = 'none';
             sdCardGroup.style.display = 'none';
@@ -1749,6 +1777,10 @@
 
     function updateSdLimit() {
         const serviceType = document.getElementById('serviceTypeSelect').value;
+        const consoleModel = document.getElementById('consoleModelSelect').value;
+        const sdSource = document.getElementById('sdSourceSelect').value;
+        const sdCardSelect = document.getElementById('sdCardSelect');
+        const sdCardValue = sdCardSelect ? sdCardSelect.value : '';
         const warningBanner = document.getElementById('storageWarningBanner');
         const warningText = document.getElementById('storageWarningText');
         const freeInput = document.getElementById('userFreeStorageInput');
@@ -1756,22 +1788,85 @@
         const browseBtn = document.getElementById('browseGamesBtn');
         const submitBtn = document.getElementById('mainSubmitBtn');
 
+        // Handle "nothing selected yet" state
+        if (!serviceType) {
+            isStorageConfigured = false;
+            usableStorageLimit = 0;
+            
+            if (warningBanner) {
+                warningBanner.style.display = 'flex';
+                warningText.innerHTML = 'Please select a <strong>Service Type</strong> above to begin.';
+            }
+            if (gameWrapper) gameWrapper.classList.add('locked');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for service selection...`;
+            updateCartSummary();
+            return;
+        }
+
+        // Jailbreak requires console model
+        if (serviceType === 'jailbreak' && !consoleModel) {
+            isStorageConfigured = false;
+            usableStorageLimit = 0;
+            
+            if (warningBanner) {
+                warningBanner.style.display = 'flex';
+                warningText.innerHTML = 'Please select your <strong>Console Model</strong> to continue.';
+            }
+            if (gameWrapper) gameWrapper.classList.add('locked');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for console model selection...`;
+            updateCartSummary();
+            return;
+        }
+
+        // Jailbreak/System Setup requires SD source
+        if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !sdSource) {
+            isStorageConfigured = false;
+            usableStorageLimit = 0;
+            
+            if (warningBanner) {
+                warningBanner.style.display = 'flex';
+                warningText.innerHTML = 'Please select your <strong>SD Card Source</strong> to continue.';
+            }
+            if (gameWrapper) gameWrapper.classList.add('locked');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for SD card source selection...`;
+            updateCartSummary();
+            return;
+        }
+
+        // Jailbreak/System Setup requires SD card size
+        if ((serviceType === 'jailbreak' || serviceType === 'system_setup') && !sdCardValue) {
+            isStorageConfigured = false;
+            usableStorageLimit = 0;
+            
+            if (warningBanner) {
+                warningBanner.style.display = 'flex';
+                warningText.innerHTML = 'Please select your <strong>SD Card Capacity</strong> to continue.';
+            }
+            if (gameWrapper) gameWrapper.classList.add('locked');
+            if (submitBtn) submitBtn.disabled = true;
+            
+            document.getElementById('storageBreakdown').innerHTML = `📋 Waiting for SD card selection...`;
+            updateCartSummary();
+            return;
+        }
+
         localStorage.setItem('userServiceType', serviceType);
 
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            const sdSource = document.getElementById('sdSourceSelect').value;
             localStorage.setItem('userSdSource', sdSource);
-
-            populateSdCardOptions();
-
-            const select = document.getElementById('sdCardSelect');
-            maxSdSize = parseInt(select.value) || 256;
+            maxSdSize = parseInt(sdCardValue) || 0;
             localStorage.setItem('userSdSelect', maxSdSize);
 
-            let consoleModel = null;
+            let consoleModelValue = null;
             if (serviceType === 'jailbreak') {
-                consoleModel = document.getElementById('consoleModelSelect').value;
-                localStorage.setItem('userConsoleModel', consoleModel);
+                consoleModelValue = consoleModel;
+                localStorage.setItem('userConsoleModel', consoleModelValue);
             }
 
             const androidChecked = document.getElementById('androidModeCheck');
@@ -1827,7 +1922,7 @@
 
             let formattedSdSize = maxSdSize >= 1000 ? `${(maxSdSize / 1024).toFixed(0)}TB` : `${maxSdSize}GB`;
             let cardSourceDesc = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
-            let serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModel})` : 'System Setup';
+            let serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModelValue})` : 'System Setup';
             let breakdownText = `Service: ${serviceLabel} | SD: ${formattedSdSize} (${cardSourceDesc}) | System OS: -${baseSystemOverhead}GB`;
 
             if (androidChecked.checked) breakdownText += ` | Android: -${partitionPerMode}GB`;
@@ -1842,7 +1937,7 @@
         } else {
             let userSpace = parseFloat(freeInput.value);
 
-            // FIX #4: Cap free storage input at reasonable max
+            // Cap free storage input at reasonable max
             if (!isNaN(userSpace) && userSpace > 2048) {
                 userSpace = 2048;
                 freeInput.value = 2048;
@@ -1930,25 +2025,21 @@
     }
 
     function autoExitEditModeForNewPhone(newPhone) {
-        // Silently exit edit mode — no confirm needed since user already changed the phone
         currentEditingOrderId = null;
         currentLoadedPhone = null;
         selectedGames.clear();
 
-        // Reset all form state to defaults (keep the new phone number)
         document.getElementById('androidModeCheck').checked = false;
         document.getElementById('linuxModeCheck').checked = false;
         document.getElementById('orderRemarks').value = '';
-        document.getElementById('serviceTypeSelect').value = 'jailbreak';
-        document.getElementById('consoleModelSelect').value = 'OLED';
-        document.getElementById('sdSourceSelect').value = 'own';
+        document.getElementById('serviceTypeSelect').value = '';
+        document.getElementById('consoleModelSelect').value = '';
+        document.getElementById('sdSourceSelect').value = '';
         document.getElementById('userFreeStorageInput').value = '';
         document.getElementById('searchInput').value = '';
 
-        // Clear URL params so we don't accidentally re-load the old order
         window.history.replaceState({}, '', window.location.pathname);
 
-        // Refresh UI
         populateSdCardOptions();
         toggleServiceFields();
         updateSdLimit();
@@ -1969,12 +2060,10 @@
             return;
         }
 
-        // Calculate current available space dynamically
         let currentGamesSize = 0;
         selectedGames.forEach(s => { currentGamesSize += s; });
         const availableSpace = Math.max(0, usableStorageLimit - currentGamesSize);
 
-        // Split games into "fits" and "doesn't fit"
         const fittingGames = [];
         const hiddenGames = [];
         
@@ -1991,7 +2080,6 @@
             }
         });
 
-        // Hidden games notice + toggle
         if (hiddenGames.length > 0) {
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
@@ -2028,7 +2116,6 @@
             container.appendChild(hiddenContainer);
         }
 
-        // Render fitting games
         if (fittingGames.length === 0 && hiddenGames.length > 0) {
             const emptyMsg = document.createElement('p');
             emptyMsg.style.textAlign = 'center';
@@ -2380,7 +2467,6 @@
             return;
         }
 
-        // FIX #13: Loading state on button
         const originalText = loadBtnText ? loadBtnText.textContent : 'Load Order';
         const originalIcon = loadBtnIcon ? loadBtnIcon.textContent : '📂';
         if (loadBtn) {
@@ -2419,7 +2505,6 @@
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#ff5252', 5000);
         } finally {
-            // Restore button state
             if (loadBtn) {
                 loadBtn.disabled = false;
                 loadBtn.classList.remove('loading');
@@ -2494,7 +2579,6 @@
         document.getElementById('loadChoiceModal').style.display = 'none';
         pendingLoadedOrder = null;
         
-        // Clear status message if it's the "choose an option" one
         const statusMsg = document.getElementById('statusMsg');
         if (statusMsg && statusMsg.innerText.includes('popup')) {
             clearStatusMessage();
@@ -2524,9 +2608,9 @@
         document.getElementById('androidModeCheck').checked = false;
         document.getElementById('linuxModeCheck').checked = false;
         document.getElementById('orderRemarks').value = '';
-        document.getElementById('serviceTypeSelect').value = 'jailbreak';
-        document.getElementById('consoleModelSelect').value = 'OLED';
-        document.getElementById('sdSourceSelect').value = 'own';
+        document.getElementById('serviceTypeSelect').value = '';
+        document.getElementById('consoleModelSelect').value = '';
+        document.getElementById('sdSourceSelect').value = '';
         document.getElementById('userFreeStorageInput').value = '';
         document.getElementById('searchInput').value = '';
         
@@ -2588,8 +2672,13 @@
         if (!validatePhoneProvided()) return;
 
         if (!isStorageConfigured) {
-            alert('Please specify your free storage space before proceeding!');
-            document.getElementById('userFreeStorageInput').focus();
+            alert('Please complete your configuration (service type, model, storage) before proceeding!');
+            const sType = document.getElementById('serviceTypeSelect').value;
+            if (!sType) document.getElementById('serviceTypeSelect').focus();
+            else if (sType === 'jailbreak' && !document.getElementById('consoleModelSelect').value) document.getElementById('consoleModelSelect').focus();
+            else if (!document.getElementById('sdSourceSelect').value && (sType === 'jailbreak' || sType === 'system_setup')) document.getElementById('sdSourceSelect').focus();
+            else if (!document.getElementById('sdCardSelect').value && (sType === 'jailbreak' || sType === 'system_setup')) document.getElementById('sdCardSelect').focus();
+            else document.getElementById('userFreeStorageInput').focus();
             return;
         }
 
@@ -3042,17 +3131,38 @@
     }
 
     async function submitOrUpdateOrder() {
-        // FIX #2: Guard submit — storage must be configured
         if (!isStorageConfigured) {
-            alert('Please configure your storage settings before saving.');
+            alert('Please complete your configuration (service type, model, storage) before saving.');
             closeCartModal();
             return;
+        }
+
+        const serviceTypeCheck = document.getElementById('serviceTypeSelect').value;
+        if (!serviceTypeCheck) {
+            alert('Please select a Service Type first.');
+            return;
+        }
+
+        if (serviceTypeCheck === 'jailbreak' && !document.getElementById('consoleModelSelect').value) {
+            alert('Please select your Console Model.');
+            return;
+        }
+
+        if ((serviceTypeCheck === 'jailbreak' || serviceTypeCheck === 'system_setup')) {
+            if (!document.getElementById('sdSourceSelect').value) {
+                alert('Please select your SD Card Source (own or purchase new).');
+                return;
+            }
+            if (!document.getElementById('sdCardSelect').value) {
+                alert('Please select your SD Card Capacity.');
+                return;
+            }
         }
 
         if (!validatePhoneProvided()) return;
 
         const phone = document.getElementById('phoneInput').value.trim();
-        const serviceType = document.getElementById('serviceTypeSelect').value;
+        const serviceType = serviceTypeCheck;
         const count = selectedGames.size;
 
         const hasFreeGamesService = (serviceType === 'jailbreak' || serviceType === 'system_setup');
@@ -3156,11 +3266,9 @@
 
                 if (error) throw error;
                 
-                // FIX #7: Fallback if insert doesn't return data
                 if (insertedData && insertedData.length > 0 && insertedData[0].id) {
                     savedOrderId = insertedData[0].id;
                 } else {
-                    // Fallback: query for the just-inserted order
                     const { data: fallbackData } = await supabaseClient
                         .from('orders')
                         .select('id')
@@ -3254,8 +3362,6 @@
         const encodedMessage = encodeURIComponent(message);
         const whatsappUrl = `https://wa.me/${businessWhatsAppNumber}?text=${encodedMessage}`;
         
-        // FIX #15: More reliable WhatsApp open on mobile browsers
-        // Using an anchor with target="_blank" works on more browsers than window.open
         try {
             const waLink = document.createElement('a');
             waLink.href = whatsappUrl;
@@ -3268,7 +3374,6 @@
                 document.body.removeChild(waLink);
             }, 100);
         } catch (err) {
-            // Fallback to window.open
             window.open(whatsappUrl, '_blank');
         }
     }
