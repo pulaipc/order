@@ -1660,7 +1660,6 @@
                 }
             }
         }
-        // If sdSource is empty, only the placeholder shows
     }
 
     function validatePhoneProvided() {
@@ -1773,6 +1772,8 @@
         }
         document.getElementById('jailbreakNoticeCard').style.display = 'none';
         document.getElementById('gameSectionWrapper').style.display = 'block';
+        // Re-render games now that the section is visible
+        filterGames();
     }
 
     function updateSdLimit() {
@@ -1998,6 +1999,11 @@
             });
 
             gamesToRemove.forEach(name => selectedGames.delete(name));
+        }
+        
+        // Always re-render the game list so hidden games update when storage changes
+        const gameSectionEl = document.getElementById('gameSectionWrapper');
+        if (gameSectionEl && gameSectionEl.style.display !== 'none') {
             filterGames();
         }
         
@@ -3326,7 +3332,7 @@
         const details = calculatePriceDetails(count, totalGamesSize);
 
         let message = `🎮 *New Pulai PC Order / Inquiry*\n`;
-        message += `━━━━━━━━━━━━━━━━━━━\n`;
+        message += `━━━━━━━━━━━\n`;
         message += `📱 *Phone ID (Last 4):* ${phone}\n`;
 
         let serviceLabel = 'Games Only';
@@ -3344,15 +3350,15 @@
             message += `📊 *Free Storage:* ${freeStorageInput || 0} GB\n`;
         }
 
-        message += `━━━━━━━━━━━━━━━━━━━\n`;
+        message += `━━━━━━━━━━━\n`;
         message += `📦 *Selected Games:* ${count} games (${totalGamesSize.toFixed(1)} GB total)\n`;
 
         if (remarks) {
-            message += `━━━━━━━━━━━━━━━━━━━\n`;
+            message += `━━━━━━━━━━━\n`;
             message += `📝 *Remarks:* ${remarks}\n`;
         }
 
-        message += `━━━━━━━━━━━━━━━━━━━\n`;
+        message += `━━━━━━━━━━━\n`;
         message += `💰 *Total Estimated Price:* RM${Math.round(details.price)}`;
 
         const shareUrl = buildShareUrl();
