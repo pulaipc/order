@@ -161,15 +161,37 @@
         .progress-select:focus { border-color: #ffc000; }
         .progress-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        .notify-btn {
-            background: #25D366; color: #fff; border: none;
-            padding: 8px 14px; border-radius: 5px; cursor: pointer;
-            font-size: 12px; font-weight: bold; font-family: inherit;
-            display: none; align-items: center; gap: 6px;
-            transition: opacity 0.2s;
+        /* Shared small buttons */
+        .notify-btn,
+        .copy-track-btn {
+            border: none;
+            padding: 8px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.2s, background 0.2s, color 0.2s;
         }
-        .notify-btn:hover { opacity: 0.85; }
+        .notify-btn {
+            background: #25D366; color: #fff;
+            display: none;
+        }
         .notify-btn.visible { display: inline-flex; }
+        .notify-btn:hover { opacity: 0.85; }
+
+        .copy-track-btn {
+            background: #2e2716;
+            color: #64b5f6;
+            border: 1px solid #2196F3;
+        }
+        .copy-track-btn:hover {
+            background: #2196F3;
+            color: #fff;
+        }
 
         .status-select {
             padding: 10px; border-radius: 6px; background: #221c10;
@@ -359,9 +381,6 @@
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
-        /* ==================== */
-        /* TABLET (>= 600px)    */
-        /* ==================== */
         @media (min-width: 600px) {
             body { padding: 20px; }
             .stats-overview { grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -378,20 +397,12 @@
             h1 { font-size: 20px; }
             .progress-controls { grid-template-columns: 1fr 1fr; }
         }
-
-        /* ==================== */
-        /* DESKTOP (>= 900px)   */
-        /* ==================== */
         @media (min-width: 900px) {
             .header-left .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
             .order-card { padding: 16px; }
             .order-body { gap: 15px; }
         }
-
-        /* ==================== */
-        /* SMALL PHONES (< 380px) */
-        /* ==================== */
         @media (max-width: 380px) {
             body { padding: 10px; }
             .stat-card { padding: 10px; }
@@ -558,6 +569,7 @@
             else if (e.target.classList.contains('copy-main-btn')) copyGamesForScriptMain(e.target.getAttribute('data-order-id'), e.target);
             else if (e.target.classList.contains('more-games-link')) openOrderModal(e.target.getAttribute('data-order-id'));
             else if (e.target.classList.contains('notify-btn')) notifyCustomer(e.target.getAttribute('data-order-id'));
+            else if (e.target.classList.contains('copy-track-btn')) copyTrackingLink(e.target.getAttribute('data-order-id'), e.target);
         });
 
         async function login() {
@@ -706,12 +718,43 @@
             let msg = `Hi! Quick update on your order (#${order.phone_ending || ''}).\n\n`;
             msg += `📍 Current stage: ${stage}`;
             if (sub) msg += ` — ${sub}`;
-            msg += `\n\nTrack live here: ${window.location.origin + window.location.pathname.replace('admin.html', 'track.html')}?phone=${order.phone_ending || ''}`;
+            msg += `\n\nTrack live here: ${buildTrackingUrl(order.phone_ending)}`;
 
             navigator.clipboard.writeText(msg).then(() => {
                 alert('✅ Message copied to clipboard.\n\nPaste it into WhatsApp for the customer.');
                 window.open('https://web.whatsapp.com/', '_blank');
             }).catch(err => alert('Failed to copy: ' + err));
+        }
+
+        // Build the customer's personal tracking URL
+        function buildTrackingUrl(phoneEnding) {
+            if (!phoneEnding) return '';
+            const base = window.location.origin + window.location.pathname.replace('admin.html', 'track.html');
+            return `${base}?phone=${encodeURIComponent(phoneEnding)}`;
+        }
+
+        // Copy tracking URL to clipboard
+        function copyTrackingLink(orderId, btnElement) {
+            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
+            if (!order) return;
+            const url = buildTrackingUrl(order.phone_ending);
+            if (!url) {
+                alert('This order has no Customer ID to track.');
+                return;
+            }
+            navigator.clipboard.writeText(url).then(() => {
+                const originalText = btnElement.innerHTML;
+                btnElement.innerHTML = '✅ Copied!';
+                btnElement.style.background = '#ffc000';
+                btnElement.style.color = '#14110a';
+                btnElement.style.borderColor = '#ffc000';
+                setTimeout(() => {
+                    btnElement.innerHTML = originalText;
+                    btnElement.style.background = '#2e2716';
+                    btnElement.style.color = '#64b5f6';
+                    btnElement.style.borderColor = '#2196F3';
+                }, 2000);
+            }).catch(err => alert('Failed to copy link: ' + err));
         }
 
         async function editWhatsappUsername(orderId) {
@@ -921,7 +964,8 @@
                                 ${subOptions}
                             </select>
                         </div>
-                        <div class="progress-controls-row" style="justify-content: flex-end;">
+                        <div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">
+                            <button class="copy-track-btn" data-order-id="${orderId}" title="Copy tracking link for this customer">🔗 Copy Tracking Link</button>
                             <button class="notify-btn${notifyVisible}" data-order-id="${orderId}">📱 Notify Customer</button>
                         </div>
                     </div>
