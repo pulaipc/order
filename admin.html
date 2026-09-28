@@ -336,6 +336,20 @@
         .edit-wa-btn:hover {
             opacity: 0.85;
         }
+        .edit-remarks-btn {
+            background: #2196F3;
+            border: none;
+            color: #fff;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.2s;
+        }
+        .edit-remarks-btn:hover {
+            opacity: 0.85;
+        }
         .no-orders {
             text-align: center;
             padding: 40px;
@@ -512,6 +526,115 @@
             color: #ffe066;
         }
 
+        /* REMARKS EDIT MODAL */
+        #remarksModalOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .remarks-modal-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 520px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+        .remarks-modal-header {
+            padding: 16px 20px;
+            background: #2a2108;
+            border-bottom: 1px solid #3a3018;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .remarks-modal-header h2 {
+            margin: 0;
+            color: #ffc000;
+            font-size: 18px;
+        }
+        .remarks-modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .remarks-modal-body label {
+            font-size: 13px;
+            color: #aaa;
+        }
+        .remarks-textarea {
+            width: 100%;
+            padding: 12px;
+            background: #221c10;
+            border: 1px solid #3a3018;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            resize: vertical;
+            min-height: 130px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .remarks-textarea:focus {
+            border-color: #ffc000;
+        }
+        .remarks-modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid #3a3018;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn-secondary {
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #3a3018;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .btn-secondary:hover {
+            border-color: #888;
+            color: #fff;
+        }
+        .btn-primary {
+            background: #ffc000;
+            color: #14110a;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            transition: background 0.2s;
+        }
+        .btn-primary:hover {
+            background: #e6ac00;
+        }
+        .btn-primary:disabled {
+            background: #4a4020;
+            color: #888;
+            cursor: not-allowed;
+        }
+
         /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
@@ -593,7 +716,13 @@
                     <div class="modal-info-item"><div class="lbl">Total Estimated Price</div><div class="val" id="modalPriceVal" style="color:#ffc000;">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Date Created</div><div class="val" id="modalDateVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Last Updated / Edited</div><div class="val" id="modalUpdatedVal" style="color:#ffb74d;">-</div></div>
-                    <div class="modal-info-item" style="grid-column: 1 / -1;"><div class="lbl">Remarks</div><div class="val" id="modalRemarksVal">-</div></div>
+                    <div class="modal-info-item" style="grid-column: 1 / -1;">
+                        <div class="lbl" style="display:flex; justify-content:space-between; align-items:center;">
+                            <span>Remarks</span>
+                            <button class="edit-remarks-btn" id="modalEditRemarksBtn">✏️ Edit Remarks</button>
+                        </div>
+                        <div class="val" id="modalRemarksVal" style="margin-top:6px;">-</div>
+                    </div>
                 </div>
 
                 <div class="game-list-container">
@@ -604,9 +733,26 @@
                             <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">📋 Copy List for Script</button>
                         </div>
                     </div>
-                    <!-- Compact Vertical List Container -->
                     <div id="modalGameGrid" class="modal-game-list"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REMARKS EDIT MODAL -->
+    <div id="remarksModalOverlay" onclick="closeRemarksModalOnBackdrop(event)">
+        <div class="remarks-modal-card">
+            <div class="remarks-modal-header">
+                <h2>✏️ Edit Remarks</h2>
+                <button class="close-modal-btn" onclick="closeRemarksModal()">✕</button>
+            </div>
+            <div class="remarks-modal-body">
+                <label for="remarksEditTextarea">Remarks / Notes for this order:</label>
+                <textarea id="remarksEditTextarea" class="remarks-textarea" placeholder="e.g. mention specific game DLCs, trilogies, or special requests..."></textarea>
+            </div>
+            <div class="remarks-modal-footer">
+                <button class="btn-secondary" onclick="closeRemarksModal()">Cancel</button>
+                <button class="btn-primary" id="saveRemarksBtn" onclick="saveRemarksEdit()">💾 Save Remarks</button>
             </div>
         </div>
     </div>
@@ -617,6 +763,7 @@
         let allOrders = [];
         let currentStatusFilter = 'ALL';
         let currentModalGames = [];
+        let currentRemarksOrderId = null;
 
         window.onload = async function() {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -638,6 +785,13 @@
                 } else if (e.target.classList.contains('edit-wa-btn')) {
                     const id = e.target.getAttribute('data-order-id');
                     editWhatsappUsername(id);
+                } else if (e.target.classList.contains('edit-remarks-btn')) {
+                    const id = e.target.getAttribute('data-order-id');
+                    if (id) {
+                        openRemarksModal(id);
+                    } else if (currentRemarksOrderId) {
+                        openRemarksModal(currentRemarksOrderId);
+                    }
                 } else if (e.target.classList.contains('copy-main-btn')) {
                     const id = e.target.getAttribute('data-order-id');
                     copyGamesForScriptMain(id, e.target);
@@ -747,6 +901,79 @@
             filterAndRenderOrders();
         }
 
+        /* ---------- REMARKS EDIT ---------- */
+        function openRemarksModal(orderId) {
+            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
+            if (!order) {
+                alert('Order not found.');
+                return;
+            }
+
+            currentRemarksOrderId = orderId;
+            const textarea = document.getElementById('remarksEditTextarea');
+            textarea.value = order.remarks || '';
+            document.getElementById('remarksModalOverlay').style.display = 'flex';
+            setTimeout(() => textarea.focus(), 100);
+        }
+
+        function closeRemarksModal() {
+            document.getElementById('remarksModalOverlay').style.display = 'none';
+            currentRemarksOrderId = null;
+        }
+
+        function closeRemarksModalOnBackdrop(event) {
+            if (event.target.id === 'remarksModalOverlay') {
+                closeRemarksModal();
+            }
+        }
+
+        async function saveRemarksEdit() {
+            if (!currentRemarksOrderId) return;
+
+            const order = allOrders.find(o => String(o.id) === String(currentRemarksOrderId) || String(o.order_id) === String(currentRemarksOrderId));
+            if (!order) {
+                alert('Order not found.');
+                return;
+            }
+
+            const newRemarks = document.getElementById('remarksEditTextarea').value.trim();
+            const oldRemarks = order.remarks;
+            const saveBtn = document.getElementById('saveRemarksBtn');
+
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Saving...';
+
+            const idField = order.id ? 'id' : 'order_id';
+            const { error } = await supabaseClient
+                .from('orders')
+                .update({ remarks: newRemarks })
+                .eq(idField, currentRemarksOrderId);
+
+            if (error) {
+                alert('Failed to save remarks: ' + error.message);
+                order.remarks = oldRemarks;
+                saveBtn.disabled = false;
+                saveBtn.innerText = '💾 Save Remarks';
+                return;
+            }
+
+            order.remarks = newRemarks;
+            saveBtn.disabled = false;
+            saveBtn.innerText = '💾 Save Remarks';
+
+            closeRemarksModal();
+            filterAndRenderOrders();
+
+            // Update modal view if it's currently showing this order
+            const orderModal = document.getElementById('orderModalOverlay');
+            if (orderModal.style.display === 'flex') {
+                const titleText = document.getElementById('modalTitle').innerText;
+                if (titleText.includes(order.phone_ending || '___')) {
+                    document.getElementById('modalRemarksVal').innerText = newRemarks || 'None';
+                }
+            }
+        }
+
         function sortGameList(gameList) {
             let masterList = [];
             if (typeof APP_CONFIG !== 'undefined') {
@@ -780,6 +1007,7 @@
                 if (query) {
                     const phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().includes(query);
                     const waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().includes(query);
+                    const remarksMatch = order.remarks && order.remarks.toLowerCase().includes(query);
                     
                     let gameList = [];
                     if (Array.isArray(order.games)) gameList = order.games;
@@ -787,7 +1015,7 @@
                         try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(','); }
                     }
                     const gameMatch = gameList.some(g => String(g).toLowerCase().includes(query));
-                    return phoneMatch || waMatch || gameMatch;
+                    return phoneMatch || waMatch || gameMatch || remarksMatch;
                 }
                 return true;
             });
@@ -824,11 +1052,15 @@
                     ? `<span style="color:#25D366;">💬 WA: ${order.whatsapp_username}</span>` 
                     : `<span style="color:#777; font-style:italic;">💬 WA: Not assigned</span>`;
 
+                const remarksDisplay = order.remarks && order.remarks.trim() !== ''
+                    ? order.remarks
+                    : '<span style="color:#777; font-style:italic;">None</span>';
+
                 card.innerHTML = `
                     <div class="order-header">
                         <div class="customer-info">
                             <div>📱 Phone Input: ${order.phone_ending || 'N/A'}</div>
-                            <div style="display:flex; align-items:center; gap:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                 ${waDisplay}
                                 <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
                             </div>
@@ -839,7 +1071,13 @@
                         <div>
                             <strong>Service:</strong> ${order.service_type || 'N/A'}<br>
                             <strong>Storage:</strong> ${order.sd_card_size || order.free_storage_gb || 0} GB<br>
-                            <strong>Remarks:</strong> ${order.remarks || 'None'}
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:4px;">
+                                <div style="flex:1;">
+                                    <strong>Remarks:</strong>
+                                    <div style="font-size:12px; color:#ccc; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
+                                </div>
+                                <button class="edit-remarks-btn" data-order-id="${orderId}" style="flex-shrink:0;">✏️ Edit</button>
+                            </div>
                         </div>
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
@@ -885,6 +1123,8 @@
                 return;
             }
 
+            currentRemarksOrderId = order.id || order.order_id;
+
             document.getElementById('modalTitle').innerText = `📱 Order Details: ${order.phone_ending || 'N/A'}`;
             document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
             document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
@@ -895,7 +1135,15 @@
             
             const lastUpdated = order.updated_at || order.created_at;
             document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
-            document.getElementById('modalRemarksVal').innerText = order.remarks || 'None';
+            
+            const remarksDisplay = order.remarks && order.remarks.trim() !== ''
+                ? order.remarks
+                : '<span style="color:#777; font-style:italic;">None</span>';
+            document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
+
+            // Wire up the "Edit Remarks" button inside the modal
+            const modalEditBtn = document.getElementById('modalEditRemarksBtn');
+            modalEditBtn.onclick = () => openRemarksModal(currentRemarksOrderId);
 
             const gameGrid = document.getElementById('modalGameGrid');
             gameGrid.innerHTML = '';
