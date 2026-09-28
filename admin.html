@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Pulai PC Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
             color: #ffffff;
             margin: 0;
-            padding: 20px;
+            padding: 16px;
+            padding-bottom: 40px;
+            -webkit-text-size-adjust: 100%;
         }
         .admin-container {
             max-width: 1100px;
@@ -40,15 +45,19 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            padding: 16px;
+            box-sizing: border-box;
         }
         .login-card {
             background: #1f190e;
             border: 1px solid #3a3018;
-            padding: 30px;
+            padding: 24px;
             border-radius: 12px;
-            width: 340px;
+            width: 100%;
+            max-width: 340px;
             text-align: center;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
         }
         .login-card h2 {
             color: #ffc000;
@@ -64,14 +73,14 @@
         }
         .login-card input {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             margin: 6px 0;
             box-sizing: border-box;
             background: #221c10;
             border: 1px solid #3a3018;
             color: #fff;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             outline: none;
             transition: border-color 0.2s;
         }
@@ -80,12 +89,12 @@
         }
         .login-card button {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: #ffc000;
             border: none;
             color: #14110a;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
             border-radius: 6px;
             cursor: pointer;
             margin-top: 12px;
@@ -104,66 +113,70 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 12px;
         }
         .header-left {
             display: flex;
             align-items: center;
-            gap: 14px;
+            gap: 12px;
+            min-width: 0;
         }
         .header-left .site-logo {
             margin: 0;
-            width: 52px;
-            height: 52px;
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
         }
         h1 {
             color: #ffc000;
             margin: 0;
-            font-size: 24px;
+            font-size: 20px;
+            word-break: break-word;
         }
 
         .stats-overview {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .stat-card {
             background: #1f190e;
             border: 1px solid #3a3018;
             border-radius: 8px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
         }
         .stat-card .val {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: bold;
             color: #ffc000;
-            margin-top: 5px;
+            margin-top: 4px;
         }
         .stat-card .lbl {
-            font-size: 12px;
+            font-size: 11px;
             color: #aaa;
             text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
 
         .controls-row {
             display: flex;
-            gap: 12px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 16px;
         }
         .search-box {
-            flex: 1;
-            min-width: 200px;
+            width: 100%;
             padding: 12px;
             background: #1f190e;
             border: 1px solid #3a3018;
             color: #fff;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             outline: none;
             transition: border-color 0.2s;
+            box-sizing: border-box;
         }
         .search-box:focus {
             border-color: #ffc000;
@@ -171,16 +184,30 @@
         .search-box::placeholder {
             color: #888;
         }
+
+        .filter-buttons-wrapper {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .filter-buttons-wrapper::-webkit-scrollbar {
+            display: none;
+        }
         .filter-btn {
             background: #1f190e;
             color: #ccc;
             border: 1px solid #3a3018;
-            padding: 10px 16px;
+            padding: 8px 14px;
             border-radius: 6px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 600;
             transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .filter-btn:hover {
             border-color: #ffc000;
@@ -197,7 +224,7 @@
             background: #2e2716;
             color: #ffc000;
             border: 1px solid #ffc000;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
@@ -206,6 +233,7 @@
             font-size: 13px;
             line-height: normal;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .btn-action:hover {
             background: #ffc000;
@@ -220,16 +248,22 @@
             color: #fff;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
         .orders-grid {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
         .order-card {
             background: #1f190e;
             border: 1px solid #3a3018;
             border-radius: 8px;
-            padding: 16px;
+            padding: 14px;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -254,40 +288,53 @@
         .order-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
         }
         .customer-info {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: bold;
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+            min-width: 0;
+            flex: 1;
         }
+        .customer-info > div:first-child {
+            word-break: break-word;
+        }
+        .order-date {
+            font-size: 11px;
+            color: #888;
+            white-space: nowrap;
+        }
+
         .order-body {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             background: #17120a;
             padding: 12px;
             border-radius: 6px;
             border: 1px solid #241e12;
         }
-        @media (max-width: 700px) {
-            .order-body {
-                grid-template-columns: 1fr;
-            }
+
+        .order-body > div {
+            min-width: 0;
+            word-break: break-word;
         }
+
         .status-select {
-            padding: 8px;
+            padding: 10px;
             border-radius: 6px;
             background: #221c10;
             color: #fff;
             border: 1px solid #3a3018;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 14px;
             outline: none;
+            min-width: 140px;
         }
         .status-select:focus {
             border-color: #ffc000;
@@ -296,11 +343,11 @@
             background: transparent;
             color: #ff5252;
             border: 1px solid #ff5252;
-            padding: 7px 14px;
+            padding: 9px 14px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             transition: all 0.2s;
         }
         .delete-btn:hover {
@@ -311,12 +358,11 @@
             background: #ffc000;
             color: #14110a;
             border: none;
-            padding: 7px 16px;
+            padding: 9px 16px;
             border-radius: 5px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 12px;
-            margin-right: 8px;
+            font-size: 13px;
             transition: background 0.2s;
         }
         .view-btn:hover {
@@ -327,7 +373,7 @@
             border: none;
             color: #fff;
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
@@ -341,7 +387,7 @@
             border: none;
             color: #fff;
             font-size: 11px;
-            padding: 4px 10px;
+            padding: 5px 10px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: bold;
@@ -352,11 +398,24 @@
         }
         .no-orders {
             text-align: center;
-            padding: 40px;
+            padding: 40px 20px;
             color: #888;
             background: #1f190e;
             border: 1px solid #3a3018;
             border-radius: 8px;
+        }
+
+        .order-actions-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .order-actions-row > div {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         /* FULL ORDER DETAILS MODAL */
@@ -371,7 +430,7 @@
             justify-content: center;
             align-items: center;
             z-index: 99999;
-            padding: 20px;
+            padding: 12px;
             box-sizing: border-box;
         }
         .modal-card {
@@ -380,49 +439,54 @@
             border-radius: 12px;
             width: 100%;
             max-width: 700px;
-            max-height: 90vh;
+            max-height: 92vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
         }
         .modal-header {
-            padding: 16px 20px;
+            padding: 14px 16px;
             background: #2a2108;
             border-bottom: 1px solid #3a3018;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
         }
         .modal-header h2 {
             margin: 0;
             color: #ffc000;
-            font-size: 18px;
+            font-size: 16px;
+            word-break: break-word;
         }
         .close-modal-btn {
             background: transparent;
             border: none;
             color: #aaa;
-            font-size: 22px;
+            font-size: 26px;
             cursor: pointer;
             line-height: 1;
             transition: color 0.2s;
+            padding: 0 6px;
+            flex-shrink: 0;
         }
         .close-modal-btn:hover {
             color: #ffc000;
         }
         .modal-body {
-            padding: 20px;
+            padding: 16px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 14px;
+            -webkit-overflow-scrolling: touch;
         }
 
         .modal-info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 10px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             background: #17120a;
             padding: 14px;
             border-radius: 8px;
@@ -439,13 +503,21 @@
             font-size: 14px;
             font-weight: 500;
             color: #fff;
+            word-break: break-word;
+        }
+        .remarks-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .game-list-container {
             background: #17120a;
             border: 1px solid #241e12;
             border-radius: 8px;
-            padding: 14px;
+            padding: 12px;
         }
         .game-list-header {
             display: flex;
@@ -459,20 +531,27 @@
         }
         .game-list-header h3 {
             margin: 0;
-            font-size: 15px;
+            font-size: 14px;
             color: #ffc000;
+        }
+        .game-list-header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
         .copy-txt-btn {
             background: #2e2716;
             color: #ffc000;
             border: 1px solid #ffc000;
-            padding: 6px 12px;
+            padding: 7px 12px;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
             transition: all 0.2s;
+            white-space: nowrap;
         }
         .copy-txt-btn:hover {
             background: #ffc000;
@@ -484,19 +563,20 @@
             display: flex;
             flex-direction: column;
             gap: 6px;
-            max-height: 400px;
+            max-height: 50vh;
             overflow-y: auto;
             padding-right: 4px;
+            -webkit-overflow-scrolling: touch;
         }
         .game-item {
             background: #221c10;
             border: 1px solid #2e2716;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 5px;
             font-size: 13px;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 8px;
             word-break: break-word;
         }
         .game-num {
@@ -509,6 +589,7 @@
             min-width: 22px;
             text-align: center;
             flex-shrink: 0;
+            margin-top: 1px;
         }
 
         .more-games-link {
@@ -538,7 +619,7 @@
             justify-content: center;
             align-items: center;
             z-index: 100000;
-            padding: 20px;
+            padding: 12px;
             box-sizing: border-box;
         }
         .remarks-modal-card {
@@ -553,7 +634,7 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
         }
         .remarks-modal-header {
-            padding: 16px 20px;
+            padding: 14px 16px;
             background: #2a2108;
             border-bottom: 1px solid #3a3018;
             display: flex;
@@ -563,10 +644,10 @@
         .remarks-modal-header h2 {
             margin: 0;
             color: #ffc000;
-            font-size: 18px;
+            font-size: 16px;
         }
         .remarks-modal-body {
-            padding: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 8px;
@@ -582,7 +663,7 @@
             border: 1px solid #3a3018;
             color: #fff;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             box-sizing: border-box;
             resize: vertical;
             min-height: 130px;
@@ -594,11 +675,12 @@
             border-color: #ffc000;
         }
         .remarks-modal-footer {
-            padding: 14px 20px;
+            padding: 12px 16px;
             border-top: 1px solid #3a3018;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
+            flex-wrap: wrap;
         }
         .btn-secondary {
             background: transparent;
@@ -608,7 +690,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: 600;
-            font-size: 13px;
+            font-size: 14px;
             transition: all 0.2s;
         }
         .btn-secondary:hover {
@@ -623,7 +705,7 @@
             border-radius: 6px;
             cursor: pointer;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             transition: background 0.2s;
         }
         .btn-primary:hover {
@@ -638,6 +720,7 @@
         /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
         ::-webkit-scrollbar-track {
             background: #14110a;
@@ -649,6 +732,111 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #5a4a20;
         }
+
+        /* ==================== */
+        /* TABLET (>= 600px)    */
+        /* ==================== */
+        @media (min-width: 600px) {
+            body {
+                padding: 20px;
+            }
+            .stats-overview {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 12px;
+            }
+            .stat-card {
+                padding: 14px;
+            }
+            .stat-card .val {
+                font-size: 22px;
+            }
+            .stat-card .lbl {
+                font-size: 12px;
+            }
+            .controls-row {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 12px;
+            }
+            .search-box {
+                flex: 1;
+                min-width: 200px;
+            }
+            .order-body {
+                grid-template-columns: 1fr 1fr;
+                gap: 15px;
+            }
+            .modal-info-grid {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            }
+            .modal-header h2 {
+                font-size: 18px;
+            }
+            .game-list-header h3 {
+                font-size: 15px;
+            }
+            .modal-body {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+        }
+
+        /* ==================== */
+        /* DESKTOP (>= 900px)   */
+        /* ==================== */
+        @media (min-width: 900px) {
+            .header-left .site-logo {
+                width: 52px;
+                height: 52px;
+            }
+            h1 {
+                font-size: 24px;
+            }
+            .order-card {
+                padding: 16px;
+            }
+            .order-body {
+                gap: 15px;
+            }
+        }
+
+        /* ==================== */
+        /* SMALL PHONES (< 380px) */
+        /* ==================== */
+        @media (max-width: 380px) {
+            body {
+                padding: 10px;
+            }
+            .stat-card {
+                padding: 10px;
+            }
+            .stat-card .val {
+                font-size: 18px;
+            }
+            .stat-card .lbl {
+                font-size: 10px;
+            }
+            h1 {
+                font-size: 17px;
+            }
+            .header-left .site-logo {
+                width: 40px;
+                height: 40px;
+            }
+            .order-card {
+                padding: 12px;
+            }
+            .filter-btn {
+                padding: 7px 12px;
+                font-size: 12px;
+            }
+            .btn-action {
+                padding: 9px 12px;
+                font-size: 12px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -659,8 +847,8 @@
             <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
             <h2>Admin Login</h2>
             <p>Enter your admin email and password</p>
-            <input type="email" id="adminEmail" placeholder="Email">
-            <input type="password" id="adminPassword" placeholder="Password">
+            <input type="email" id="adminEmail" placeholder="Email" autocomplete="email">
+            <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
             <button onclick="login()">Log In</button>
         </div>
     </div>
@@ -672,7 +860,7 @@
                 <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
                 <h1>⚙️ Admin Dashboard</h1>
             </div>
-            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <div class="header-actions">
                 <a href="index.html" target="_blank" class="btn-action">🏠 Main Page</a>
                 <button class="btn-action" onclick="loadOrders()">🔄 Refresh</button>
                 <button class="btn-action btn-logout" onclick="logout()">Logout</button>
@@ -688,7 +876,7 @@
 
         <div class="controls-row">
             <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search phone, WhatsApp, or game..." onkeyup="filterAndRenderOrders()">
-            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <div class="filter-buttons-wrapper">
                 <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                 <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
                 <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
@@ -717,8 +905,8 @@
                     <div class="modal-info-item"><div class="lbl">Date Created</div><div class="val" id="modalDateVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Last Updated / Edited</div><div class="val" id="modalUpdatedVal" style="color:#ffb74d;">-</div></div>
                     <div class="modal-info-item" style="grid-column: 1 / -1;">
-                        <div class="lbl" style="display:flex; justify-content:space-between; align-items:center;">
-                            <span>Remarks</span>
+                        <div class="remarks-header-row">
+                            <span class="lbl">Remarks</span>
                             <button class="edit-remarks-btn" id="modalEditRemarksBtn">✏️ Edit Remarks</button>
                         </div>
                         <div class="val" id="modalRemarksVal" style="margin-top:6px;">-</div>
@@ -728,9 +916,9 @@
                 <div class="game-list-container">
                     <div class="game-list-header">
                         <h3>Selected Games</h3>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <span id="modalGameCount" style="font-size:13px; color:#aaa;">0 Games</span>
-                            <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">📋 Copy List for Script</button>
+                        <div class="game-list-header-actions">
+                            <span id="modalGameCount" style="font-size:12px; color:#aaa;">0 Games</span>
+                            <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">📋 Copy Game List</button>
                         </div>
                     </div>
                     <div id="modalGameGrid" class="modal-game-list"></div>
@@ -964,7 +1152,6 @@
             closeRemarksModal();
             filterAndRenderOrders();
 
-            // Update modal view if it's currently showing this order
             const orderModal = document.getElementById('orderModalOverlay');
             if (orderModal.style.display === 'flex') {
                 const titleText = document.getElementById('modalTitle').innerText;
@@ -1049,7 +1236,7 @@
                     : '<em>No games selected</em>';
 
                 const waDisplay = order.whatsapp_username 
-                    ? `<span style="color:#25D366;">💬 WA: ${order.whatsapp_username}</span>` 
+                    ? `<span style="color:#25D366; word-break:break-word;">💬 WA: ${order.whatsapp_username}</span>` 
                     : `<span style="color:#777; font-style:italic;">💬 WA: Not assigned</span>`;
 
                 const remarksDisplay = order.remarks && order.remarks.trim() !== ''
@@ -1065,14 +1252,14 @@
                                 <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
                             </div>
                         </div>
-                        <div style="font-size:12px; color:#888;">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
+                        <div class="order-date">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
                     </div>
                     <div class="order-body">
                         <div>
                             <strong>Service:</strong> ${order.service_type || 'N/A'}<br>
                             <strong>Storage:</strong> ${order.sd_card_size || order.free_storage_gb || 0} GB<br>
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:4px;">
-                                <div style="flex:1;">
+                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:6px; flex-wrap:wrap;">
+                                <div style="flex:1; min-width:0;">
                                     <strong>Remarks:</strong>
                                     <div style="font-size:12px; color:#ccc; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
                                 </div>
@@ -1080,16 +1267,16 @@
                             </div>
                         </div>
                         <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:4px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                                 <strong>Games (${gameList.length}):</strong>
-                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">📋 Copy List for Script</button>
+                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">📋 Copy Game List</button>
                             </div>
-                            <div style="max-height:80px; overflow-y:auto; font-size:12px;">${gamesPreview}</div>
+                            <div style="max-height:90px; overflow-y:auto; font-size:12px;">${gamesPreview}</div>
                         </div>
                     </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <div class="order-actions-row">
                         <div>
-                            <span style="font-size:12px; color:#aaa;">Status: </span>
+                            <span style="font-size:12px; color:#aaa; align-self:center;">Status: </span>
                             <select class="status-select" onchange="updateStatus('${orderId}', this.value)">
                                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
                                 <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>🔧 In Progress</option>
@@ -1141,7 +1328,6 @@
                 : '<span style="color:#777; font-style:italic;">None</span>';
             document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
 
-            // Wire up the "Edit Remarks" button inside the modal
             const modalEditBtn = document.getElementById('modalEditRemarksBtn');
             modalEditBtn.onclick = () => openRemarksModal(currentRemarksOrderId);
 
