@@ -83,7 +83,8 @@
         }
         .result-card.show { display: block; }
 
-        .order-summary {
+        /* Refresh button + summary header row */
+        .result-header {
             display: flex; justify-content: space-between; align-items: flex-start;
             gap: 10px; flex-wrap: wrap;
             padding-bottom: 16px; margin-bottom: 20px;
@@ -93,7 +94,27 @@
         .order-id-line { font-size: 18px; font-weight: bold; color: #ffc000; }
         .order-detail-line { font-size: 13px; color: #ccc; line-height: 1.5; }
         .order-detail-line strong { color: #fff; }
-        .order-placed { font-size: 11.5px; color: #888; text-align: right; white-space: nowrap; }
+
+        .refresh-btn {
+            background: #2e2716; color: #ffc000; border: 1px solid #ffc000;
+            padding: 8px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 12.5px; font-weight: bold; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+        }
+        .refresh-btn:hover:not(:disabled) { background: #ffc000; color: #14110a; }
+        .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .refresh-btn .spin {
+            display: inline-block;
+            transition: transform 0.4s;
+        }
+        .refresh-btn.loading .spin {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
         /* ===== MAIN PROGRESS BAR ===== */
         .main-progress {
@@ -157,6 +178,12 @@
         .current-stage-desc {
             font-size: 13.5px; color: #ffe9a8; line-height: 1.55;
         }
+        .current-stage-eta {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 12px; color: #ffca28; margin-top: 8px;
+            background: rgba(255,192,0,0.08); padding: 4px 10px;
+            border-radius: 4px; font-weight: 600;
+        }
         .current-stage-updated {
             font-size: 11.5px; color: #888; margin-top: 10px;
             padding-top: 10px; border-top: 1px solid #3a3018;
@@ -201,12 +228,19 @@
             background: #ffc000; color: #14110a; border-color: #ffc000;
             box-shadow: 0 0 0 3px rgba(255,192,0,0.2);
         }
+        .substage-content {
+            flex: 1; min-width: 0;
+            display: flex; flex-direction: column; gap: 3px;
+        }
         .substage-name {
-            flex: 1; min-width: 0; word-break: break-word;
-            color: #aaa; font-weight: 500;
+            color: #aaa; font-weight: 500; word-break: break-word;
         }
         .substage-item.completed .substage-name,
         .substage-item.current .substage-name { color: #fff; font-weight: 600; }
+        .substage-meta {
+            font-size: 11.5px; color: #888; line-height: 1.4;
+        }
+        .substage-item.current .substage-meta { color: #ffca28; }
         .substage-badge {
             font-size: 10px; font-weight: bold; text-transform: uppercase;
             letter-spacing: 0.5px; padding: 3px 8px; border-radius: 3px;
@@ -225,16 +259,15 @@
             border-left: 4px solid #ffc000; border-radius: 6px;
             padding: 14px; margin-top: 18px;
             font-size: 13.5px; color: #ffe9a8; line-height: 1.5;
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: flex-start; gap: 12px;
         }
         .substage-simple .spin-icon {
             font-size: 22px; flex-shrink: 0;
             animation: spin 3s linear infinite;
             display: inline-block;
         }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+        .substage-simple .substage-simple-content {
+            flex: 1; min-width: 0;
         }
 
         /* ===== WHATSAPP BUTTON ===== */
@@ -299,7 +332,6 @@
             </div>
             <div class="header-actions">
                 <a href="index.html" class="btn-action">🏠 Order Page</a>
-                <a href="index.html" class="btn-action">🎮 New Order</a>
             </div>
         </div>
 
@@ -319,12 +351,15 @@
 
         <!-- Result Card -->
         <div id="resultCard" class="result-card">
-            <div class="order-summary">
+            <div class="result-header">
                 <div class="order-summary-left">
                     <div class="order-id-line" id="summaryId">—</div>
                     <div class="order-detail-line" id="summaryDetail">—</div>
+                    <div class="order-detail-line" id="summaryPlaced" style="font-size:11.5px; color:#888; margin-top:4px;"></div>
                 </div>
-                <div class="order-placed" id="summaryPlaced">—</div>
+                <button class="refresh-btn" id="refreshBtn" onclick="refreshOrder()" title="Refresh status">
+                    <span class="spin">🔄</span><span>Refresh</span>
+                </button>
             </div>
 
             <!-- Main progress bar -->
@@ -340,6 +375,7 @@
                     <span id="currentStageName">In Progress</span>
                 </div>
                 <div class="current-stage-desc" id="currentStageDesc">—</div>
+                <div id="currentStageEta" class="current-stage-eta" style="display:none;"></div>
                 <div class="current-stage-updated" id="currentStageUpdated"></div>
             </div>
 
@@ -360,6 +396,8 @@
     const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
     const $ = id => document.getElementById(id);
+    let currentOrder = null;
+    let currentPhone = null;
 
     // Stage icon map
     const STAGE_ICONS = {
@@ -379,7 +417,6 @@
             $('trackPhoneInput').value = urlPhone;
             trackOrder();
         }
-        // Allow Enter key
         $('trackPhoneInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') trackOrder();
         });
@@ -397,7 +434,6 @@
             return;
         }
 
-        // UI: loading
         btn.disabled = true;
         btn.innerHTML = '<span>⏳</span><span>Loading...</span>';
         setStatus('Looking up your order...', '#2196F3', 0);
@@ -419,8 +455,10 @@
                 return;
             }
 
+            currentPhone = phone;
+            currentOrder = data[0];
             renderTracker(data[0]);
-            setStatus(''); // clear
+            setStatus('');
 
         } catch (err) {
             console.error(err);
@@ -428,6 +466,34 @@
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<span>🔍</span><span>Track</span>';
+        }
+    }
+
+    // Refresh the currently displayed order
+    async function refreshOrder() {
+        if (!currentPhone) return;
+        const btn = $('refreshBtn');
+        btn.disabled = true;
+        btn.classList.add('loading');
+        try {
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('phone_ending', currentPhone)
+                .order('created_at', { ascending: false })
+                .limit(1);
+            if (error) throw error;
+            if (data && data.length > 0) {
+                currentOrder = data[0];
+                renderTracker(data[0]);
+                setStatus('✅ Status updated!', '#00e676', 3000);
+            }
+        } catch (err) {
+            console.error(err);
+            setStatus('Could not refresh. Please try again.', '#ff5252', 4000);
+        } finally {
+            btn.disabled = false;
+            btn.classList.remove('loading');
         }
     }
 
@@ -460,7 +526,7 @@
 
         $('summaryDetail').innerHTML = `${serviceLabel} &nbsp;·&nbsp; <strong>${gameCount}</strong> games &nbsp;·&nbsp; <strong>${sizeGb}</strong> GB`;
         $('summaryPlaced').innerHTML = order.created_at
-            ? `Placed:<br>${new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`
+            ? `Placed: ${new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`
             : '';
 
         // ===== Determine current stage =====
@@ -470,7 +536,6 @@
 
         // ===== Render main progress bar =====
         const mainProgress = $('mainProgress');
-        // Remove existing step elements but keep the line-fill element
         mainProgress.querySelectorAll('.main-step').forEach(el => el.remove());
 
         const currentIndex = stages.indexOf(currentStage);
@@ -494,12 +559,10 @@
             mainProgress.appendChild(step);
         });
 
-        // Animate line fill
         const lineFill = $('progressLineFill');
         if (currentIndex <= 0) {
             lineFill.style.width = '0%';
         } else {
-            // Progress from 8% to 92% (representing the space between first and last circles)
             const percent = (currentIndex / (stages.length - 1)) * 84;
             lineFill.style.width = percent + '%';
         }
@@ -507,9 +570,9 @@
         // ===== Current stage card =====
         const currentCard = $('currentStageCard');
         const waWrap = document.querySelector('.wa-button-wrap');
+        const etaBox = $('currentStageEta');
 
         if (currentStage === 'Cancelled') {
-            // Show cancelled banner instead of progress card + substages
             currentCard.style.display = 'none';
             $('substagesContainer').innerHTML = `<div class="cancelled-banner">
                 <span class="icon">❌</span>
@@ -534,6 +597,7 @@
             // ===== Sub-stages =====
             const substagesContainer = $('substagesContainer');
             substagesContainer.innerHTML = '';
+            etaBox.style.display = 'none';
 
             if (currentStage === 'In Progress') {
                 const serviceType = order.service_type || '';
@@ -541,8 +605,13 @@
                 const currentSub = order.progress_substage || (stagesList[0] || null);
                 const currentSubIdx = stagesList.indexOf(currentSub);
 
+                // Show ETA for the current substage (optional)
+                if (APP_CONFIG.showEstimatedTime && currentSub && APP_CONFIG.subStageEstimatedTimes && APP_CONFIG.subStageEstimatedTimes[currentSub]) {
+                    etaBox.innerHTML = `⏱️ Estimated time: <strong>${APP_CONFIG.subStageEstimatedTimes[currentSub]}</strong>`;
+                    etaBox.style.display = 'inline-flex';
+                }
+
                 if (stagesList.length > 1) {
-                    // Multi-step substage timeline
                     const wrapper = document.createElement('div');
                     wrapper.className = 'substages';
                     wrapper.innerHTML = `<div class="substages-title">🔧 Work in progress — detailed steps</div>`;
@@ -557,9 +626,22 @@
                         const item = document.createElement('div');
                         item.className = 'substage-item' + (isDone ? ' completed' : '') + (isCur ? ' current' : '');
 
+                        // Meta line for Game Installation
+                        let metaLine = '';
+                        if (sub === 'Game Installation' && isCur && !isDone) {
+                            const gc = Array.isArray(order.games) ? order.games.length : 0;
+                            const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
+                            if (gc > 0) {
+                                metaLine = `Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total`;
+                            }
+                        }
+
                         item.innerHTML = `
                             <div class="substage-icon">${isDone ? '✓' : (isCur ? '◐' : '○')}</div>
-                            <div class="substage-name">${sub}</div>
+                            <div class="substage-content">
+                                <div class="substage-name">${sub}</div>
+                                ${metaLine ? `<div class="substage-meta">📦 ${metaLine}</div>` : ''}
+                            </div>
                             <div class="substage-badge">${isDone ? 'Done' : (isCur ? 'Now' : 'Pending')}</div>
                         `;
                         list.appendChild(item);
@@ -568,11 +650,24 @@
                     wrapper.appendChild(list);
                     substagesContainer.appendChild(wrapper);
                 } else if (stagesList.length === 1) {
-                    // Single substage → show friendly message instead of timeline
+                    // Single substage → friendly message with details
                     const simple = document.createElement('div');
                     simple.className = 'substage-simple';
                     const desc = (APP_CONFIG.subStageDescriptions && APP_CONFIG.subStageDescriptions[stagesList[0]]) || 'Working on it...';
-                    simple.innerHTML = `<span class="spin-icon">⚙️</span><span>${desc}</span>`;
+
+                    // Add game count + size
+                    const gc = Array.isArray(order.games) ? order.games.length : 0;
+                    const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
+                    let detail = '';
+                    if (gc > 0) detail = `<div style="margin-top:6px; font-size:12.5px; color:#ffca28; font-weight:600;">📦 Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total</div>`;
+
+                    simple.innerHTML = `
+                        <span class="spin-icon">⚙️</span>
+                        <div class="substage-simple-content">
+                            <div>${desc}</div>
+                            ${detail}
+                        </div>
+                    `;
                     substagesContainer.appendChild(simple);
                 }
             }
@@ -589,7 +684,6 @@
             waBtn.style.display = 'none';
         }
 
-        // ===== Show result =====
         $('resultCard').classList.add('show');
     }
 

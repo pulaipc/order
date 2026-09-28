@@ -16,7 +16,7 @@
             padding-bottom: 40px;
             -webkit-text-size-adjust: 100%;
         }
-        .admin-container { max-width: 1100px; margin: 0 auto; }
+        .admin-container { max-width: 900px; margin: 0 auto; }
 
         .site-logo {
             display: block; width: 80px; height: 80px; margin: 0 auto 10px;
@@ -55,7 +55,7 @@
         }
         .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .header-left .site-logo { margin: 0; width: 48px; height: 48px; flex-shrink: 0; }
-        h1 { color: #ffc000; margin: 0; font-size: 20px; word-break: break-word; }
+        h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
 
         .stats-overview {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -93,9 +93,9 @@
 
         .btn-action {
             background: #2e2716; color: #ffc000; border: 1px solid #ffc000;
-            padding: 10px 14px; border-radius: 6px; cursor: pointer;
+            padding: 8px 14px; border-radius: 6px; cursor: pointer;
             font-weight: bold; text-decoration: none; display: inline-block;
-            font-size: 13px; line-height: normal; transition: all 0.2s;
+            font-size: 12.5px; line-height: normal; transition: all 0.2s;
             white-space: nowrap;
         }
         .btn-action:hover { background: #ffc000; color: #14110a; }
@@ -359,6 +359,9 @@
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
+        /* ==================== */
+        /* TABLET (>= 600px)    */
+        /* ==================== */
         @media (min-width: 600px) {
             body { padding: 20px; }
             .stats-overview { grid-template-columns: repeat(4, 1fr); gap: 12px; }
@@ -372,24 +375,33 @@
             .modal-header h2 { font-size: 18px; }
             .game-list-header h3 { font-size: 15px; }
             .modal-body { padding: 20px; }
-            h1 { font-size: 22px; }
+            h1 { font-size: 20px; }
             .progress-controls { grid-template-columns: 1fr 1fr; }
         }
+
+        /* ==================== */
+        /* DESKTOP (>= 900px)   */
+        /* ==================== */
         @media (min-width: 900px) {
             .header-left .site-logo { width: 52px; height: 52px; }
-            h1 { font-size: 24px; }
+            h1 { font-size: 20px; }
             .order-card { padding: 16px; }
+            .order-body { gap: 15px; }
         }
+
+        /* ==================== */
+        /* SMALL PHONES (< 380px) */
+        /* ==================== */
         @media (max-width: 380px) {
             body { padding: 10px; }
             .stat-card { padding: 10px; }
             .stat-card .val { font-size: 18px; }
             .stat-card .lbl { font-size: 10px; }
-            h1 { font-size: 17px; }
+            h1 { font-size: 15px; }
             .header-left .site-logo { width: 40px; height: 40px; }
             .order-card { padding: 12px; }
             .filter-btn { padding: 7px 12px; font-size: 12px; }
-            .btn-action { padding: 9px 12px; font-size: 12px; }
+            .btn-action { padding: 7px 10px; font-size: 11px; }
         }
     </style>
 </head>
@@ -625,7 +637,6 @@
 
             let newSub = null;
             if (newStage === 'In Progress') {
-                // Auto-set first applicable substage
                 const list = SUBSTAGES_BY_SERVICE[order.service_type] || [];
                 newSub = list[0] || null;
             }
@@ -648,7 +659,6 @@
 
             filterAndRenderOrders();
 
-            // Show notify button
             const card = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
             if (card) {
                 const notifyBtn = card.querySelector('.notify-btn');
@@ -698,10 +708,6 @@
             if (sub) msg += ` — ${sub}`;
             msg += `\n\nTrack live here: ${window.location.origin + window.location.pathname.replace('admin.html', 'track.html')}?phone=${order.phone_ending || ''}`;
 
-            // Open WhatsApp to the CUSTOMER (not us). If we have wa_username, we can't directly
-            // message them, so we'll prompt user to send manually via WhatsApp Web with a prefilled
-            // message — but WhatsApp requires a phone number. So this button is more of a "copy message"
-            // utility. For now, we'll copy the message to clipboard + open WhatsApp Web search.
             navigator.clipboard.writeText(msg).then(() => {
                 alert('✅ Message copied to clipboard.\n\nPaste it into WhatsApp for the customer.');
                 window.open('https://web.whatsapp.com/', '_blank');
@@ -775,7 +781,6 @@
             if (typeof APP_CONFIG !== 'undefined') {
                 masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
             }
-            // Handle both game objects and plain strings
             const names = masterList.map(g => typeof g === 'string' ? g : g.name);
             if (names.length > 0) {
                 gameList.sort((a, b) => {
@@ -854,7 +859,7 @@
                     ? `<span class="order-number-badge multi">📚 ${phoneCount} orders from this customer</span>`
                     : `<span class="order-number-badge">🆕 1st order</span>`;
 
-                // ===== Progress controls =====
+                // Progress controls
                 const currentProgress = order.progress_stage || 'Order Received';
                 const currentSub = order.progress_substage || '';
 

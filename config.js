@@ -61,6 +61,15 @@ const APP_CONFIG = {
         'Modchip Installation': "Installing the modchip hardware into your console.",
         'System Setup':         "Configuring bootloader, firmware, and system software.",
         'Game Installation':    "Copying your selected games onto the SD card."
+    },
+
+    // ===== OPTIONAL: Estimated time per substage (toggle via showEstimatedTime) =====
+    // Set showEstimatedTime to false to hide all estimated times from the tracker
+    showEstimatedTime: true,
+    subStageEstimatedTimes: {
+        'Modchip Installation': "~1 day",
+        'System Setup':         "~2 hours",
+        'Game Installation':    "~1–2 hours"
     }
 };
 
