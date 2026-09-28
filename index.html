@@ -2,18 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Pulai PC Jailbreak & Game Service</title>
     <!-- Include Supabase JS SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        html {
+            -webkit-text-size-adjust: 100%;
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
             color: #ffffff;
             margin: 0;
-            padding: 20px;
-            padding-bottom: 110px;
+            padding: 14px;
+            padding-bottom: 140px;
+            box-sizing: border-box;
         }
         .container {
             max-width: 900px;
@@ -21,30 +28,36 @@
         }
         .site-logo {
             display: block;
-            width: 96px;
-            height: 96px;
-            margin: 0 auto 12px;
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 10px;
             border-radius: 50%;
             box-shadow: 0 0 0 2px #ffc000, 0 4px 14px rgba(255, 192, 0, 0.25);
         }
         h1 {
             text-align: center;
             color: #ffc000;
-            margin-bottom: 5px;
+            margin: 0 0 5px;
+            font-size: 22px;
+            line-height: 1.25;
+            word-break: break-word;
         }
         .instructions {
             text-align: center;
             color: #aaa;
-            font-size: 14px;
+            font-size: 13px;
             margin-bottom: 15px;
             line-height: 1.5;
+        }
+        .instructions br {
+            display: none;
         }
         .pricing-guide {
             background: #1f190e;
             border: 1px solid #3a3018;
             border-radius: 8px;
-            padding: 12px 15px;
-            margin-bottom: 20px;
+            padding: 12px 14px;
+            margin-bottom: 18px;
             font-size: 13px;
             color: #ccc;
         }
@@ -53,65 +66,62 @@
             font-weight: bold;
             cursor: pointer;
             outline: none;
+            padding: 4px 0;
         }
         .pricing-tiers {
             display: flex;
             justify-content: space-around;
             margin-top: 10px;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
             text-align: center;
         }
         .tier-box {
             background: #241e12;
-            padding: 8px 12px;
+            padding: 8px 10px;
             border-radius: 6px;
-            flex: 1;
-            min-width: 110px;
+            flex: 1 1 calc(50% - 8px);
+            min-width: 100px;
             border: 1px solid #3a3018;
+            font-size: 12.5px;
         }
         .tier-box span {
             display: block;
             color: #ffc000;
             font-weight: bold;
-            margin-top: 2px;
+            margin-top: 3px;
         }
         .pricing-details-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr;
             gap: 10px;
             margin-top: 12px;
             border-top: 1px solid #2e2716;
             padding-top: 10px;
         }
-        @media (max-width: 600px) {
-            .pricing-details-grid {
-                grid-template-columns: 1fr;
-            }
-        }
         .pricing-col {
             background: #191309;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 6px;
             border: 1px solid #241e12;
         }
         .pricing-col h4 {
-            margin: 0 0 5px 0;
+            margin: 0 0 6px 0;
             color: #ffc000;
             font-size: 12.5px;
         }
         .pricing-col ul {
             margin: 0;
-            padding-left: 15px;
-            font-size: 11.5px;
+            padding-left: 16px;
+            font-size: 12px;
             color: #bbb;
-            line-height: 1.4;
+            line-height: 1.5;
         }
         .config-card {
             background: #1f190e;
             border: 1px solid #3a3018;
             border-radius: 8px;
-            padding: 15px;
+            padding: 14px;
             margin-bottom: 15px;
             display: flex;
             flex-direction: column;
@@ -126,13 +136,13 @@
         .field-group {
             display: flex;
             flex-direction: column;
-            flex: 1;
-            min-width: 140px;
+            flex: 1 1 100%;
+            min-width: 0;
         }
         .phone-input, .sd-select, .service-select, .model-select, .sd-source-select, .free-storage-input {
             width: 100%;
             padding: 12px;
-            font-size: 14.5px;
+            font-size: 16px;
             border-radius: 6px;
             border: 1px solid #3a3018;
             background: #221c10;
@@ -140,14 +150,22 @@
             box-sizing: border-box;
             outline: none;
             transition: border-color 0.2s;
+            font-family: inherit;
         }
         .sd-select, .service-select, .model-select, .sd-source-select {
             cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffc000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 38px;
         }
         .free-storage-container {
             display: none;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
             width: 100%;
         }
         .free-storage-input.required-missing, .phone-input.required-missing {
@@ -158,12 +176,14 @@
             background: #2e2716;
             color: #ffc000;
             border: 1px solid #ffc000;
-            padding: 6px 10px;
-            border-radius: 4px;
-            font-size: 11px;
+            padding: 9px 12px;
+            border-radius: 6px;
+            font-size: 12px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 4px;
+            margin-top: 2px;
+            font-family: inherit;
+            align-self: flex-start;
         }
         .guide-btn:hover {
             background: #ffc000;
@@ -183,36 +203,48 @@
         .storage-guide-box h4 {
             margin: 0 0 8px 0;
             color: #ffc000;
+            font-size: 13px;
+        }
+        .storage-guide-box p {
+            margin: 8px 0;
         }
         .phone-input {
             text-align: center;
+            letter-spacing: 4px;
+            font-weight: bold;
         }
         .field-hint {
             font-size: 11px;
             color: #888;
             margin-top: 4px;
-            line-height: 1.3;
+            line-height: 1.35;
         }
         .btn-group-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+            width: 100%;
         }
         .btn-group {
             display: flex;
             gap: 6px;
+            flex-wrap: wrap;
+        }
+        .lookup-btn, .clear-btn {
+            flex: 1 1 auto;
+            padding: 12px 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            min-height: 44px;
         }
         .lookup-btn {
             background-color: #2e2716;
             color: #2196F3;
             border: 1px solid #2196F3;
-            padding: 10px 12px;
-            font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
-            cursor: pointer;
-            height: 45px;
-            white-space: nowrap;
         }
         .lookup-btn:hover {
             background-color: #2196F3;
@@ -222,13 +254,8 @@
             background-color: #453a22;
             color: #ff5252;
             border: 1px solid #ff5252;
-            padding: 10px 12px;
-            font-size: 13px;
             font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            height: 45px;
-            white-space: nowrap;
+            flex: 0 1 auto;
         }
         .clear-btn:hover {
             background-color: #ff5252;
@@ -238,17 +265,18 @@
             background: #3a1c00;
             border: 1px solid #ff9800;
             color: #ffe0b2;
-            padding: 12px 16px;
+            padding: 12px 14px;
             border-radius: 6px;
-            font-size: 13.5px;
+            font-size: 13px;
             margin-bottom: 15px;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
         .storage-warning-banner .warning-icon {
-            font-size: 20px;
+            font-size: 18px;
+            flex-shrink: 0;
         }
         .tier-warning-banner {
             background: #2d2612;
@@ -259,9 +287,9 @@
             font-size: 13px;
             margin-bottom: 15px;
             display: none;
-            align-items: center;
+            align-items: flex-start;
             gap: 10px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
         .search-container {
             margin-bottom: 15px;
@@ -277,7 +305,7 @@
         }
         .search-box {
             width: 100%;
-            padding: 12px 38px 12px 15px;
+            padding: 12px 40px 12px 14px;
             font-size: 16px;
             border-radius: 6px;
             border: 1px solid #3a3018;
@@ -285,18 +313,21 @@
             color: #fff;
             box-sizing: border-box;
             outline: none;
+            font-family: inherit;
         }
         .clear-search-btn {
             position: absolute;
-            right: 12px;
+            right: 10px;
             background: none;
             border: none;
             color: #aaa;
-            font-size: 20px;
+            font-size: 24px;
             cursor: pointer;
             display: none;
-            padding: 0;
+            padding: 4px 8px;
             line-height: 1;
+            min-height: 40px;
+            min-width: 40px;
         }
         .clear-search-btn:hover {
             color: #fff;
@@ -304,7 +335,7 @@
         .modes-container {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             padding-top: 10px;
             border-top: 1px solid #2e2716;
         }
@@ -315,36 +346,42 @@
         }
         .mode-options-row {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            align-items: center;
+            flex-direction: column;
+            gap: 12px;
         }
         .mode-wrapper {
             display: flex;
             flex-direction: column;
+            gap: 4px;
         }
         .mode-checkbox-label {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 13.5px;
+            gap: 10px;
+            font-size: 14px;
             color: #ccc;
             cursor: pointer;
+            padding: 6px 0;
+            min-height: 32px;
+        }
+        .mode-checkbox-label input[type="checkbox"] {
+            transform: scale(1.3);
         }
         .storage-breakdown {
             font-size: 12px;
             color: #ffc000;
             width: 100%;
             background: #17120a;
-            padding: 8px 10px;
+            padding: 10px 12px;
             border-radius: 4px;
             border: 1px solid #241e12;
-            line-height: 1.5;
+            line-height: 1.55;
             box-sizing: border-box;
+            word-break: break-word;
         }
         .status-msg {
             text-align: center;
-            font-size: 14px;
+            font-size: 13.5px;
             color: #ffc000;
             margin-bottom: 15px;
             min-height: 20px;
@@ -353,18 +390,19 @@
             background: #2a2108;
             border: 1px solid #ffc000;
             border-radius: 8px;
-            padding: 20px;
+            padding: 18px;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         .jailbreak-notice-card h3 {
             margin-top: 0;
             color: #ffc000;
-            font-size: 18px;
+            font-size: 16px;
+            line-height: 1.3;
         }
         .jailbreak-notice-card p {
             color: #ccc;
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.5;
             margin-bottom: 15px;
         }
@@ -372,11 +410,15 @@
             background-color: #ffc000;
             color: #14110a;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 22px;
             font-size: 15px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
+            font-family: inherit;
+            min-height: 46px;
+            width: 100%;
+            max-width: 320px;
         }
         .browse-games-btn:hover {
             background-color: #e6ac00;
@@ -396,14 +438,16 @@
         }
         .game-card {
             background: #221c10;
-            padding: 15px;
+            padding: 14px;
             border-radius: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
             border: 1px solid #2e2716;
             cursor: pointer;
             transition: border-color 0.2s, background-color 0.2s;
+            min-height: 52px;
         }
         .game-card.selected {
             border-color: #ffc000;
@@ -412,19 +456,28 @@
         .game-info {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 12px;
+            min-width: 0;
+            flex: 1;
         }
         .game-title {
             font-weight: 600;
+            font-size: 14px;
+            word-break: break-word;
+            line-height: 1.35;
         }
         .game-size {
             color: #ffc000;
             font-size: 0.9em;
+            white-space: nowrap;
+            font-weight: 600;
+            flex-shrink: 0;
         }
         input[type="checkbox"] {
-            transform: scale(1.3);
+            transform: scale(1.4);
             accent-color: #ffc000;
             cursor: pointer;
+            flex-shrink: 0;
         }
         .checkout-bar {
             position: fixed;
@@ -433,28 +486,33 @@
             width: 100%;
             background: #221c10;
             border-top: 1px solid #3a3018;
-            padding: 12px 20px;
+            padding: 12px 14px;
             box-sizing: border-box;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 10px;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.5);
             z-index: 100;
         }
         .checkout-info {
-            font-size: 14px;
+            font-size: 13.5px;
             cursor: pointer;
-            line-height: 1.4;
+            line-height: 1.45;
+            text-align: center;
         }
         .submit-btn {
             background-color: #ffc000;
             color: #14110a;
             border: none;
-            padding: 12px 24px;
+            padding: 14px 20px;
             font-size: 16px;
             font-weight: bold;
             border-radius: 6px;
             cursor: pointer;
+            font-family: inherit;
+            width: 100%;
+            min-height: 48px;
+            transition: background 0.2s;
         }
         .submit-btn:hover {
             background-color: #e6ac00;
@@ -472,20 +530,23 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.8);
+            background-color: rgba(0,0,0,0.85);
             justify-content: center;
             align-items: center;
+            padding: 12px;
+            box-sizing: border-box;
         }
         .modal-content {
             background: #221c10;
-            padding: 20px;
+            padding: 16px;
             border-radius: 8px;
-            width: 90%;
+            width: 100%;
             max-width: 520px;
-            max-height: 85vh;
+            max-height: 92vh;
             display: flex;
             flex-direction: column;
             border: 1px solid #3a3018;
+            box-sizing: border-box;
         }
         .modal-header {
             display: flex;
@@ -493,30 +554,39 @@
             align-items: center;
             border-bottom: 1px solid #3a3018;
             padding-bottom: 10px;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
+            gap: 10px;
         }
         .modal-header h2 {
             margin: 0;
             color: #ffc000;
-            font-size: 20px;
+            font-size: 17px;
+            line-height: 1.3;
+            word-break: break-word;
         }
         .close-modal {
             background: none;
             border: none;
             color: #fff;
-            font-size: 24px;
+            font-size: 28px;
             cursor: pointer;
+            line-height: 1;
+            padding: 0 6px;
+            min-height: 40px;
+            min-width: 40px;
+            flex-shrink: 0;
         }
         .modal-body {
             overflow-y: auto;
             flex-grow: 1;
-            margin-bottom: 15px;
+            margin-bottom: 14px;
             display: flex;
             flex-direction: column;
             gap: 12px;
+            -webkit-overflow-scrolling: touch;
         }
         .modal-section-title {
-            font-size: 12px;
+            font-size: 11.5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             color: #888;
@@ -527,10 +597,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 10px;
             background: #2e2716;
             padding: 10px 12px;
             border-radius: 6px;
-            font-size: 13.5px;
+            font-size: 13px;
+            flex-wrap: wrap;
         }
         .cart-item.fixed-item {
             background: #251d08;
@@ -540,32 +612,41 @@
             display: flex;
             flex-direction: column;
             gap: 2px;
+            min-width: 0;
+            flex: 1;
         }
         .cart-item-title {
             font-weight: 600;
             color: #fff;
+            word-break: break-word;
+            line-height: 1.35;
         }
         .cart-item-sub {
             font-size: 11.5px;
             color: #aaa;
+            line-height: 1.35;
         }
         .lock-badge {
             font-size: 11px;
             color: #ffc000;
             background: rgba(0, 230, 118, 0.1);
-            padding: 3px 8px;
+            padding: 4px 9px;
             border-radius: 4px;
             font-weight: bold;
+            white-space: nowrap;
         }
         .remove-btn {
             background: #ff5252;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 12px;
             font-weight: bold;
+            font-family: inherit;
+            min-height: 36px;
+            white-space: nowrap;
         }
         .remove-btn:hover {
             background: #ff1744;
@@ -576,9 +657,10 @@
             color: #ffb74d;
             padding: 10px 12px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12.5px;
             margin-bottom: 10px;
             display: none;
+            line-height: 1.45;
         }
         .modal-tier-warning {
             background: #2d2612;
@@ -586,37 +668,48 @@
             color: #fff8e1;
             padding: 10px 12px;
             border-radius: 6px;
-            font-size: 13px;
+            font-size: 12.5px;
             display: none;
+            line-height: 1.45;
         }
         .price-breakdown-box {
             background: #191309;
             border: 1px solid #2e2716;
             border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 12px;
+            padding: 12px;
+            font-size: 12.5px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 7px;
         }
         .price-breakdown-row {
             display: flex;
             justify-content: space-between;
+            gap: 10px;
             color: #bbb;
+            line-height: 1.4;
+        }
+        .price-breakdown-row span:first-child {
+            min-width: 0;
+            word-break: break-word;
+        }
+        .price-breakdown-row span:last-child {
+            white-space: nowrap;
+            flex-shrink: 0;
         }
         .price-breakdown-row.total-row {
             border-top: 1px solid #3a3018;
-            padding-top: 6px;
+            padding-top: 8px;
             margin-top: 2px;
             color: #fff;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
         }
         .remarks-container {
             margin-top: 10px;
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 6px;
         }
         .remarks-container label {
             font-size: 13px;
@@ -624,22 +717,165 @@
         }
         .remarks-input {
             width: 100%;
-            padding: 10px;
+            padding: 12px;
             background: #2e2716;
             border: 1px solid #4a4020;
             color: #fff;
             border-radius: 6px;
-            font-size: 14px;
+            font-size: 16px;
             box-sizing: border-box;
             resize: vertical;
-            min-height: 50px;
+            min-height: 60px;
+            font-family: inherit;
+            outline: none;
+        }
+        .remarks-input:focus {
+            border-color: #ffc000;
         }
         .modal-footer {
             border-top: 1px solid #3a3018;
-            padding-top: 15px;
+            padding-top: 14px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .modal-footer > span {
+            flex: 1 1 100%;
+            order: 2;
+        }
+        .modal-footer > div {
+            flex: 1 1 100%;
+            order: 1;
+        }
+        .modal-footer .submit-btn {
+            width: 100%;
+        }
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #14110a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3a3018;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #5a4a20;
+        }
+
+        /* ==================== */
+        /* TABLET (>= 600px)    */
+        /* ==================== */
+        @media (min-width: 600px) {
+            body {
+                padding: 20px;
+                padding-bottom: 120px;
+            }
+            .site-logo {
+                width: 96px;
+                height: 96px;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .instructions {
+                font-size: 14px;
+            }
+            .instructions br {
+                display: inline;
+            }
+            .pricing-details-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .tier-box {
+                flex: 1;
+            }
+            .field-group {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 140px;
+            }
+            .mode-options-row {
+                flex-direction: row;
+                gap: 20px;
+            }
+            .mode-wrapper {
+                flex: 1;
+            }
+            .btn-group .lookup-btn {
+                flex: 1 1 auto;
+            }
+            .checkout-bar {
+                flex-direction: row;
+                align-items: center;
+                padding: 14px 20px;
+            }
+            .checkout-info {
+                text-align: left;
+                flex: 1;
+                font-size: 14px;
+            }
+            .submit-btn {
+                width: auto;
+                min-width: 180px;
+                padding: 12px 24px;
+            }
+            .modal-footer > span {
+                flex: 1 1 auto;
+                order: 1;
+            }
+            .modal-footer > div {
+                flex: 0 0 auto;
+                order: 2;
+            }
+            .modal-footer .submit-btn {
+                width: auto;
+            }
+        }
+
+        /* ==================== */
+        /* DESKTOP (>= 900px)   */
+        /* ==================== */
+        @media (min-width: 900px) {
+            .field-group {
+                flex: 1;
+            }
+        }
+
+        /* ==================== */
+        /* SMALL PHONES (<380px) */
+        /* ==================== */
+        @media (max-width: 380px) {
+            body {
+                padding: 10px;
+                padding-bottom: 150px;
+            }
+            .site-logo {
+                width: 64px;
+                height: 64px;
+            }
+            h1 {
+                font-size: 18px;
+            }
+            .instructions {
+                font-size: 12px;
+            }
+            .config-card {
+                padding: 12px;
+            }
+            .game-card {
+                padding: 12px 10px;
+            }
+            .game-title {
+                font-size: 13px;
+            }
+            .checkout-info {
+                font-size: 12.5px;
+            }
         }
     </style>
 </head>
@@ -694,11 +930,11 @@
                 * Android/Linux system modes require 128GB+ cards (+RM30 each). Full jailbreak includes your first 3 games free!
             </p>
         </details>
-        
+
         <div class="config-card">
             <div class="config-row">
                 <div class="field-group">
-                    <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" oninput="savePhone()">
+                    <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
                     <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
                 </div>
 
@@ -735,7 +971,7 @@
                 </div>
 
                 <div id="freeStorageContainer" class="free-storage-container">
-                    <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" step="1" oninput="updateSdLimit()">
+                    <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" step="1" inputmode="numeric" oninput="updateSdLimit()">
                     <button type="button" class="guide-btn" onclick="toggleStorageGuide()">❓ How to check free storage?</button>
                     <span class="field-hint">Remaining GB available on your Switch SD card</span>
                 </div>
