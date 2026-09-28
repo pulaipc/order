@@ -255,7 +255,7 @@
             color: #ffc000;
         }
 
-        /* CLEAR / NEW ORDER BUTTONS */
+        /* CLEAR BUTTON (full-width) */
         .clear-games-row {
             display: flex;
             gap: 8px;
@@ -283,31 +283,6 @@
         .clear-btn:hover {
             background-color: #ff5252;
             color: white;
-        }
-        .new-order-btn {
-            flex: 1 1 auto;
-            justify-content: center;
-            background-color: #1f2d1a;
-            color: #00e676;
-            border: 1px solid #00e676;
-            padding: 12px 14px;
-            font-size: 13.5px;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            min-height: 46px;
-            display: none;
-            align-items: center;
-            gap: 6px;
-            transition: background-color 0.2s, color 0.2s;
-        }
-        .new-order-btn:hover {
-            background-color: #00e676;
-            color: #14110a;
-        }
-        .new-order-btn.visible {
-            display: inline-flex;
         }
 
         .guide-btn {
@@ -1281,7 +1256,7 @@
             <!-- EDIT MODE BANNER -->
             <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
                 <span class="edit-icon">📝</span>
-                <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Start New Order</strong> below.</span>
+                <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
             </div>
 
             <div class="config-row">
@@ -1363,9 +1338,6 @@
             <div class="clear-games-row">
                 <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
                     🗑️ Clear All Selections
-                </button>
-                <button class="new-order-btn" id="newOrderBtn" onclick="startNewOrder()" title="Submit as a brand new order">
-                    ✨ Start New Order
                 </button>
             </div>
         </div>
@@ -1862,7 +1834,6 @@
             document.getElementById('linuxModeCheck').checked = false;
             currentEditingOrderId = null;
             hideEditModeBanner();
-            updateNewOrderBtnVisibility();
             toggleServiceFields();
             updateSdLimit();
             filterGames();
@@ -1872,21 +1843,6 @@
                 statusMsg.innerText = 'Selections cleared.';
             }
         }
-    }
-
-    function startNewOrder() {
-        if (!confirm('Start a new order?\n\nYour current order will be saved as-is. Any new changes will create a SEPARATE order (the old one stays intact).')) return;
-        currentEditingOrderId = null;
-        window.history.replaceState({}, '', window.location.pathname);
-        
-        const statusMsg = document.getElementById('statusMsg');
-        if (statusMsg) {
-            statusMsg.innerText = '✨ New order mode. Saving will create a separate order.';
-            statusMsg.style.color = '#00e676';
-        }
-        
-        hideEditModeBanner();
-        updateNewOrderBtnVisibility();
     }
 
     function showEditModeBanner() {
@@ -1899,16 +1855,6 @@
         if (banner) banner.style.display = 'none';
     }
 
-    function updateNewOrderBtnVisibility() {
-        const btn = document.getElementById('newOrderBtn');
-        if (!btn) return;
-        if (currentEditingOrderId) {
-            btn.classList.add('visible');
-        } else {
-            btn.classList.remove('visible');
-        }
-    }
-
     function renderGames(list) {
         const container = document.getElementById('gameList');
         if (!container) return;
@@ -1919,7 +1865,7 @@
             return;
         }
 
-        // Calculate current available space
+        // Calculate current available space dynamically
         let currentGamesSize = 0;
         selectedGames.forEach(s => { currentGamesSize += s; });
         const availableSpace = Math.max(0, usableStorageLimit - currentGamesSize);
@@ -1948,7 +1894,7 @@
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
             
-            const noticeId = 'hiddenGamesNotice_' + Date.now();
+            const noticeId = 'hiddenGamesNotice_' + Date.now() + Math.random().toString(36).slice(2);
             notice.innerHTML = `
                 <div class="hidden-notice-text">
                     <span class="hidden-notice-icon">🔒</span>
@@ -2093,6 +2039,9 @@
             if (cardElement) cardElement.classList.remove('selected');
         }
         updateSdLimit();
+        
+        // Re-filter to dynamically update hidden games based on new remaining storage
+        filterGames();
     }
 
     function filterGames() {
@@ -2357,7 +2306,6 @@
             } else {
                 currentEditingOrderId = null;
                 hideEditModeBanner();
-                updateNewOrderBtnVisibility();
 
                 alert(`ℹ️ No previous order found for phone "${phone}".\n\nYou can start a new order below!`);
 
@@ -2494,7 +2442,6 @@
         filterGames();
         
         hideEditModeBanner();
-        updateNewOrderBtnVisibility();
         
         window.history.replaceState({}, '', window.location.pathname);
         
@@ -2545,7 +2492,6 @@
         if (selectedGames.size > 0) revealGameSection();
         
         showEditModeBanner();
-        updateNewOrderBtnVisibility();
     }
 
     function openCartModal() {
@@ -3048,7 +2994,7 @@
             const confirmEdit = confirm(
                 `📝 You are EDITING an existing order.\n\n` +
                 `Tap OK to update that order with your current selection.\n\n` +
-                `Want to keep BOTH? Cancel this, then tap "✨ Start New Order".`
+                `Want to keep BOTH? Cancel this, then tap "Load Order" and choose "Start New Order".`
             );
             if (!confirmEdit) return;
         }
@@ -3130,7 +3076,6 @@
             }
 
             showEditModeBanner();
-            updateNewOrderBtnVisibility();
 
             shareOrderViaWhatsApp();
 
