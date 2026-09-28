@@ -285,7 +285,6 @@ const games = [
       { name: "Sea of Stars", size: 3.22 },
       { name: "Serious Sam Collection", size: 4.28 },
       { name: "Shin chan 1-2", size: 3.55 },
-      { name: "Shin chan 1-2", size: 3.61 },
       { name: "Shin Megami Tensei 5 Vengeance", size: 14.1 },
       { name: "Shin Megami Tensei V", size: 16.42 },
       { name: "Shinobi Art of Vengeance", size: 6.8 },
@@ -374,4 +373,5 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
+
 
