@@ -303,10 +303,6 @@
         }
         .customer-info > div:first-child {
             word-break: break-word;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
         }
         .order-date {
             font-size: 11px;
@@ -735,6 +731,7 @@
             cursor: not-allowed;
         }
 
+        /* Scrollbar styling */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -750,7 +747,9 @@
             background: #5a4a20;
         }
 
-        /* TABLET (>= 600px) */
+        /* ==================== */
+        /* TABLET (>= 600px)    */
+        /* ==================== */
         @media (min-width: 600px) {
             body {
                 padding: 20px;
@@ -798,6 +797,9 @@
             }
         }
 
+        /* ==================== */
+        /* DESKTOP (>= 900px)   */
+        /* ==================== */
         @media (min-width: 900px) {
             .header-left .site-logo {
                 width: 52px;
@@ -814,6 +816,9 @@
             }
         }
 
+        /* ==================== */
+        /* SMALL PHONES (< 380px) */
+        /* ==================== */
         @media (max-width: 380px) {
             body {
                 padding: 10px;
@@ -882,7 +887,7 @@
         </div>
 
         <div class="controls-row">
-            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search phone, WhatsApp, game, or remarks..." onkeyup="filterAndRenderOrders()">
+            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search Customer ID, WhatsApp, game, or remarks..." onkeyup="filterAndRenderOrders()">
             <div class="filter-buttons-wrapper">
                 <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                 <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
@@ -898,12 +903,12 @@
     <div id="orderModalOverlay" onclick="closeModalOnBackdrop(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 id="modalTitle">📱 Order Details</h2>
+                <h2 id="modalTitle">🆔 Order Details</h2>
                 <button class="close-modal-btn" onclick="closeOrderModal()">✕</button>
             </div>
             <div class="modal-body">
                 <div class="modal-info-grid">
-                    <div class="modal-info-item"><div class="lbl">Inputted Phone / ID</div><div class="val" id="modalPhoneVal">-</div></div>
+                    <div class="modal-info-item"><div class="lbl">Customer ID</div><div class="val" id="modalPhoneVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">WhatsApp Username</div><div class="val" id="modalWaVal" style="color:#25D366;">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Service Type</div><div class="val" id="modalServiceVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Storage Size</div><div class="val" id="modalStorageVal">-</div></div>
@@ -957,7 +962,7 @@
         let currentStatusFilter = 'ALL';
         let currentModalGames = [];
         let currentRemarksOrderId = null;
-        let orderCountByPhone = {};   // Track how many orders each phone has
+        let orderCountByPhone = {};   // Track how many orders each customer ID has
 
         window.onload = async function() {
             const { data: { session } } = await supabaseClient.auth.getSession();
@@ -1022,7 +1027,7 @@
                 if (error) throw error;
                 allOrders = data || [];
                 
-                // Count orders per phone to detect multiple orders
+                // Count orders per customer ID to detect multiple orders
                 orderCountByPhone = {};
                 allOrders.forEach(o => {
                     const p = o.phone_ending || '';
@@ -1259,13 +1264,13 @@
                 // Multi-order badge
                 const phoneCount = orderCountByPhone[order.phone_ending] || 1;
                 const multiBadge = phoneCount > 1 
-                    ? `<span class="order-number-badge multi">📚 ${phoneCount} orders from this phone</span>`
+                    ? `<span class="order-number-badge multi">📚 ${phoneCount} orders from this customer</span>`
                     : `<span class="order-number-badge">🆕 1st order</span>`;
 
                 card.innerHTML = `
                     <div class="order-header">
                         <div class="customer-info">
-                            <div>📱 Phone Input: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
+                            <div>🆔 Customer ID: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
                             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                 ${waDisplay}
                                 <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
@@ -1331,7 +1336,7 @@
 
             currentRemarksOrderId = order.id || order.order_id;
 
-            document.getElementById('modalTitle').innerText = `📱 Order Details: ${order.phone_ending || 'N/A'}`;
+            document.getElementById('modalTitle').innerText = `🆔 Order Details · Customer ${order.phone_ending || 'N/A'}`;
             document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
             document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
             document.getElementById('modalServiceVal').innerText = order.service_type || 'N/A';
@@ -1465,7 +1470,7 @@
             } else {
                 allOrders = allOrders.filter(o => String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId));
                 
-                // Re-count per phone
+                // Re-count per customer ID
                 orderCountByPhone = {};
                 allOrders.forEach(o => {
                     const p = o.phone_ending || '';
