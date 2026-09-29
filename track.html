@@ -58,6 +58,7 @@
             font-family: inherit;
         }
         .search-row input:focus { border-color: #ffc000; }
+        .search-row input:disabled { opacity: 0.5; cursor: not-allowed; }
         .search-row button {
             flex: 0 0 auto; background: #ffc000; color: #14110a;
             border: none; padding: 12px 18px; font-size: 14px; font-weight: bold;
@@ -420,6 +421,115 @@
     let currentOrder = null;
     let currentPhone = null;
 
+    // =========================================================
+    // RATE-LIMITING (brute-force protection)
+    // ---------------------------------------------------------
+    // Tracks failed lookups in localStorage. After N consecutive
+    // failures within a rolling window, the Track button is
+    // disabled for a cooldown period. Successful lookup resets
+    // the counter. Slows down casual enumeration of all 10,000
+    // possible phone endings.
+    // =========================================================
+    const RATE_LIMIT = {
+        maxAttempts: 5,           // failures before lockout
+        windowMs: 10 * 60 * 1000, // 10-minute rolling window
+        cooldownMs: 60 * 1000,    // 60s cooldown after limit hit
+        storageKey: 'trackRateLimit'
+    };
+
+    function getRateState() {
+        try {
+            const raw = localStorage.getItem(RATE_LIMIT.storageKey);
+            if (!raw) return { fails: [], lockedUntil: 0 };
+            const parsed = JSON.parse(raw);
+            return {
+                fails: Array.isArray(parsed.fails) ? parsed.fails : [],
+                lockedUntil: parsed.lockedUntil || 0
+            };
+        } catch {
+            return { fails: [], lockedUntil: 0 };
+        }
+    }
+
+    function saveRateState(state) {
+        try { localStorage.setItem(RATE_LIMIT.storageKey, JSON.stringify(state)); } catch {}
+    }
+
+    function pruneOldFails(fails) {
+        const cutoff = Date.now() - RATE_LIMIT.windowMs;
+        return fails.filter(t => t > cutoff);
+    }
+
+    function checkRateLimit() {
+        const state = getRateState();
+        const now = Date.now();
+
+        // Still in cooldown?
+        if (state.lockedUntil > now) {
+            return { allowed: false, remainingMs: state.lockedUntil - now };
+        }
+
+        // Prune expired failures
+        state.fails = pruneOldFails(state.fails);
+
+        // Too many recent failures? Lock out.
+        if (state.fails.length >= RATE_LIMIT.maxAttempts) {
+            state.lockedUntil = now + RATE_LIMIT.cooldownMs;
+            saveRateState(state);
+            return { allowed: false, remainingMs: RATE_LIMIT.cooldownMs };
+        }
+
+        saveRateState(state);
+        return { allowed: true, remainingMs: 0 };
+    }
+
+    function recordFailure() {
+        const state = getRateState();
+        state.fails = pruneOldFails(state.fails);
+        state.fails.push(Date.now());
+        if (state.fails.length >= RATE_LIMIT.maxAttempts) {
+            state.lockedUntil = Date.now() + RATE_LIMIT.cooldownMs;
+        }
+        saveRateState(state);
+    }
+
+    function recordSuccess() {
+        saveRateState({ fails: [], lockedUntil: 0 });
+    }
+
+    function applyRateLimitUI() {
+        const btn = $('trackBtn');
+        const input = $('trackPhoneInput');
+        if (!btn) return false;
+
+        const result = checkRateLimit();
+        if (result.allowed) {
+            btn.disabled = false;
+            input.disabled = false;
+            return false;
+        }
+
+        // Locked out — show live countdown
+        btn.disabled = true;
+        input.disabled = true;
+        const totalSec = Math.ceil(result.remainingMs / 1000);
+        let remaining = totalSec;
+
+        const tick = () => {
+            if (remaining <= 0) {
+                btn.disabled = false;
+                input.disabled = false;
+                setStatus('');
+                return;
+            }
+            setStatus(`🚫 Too many attempts. Please wait ${remaining}s before trying again.`, '#ff5252', 0);
+            remaining--;
+            setTimeout(tick, 1000);
+        };
+        tick();
+        return true;
+    }
+
     // Stage icon map
     const STAGE_ICONS = {
         'Order Received':   '📥',
@@ -432,11 +542,18 @@
 
     // Auto-load if URL has ?phone=XXXX
     window.onload = function() {
+        // Apply any existing lockout immediately
+        applyRateLimitUI();
+
         const params = new URLSearchParams(window.location.search);
         const urlPhone = params.get('phone');
         if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
             $('trackPhoneInput').value = urlPhone;
-            trackOrder();
+            if (!checkRateLimit().allowed) {
+                applyRateLimitUI();
+            } else {
+                trackOrder();
+            }
         }
         $('trackPhoneInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') trackOrder();
@@ -448,6 +565,13 @@
         const phone = input.value.trim();
         const btn = $('trackBtn');
         const statusMsg = $('statusMsg');
+
+        // Rate-limit check BEFORE anything else
+        const rl = checkRateLimit();
+        if (!rl.allowed) {
+            applyRateLimitUI();
+            return;
+        }
 
         if (phone.length !== 4 || !/^\d{4}$/.test(phone)) {
             setStatus('Please enter a valid 4-digit phone ID.', '#ff5252');
@@ -471,10 +595,14 @@
             if (error) throw error;
 
             if (!data || data.length === 0) {
+                recordFailure();
                 setStatus(`No order found for ID "${phone}". If you just placed one, please wait a moment and try again.`, '#ff9800', 6000);
                 $('resultCard').classList.remove('show');
                 return;
             }
+
+            // Successful lookup → reset rate-limit counter
+            recordSuccess();
 
             currentPhone = phone;
             currentOrder = data[0];
@@ -483,10 +611,17 @@
 
         } catch (err) {
             console.error(err);
+            recordFailure();
             setStatus('Could not load your order. Please try again.', '#ff5252', 6000);
         } finally {
-            btn.disabled = false;
-            btn.innerHTML = '<span>🔍</span><span>Track</span>';
+            // Only re-enable if not locked out
+            const post = checkRateLimit();
+            if (post.allowed) {
+                btn.disabled = false;
+                btn.innerHTML = '<span>🔍</span><span>Track</span>';
+            } else {
+                applyRateLimitUI();
+            }
         }
     }
 
@@ -604,11 +739,17 @@
             mainProgress.appendChild(step);
         });
 
+        // ===== Progress line fill =====
+        // Width is derived from the actual stage count rather than hardcoded,
+        // so the fill always lines up with the current step's icon center.
+        // CSS uses `left: 8%; right: 8%` → usable track = 84% of container width.
         const lineFill = $('progressLineFill');
-        if (currentIndex <= 0) {
+        if (currentIndex <= 0 || stages.length <= 1) {
             lineFill.style.width = '0%';
         } else {
-            const percent = (currentIndex / (stages.length - 1)) * 84;
+            const usablePercent = 84; // 100% - 8% (left inset) - 8% (right inset)
+            const stepCount = stages.length - 1;
+            const percent = (currentIndex / stepCount) * usablePercent;
             lineFill.style.width = percent + '%';
         }
 
@@ -700,7 +841,6 @@
                     simple.className = 'substage-simple';
                     const desc = (APP_CONFIG.subStageDescriptions && APP_CONFIG.subStageDescriptions[stagesList[0]]) || 'Working on it...';
 
-                    // Add game count + size
                     const gc = Array.isArray(order.games) ? order.games.length : 0;
                     const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                     let detail = '';
