@@ -15,10 +15,11 @@
             margin: 0;
             padding: 14px 14px 140px;
             box-sizing: border-box;
+            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
         }
         .container { max-width: 900px; margin: 0 auto; }
 
-        /* ===== HEADER BAR (matches admin dashboard) ===== */
+        /* ===== HEADER BAR ===== */
         .header-bar {
             display: flex;
             justify-content: space-between;
@@ -132,7 +133,6 @@
         }
         .load-order-btn:hover:not(:disabled) { background-color: #2196F3; color: #fff; }
         .load-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .load-order-btn .btn-icon { font-size: 15px; line-height: 1; }
 
         .returning-hint {
             background: #16202a; border: 1px solid #2196F3; border-left: 3px solid #2196F3;
@@ -302,14 +302,18 @@
         .modal {
             display: none; position: fixed; z-index: 1000;
             top: 0; left: 0; right: 0; bottom: 0;
-            width: 100vw; height: 100vh;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
             background-color: rgba(0,0,0,0.85);
             justify-content: center; align-items: center;
             padding: 12px; box-sizing: border-box;
         }
         .modal-content {
             background: #221c10; border-radius: 8px;
-            width: 100%; max-width: 520px; max-height: 92vh;
+            width: 100%; max-width: 520px;
+            max-height: 92vh;
+            max-height: 92dvh;
             display: flex; flex-direction: column;
             border: 1px solid #3a3018; box-sizing: border-box;
             overflow: hidden;
@@ -370,9 +374,7 @@
         }
         .remove-btn:hover { background: #ff1744; }
 
-        /* ===== NATIVE COLLAPSIBLE (details/summary) =====
-           IMPORTANT: never add overflow:hidden on .cart-details —
-           it triggers a Chromium bug that collapses the element to ~1px. */
+        /* ===== NATIVE COLLAPSIBLE (details/summary) ===== */
         .cart-details {
             background: #191309;
             border: 1px solid #2e2716;
@@ -459,6 +461,20 @@
             color: #fff; font-weight: bold; font-size: 16px;
         }
 
+        /* ===== STICKY FOOTER FOR SAVE BUTTON (cart modal) ===== */
+        .modal-sticky-footer {
+            position: sticky;
+            bottom: 0;
+            padding-top: 12px;
+            margin-top: -4px;
+            background: linear-gradient(to bottom,
+                rgba(34, 28, 16, 0) 0%,
+                rgba(34, 28, 16, 0.9) 20%,
+                #221c10 50%);
+            padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+            z-index: 5;
+        }
+
         .remarks-input {
             width: 100%; padding: 12px; background: #2e2716;
             border: 1px solid #4a4020; color: #fff; border-radius: 6px;
@@ -510,6 +526,28 @@
         .load-choice-btn .choice-text strong { font-size: 14.5px; font-weight: 700; color: #fff; }
         .load-choice-btn .choice-text small { font-size: 11.5px; opacity: 0.85; line-height: 1.35; }
 
+        /* ===== TRUST FOOTER ===== */
+        .trust-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #2e2716;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.7;
+        }
+        .trust-footer .brand {
+            color: #ffc000; font-weight: bold; margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .trust-footer a {
+            color: #25D366; text-decoration: none;
+        }
+        .trust-footer a:hover { text-decoration: underline; }
+        .trust-footer .note {
+            margin-top: 4px; color: #666; font-size: 11px;
+        }
+
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
@@ -550,35 +588,35 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header Bar (matches admin dashboard style) -->
+        <!-- Header Bar -->
         <div class="header-bar">
             <div class="header-left">
                 <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
-                <h1>🎮 Pulai PC Jailbreak & Game Service</h1>
+                <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
             </div>
             <div class="header-actions">
-                <a href="track.html" class="btn-action">📦 Track</a>
-                <button type="button" class="btn-action" onclick="scrollToPricing()">📋 Pricing</button>
-                <button type="button" class="btn-action" onclick="scrollToGames()">🎮 Games</button>
+                <a href="track.html" class="btn-action">Track Order</a>
+                <button type="button" class="btn-action" onclick="scrollToPricing()">Pricing</button>
+                <button type="button" class="btn-action" onclick="scrollToGames()">Games</button>
             </div>
         </div>
 
         <div class="instructions">
             1. Enter the <strong>Last 4 Digits</strong> of your phone number below.<br>
             2. Select your <strong>Service Type</strong> and specify your <strong>Storage Capacity</strong>.<br>
-            3. Choose your games, then review and submit!
+            3. Choose your games, then review and submit.
         </div>
 
         <details class="pricing-guide" id="pricingGuide">
-            <summary>📦 View Pricing Tiers & Game Size Rates (Tap to expand)</summary>
+            <summary>View Pricing Tiers &amp; Game Size Rates (Tap to expand)</summary>
             <div class="pricing-tiers">
-                <div class="tier-box">Jailbreak (OLED)<span>RM300<br><small>Free 3 Games</small></span></div>
-                <div class="tier-box">Jailbreak (V1/V2)<span>RM190<br><small>Free 3 Games</small></span></div>
-                <div class="tier-box">Jailbreak (Lite)<span>RM230<br><small>Free 3 Games</small></span></div>
+                <div class="tier-box">Jailbreak (OLED)<span>RM300<br><small>Includes 3 games</small></span></div>
+                <div class="tier-box">Jailbreak (V1/V2)<span>RM190<br><small>Includes 3 games</small></span></div>
+                <div class="tier-box">Jailbreak (Lite)<span>RM230<br><small>Includes 3 games</small></span></div>
             </div>
             <div class="pricing-details-grid">
                 <div class="pricing-col">
-                    <h4>🎮 Game Count Pricing</h4>
+                    <h4>Game Count Pricing</h4>
                     <ul>
                         <li><strong>10 Games:</strong> RM30</li>
                         <li><strong>20 Games:</strong> RM50</li>
@@ -586,7 +624,7 @@
                     </ul>
                 </div>
                 <div class="pricing-col">
-                    <h4>📊 Game Size Volume Override</h4>
+                    <h4>Game Size Volume Override</h4>
                     <ul>
                         <li><strong>Up to 100 GB:</strong> RM30 equivalent</li>
                         <li><strong>Up to 200 GB:</strong> RM50 equivalent</li>
@@ -596,7 +634,7 @@
                 </div>
             </div>
             <p style="font-size: 11.5px; color: #888; margin-top: 10px; margin-bottom: 0; text-align: center;">
-                * Android/Linux system modes require 128GB+ cards (+RM30 each). Full jailbreak includes your first 3 games free!
+                * Android/Linux system modes require 128GB+ cards (+RM30 each). Full jailbreak includes your first 3 games.
             </p>
         </details>
 
@@ -605,7 +643,7 @@
                 <div class="phone-load-row">
                     <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
                     <button type="button" class="load-order-btn" id="loadOrderBtn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
-                        <span class="btn-icon" id="loadOrderIcon">📂</span>
+                        <span class="btn-icon" id="loadOrderIcon">&#128193;</span>
                         <span class="btn-text" id="loadOrderText">Load Order</span>
                     </button>
                 </div>
@@ -613,12 +651,12 @@
             </div>
 
             <div class="returning-hint">
-                <span class="hint-icon">↩️</span>
+                <span class="hint-icon">&#8617;</span>
                 <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
             </div>
 
             <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
-                <span class="edit-icon">📝</span>
+                <span class="edit-icon">&#9998;</span>
                 <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
             </div>
 
@@ -626,7 +664,7 @@
                 <div class="field-group">
                     <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
                         <option value="" disabled selected>— Please select service —</option>
-                        <option value="jailbreak">Full Jailbreak (Free 3 Games)</option>
+                        <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
                         <option value="system_setup">System Setup</option>
                         <option value="games_only">Games Only</option>
                     </select>
@@ -657,13 +695,13 @@
                 </div>
                 <div id="freeStorageContainer" class="free-storage-container">
                     <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
-                    <button type="button" class="guide-btn" onclick="toggleStorageGuide()">❓ How to check free storage?</button>
+                    <button type="button" class="guide-btn" onclick="toggleStorageGuide()">How to check free storage?</button>
                     <span class="field-hint">Remaining GB available on your Switch SD card</span>
                 </div>
             </div>
 
             <div id="storageGuideBox" class="storage-guide-box">
-                <h4>📱 How to check your remaining microSD card free space:</h4>
+                <h4>How to check your remaining microSD card free space:</h4>
                 <p><strong>Method 1: Official Switch Settings</strong><br>
                 1. Go to Home Menu → <strong>System Settings</strong> (gear icon).<br>
                 2. Scroll down to <strong>Data Management</strong>.<br>
@@ -679,14 +717,14 @@
                     <div class="mode-wrapper">
                         <label class="mode-checkbox-label">
                             <input type="checkbox" id="androidModeCheck" onchange="updateSdLimit()"> 
-                            <span>🤖 Android Mode (+RM30)</span>
+                            <span>Android Mode (+RM30)</span>
                         </label>
                         <span class="field-hint">Runs Android OS for cloud gaming (Game Pass), streaming & Android games</span>
                     </div>
                     <div class="mode-wrapper">
                         <label class="mode-checkbox-label">
                             <input type="checkbox" id="linuxModeCheck" onchange="updateSdLimit()"> 
-                            <span>🐧 Linux Mode (+RM30)</span>
+                            <span>Linux Mode (+RM30)</span>
                         </label>
                         <span class="field-hint">Runs Ubuntu Linux desktop for retro emulation & lightweight PC apps</span>
                     </div>
@@ -699,31 +737,31 @@
 
             <div class="clear-games-row">
                 <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
-                    🗑️ Clear All Selections
+                    Clear All Selections
                 </button>
             </div>
         </div>
 
         <div id="storageWarningBanner" class="storage-warning-banner">
-            <span class="warning-icon">⚠️</span>
+            <span class="warning-icon">&#9888;</span>
             <span id="storageWarningText">Please select a <strong>Service Type</strong> above to begin.</span>
         </div>
 
         <div id="tierWarningBanner" class="tier-warning-banner">
-            <span>💡</span>
-            <span id="tierWarningText">You can add more games to reach your package limit at no extra cost!</span>
+            <span>&#9432;</span>
+            <span id="tierWarningText">You can add more games to reach your package limit at no extra cost.</span>
         </div>
 
         <div id="jailbreakNoticeCard" class="jailbreak-notice-card" style="display:none;">
-            <h3>🎁 You get 3 Free Games with your Full Jailbreak!</h3>
-            <p>Your jailbreak service package includes your first 3 games free. Pick 3 free games + additional addon games if desired!</p>
-            <button id="browseGamesBtn" class="browse-games-btn" onclick="revealGameSection()">Browse & Choose Games</button>
+            <h3>Your package includes 3 games at no extra cost</h3>
+            <p>Full Jailbreak and System Setup packages include your first 3 games at no additional charge. Select them below, then add more if you'd like.</p>
+            <button id="browseGamesBtn" class="browse-games-btn" onclick="revealGameSection()">Browse Games</button>
         </div>
 
         <div id="gameSectionWrapper" class="game-section-wrapper" style="display: none;">
             <div class="search-container">
                 <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" class="search-box" placeholder="🔍 Search games in library..." onkeyup="filterGames()">
+                    <input type="text" id="searchInput" class="search-box" placeholder="Search games in library..." onkeyup="filterGames()">
                     <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">&times;</button>
                 </div>
                 <span class="field-hint" style="margin-left: 2px;">Type game title or keyword to filter the game list</span>
@@ -731,47 +769,59 @@
             <div id="statusMsg" class="status-msg"></div>
             <div id="gameList" class="game-list"></div>
         </div>
+
+        <!-- Trust footer -->
+        <footer class="trust-footer">
+            <div class="brand">Pulai PC</div>
+            <div>Jailbreak &amp; Game Installation Service</div>
+            <div style="margin-top: 6px;">
+                WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
+            </div>
+            <div class="note">All orders are processed manually. Payment on pickup.</div>
+        </footer>
     </div>
 
     <div class="checkout-bar">
         <div class="checkout-info" onclick="openCartModal()">
-            🛒 <span id="selectedCount" style="color: #ffc000; font-weight: bold;">0</span> games 
+            <span id="selectedCount" style="color: #ffc000; font-weight: bold;">0</span> games 
             (<span id="selectedSize" style="color: #ffc000; font-weight: bold;">0</span> GB selected | 
             <span id="remainderSize" style="color: #ffb74d; font-weight: bold;">0</span> GB left) | 
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
-            <br><span id="checkoutSubtext" style="font-size: 11px; color: #aaa;">Tap here to review & add remarks</span>
+            <br><span id="checkoutSubtext" style="font-size: 11px; color: #aaa;">Tap to review and add remarks</span>
         </div>
-        <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review & Submit</button>
+        <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review &amp; Submit</button>
     </div>
 
     <!-- CART MODAL -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Your Selected Games & Setup</h2>
+                <h2>Your Selected Games &amp; Setup</h2>
                 <button class="close-modal" onclick="closeCartModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="cartModalBody"></div>
 
                 <div id="sizeWarningBox" class="modal-alert danger">
-                    ⚠️ <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. The price has been adjusted accordingly.
+                    <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. The price has been adjusted accordingly.
                 </div>
 
-                <div class="modal-section-title" style="margin-top: 4px;">4. Share & Total</div>
+                <div class="modal-section-title" style="margin-top: 4px;">4. Share &amp; Total</div>
 
                 <div class="share-link-prominent">
-                    <div class="share-link-prominent-title">🔗 Save or share your order</div>
+                    <div class="share-link-prominent-title">Save or share your order</div>
                     <div class="share-link-desc" id="shareLinkDesc">Bookmark this link to edit your order anytime:</div>
                     <div class="share-link-row">
                         <input type="text" class="share-link-input" id="shareLinkInput" readonly value="">
-                        <button class="copy-link-btn" onclick="copyShareLink(this)">📋 Copy</button>
+                        <button class="copy-link-btn" onclick="copyShareLink(this)">Copy</button>
                     </div>
                 </div>
 
                 <div id="modalPriceBreakdown" class="price-breakdown-box"></div>
 
-                <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
+                <div class="modal-sticky-footer">
+                    <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
+                </div>
             </div>
         </div>
     </div>
@@ -780,21 +830,21 @@
     <div id="loadChoiceModal" class="modal">
         <div class="modal-content load-choice-content">
             <div class="modal-header">
-                <h2>🔍 Found Your Order!</h2>
+                <h2>Found Your Order</h2>
                 <button class="close-modal" onclick="closeLoadChoiceModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="loadChoiceInfo" style="background:#17120a; border:1px solid #2e2716; border-radius:6px; padding:12px 14px; font-size:13px; color:#ccc; line-height:1.6;"></div>
                 <p style="margin:0; font-size:14px; color:#fff; font-weight:600; text-align:center;">What would you like to do?</p>
                 <button class="load-choice-btn edit" onclick="chooseEditOrder()">
-                    <span class="choice-icon">📝</span>
+                    <span class="choice-icon">&#9998;</span>
                     <span class="choice-text">
                         <strong>Edit Previous Order</strong>
                         <small>Load your existing order and update it</small>
                     </span>
                 </button>
                 <button class="load-choice-btn new" onclick="chooseNewOrder()">
-                    <span class="choice-icon">✨</span>
+                    <span class="choice-icon">&#10024;</span>
                     <span class="choice-text">
                         <strong>Start New Order</strong>
                         <small>Begin a fresh order from scratch</small>
@@ -880,7 +930,7 @@
 
         if (serviceType === 'games_only') {
             return `Service: Games Only | Stated Free Storage: ${usable} GB` +
-                `<br>📊 <strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usable - gSize).toFixed(1)} GB</strong>`;
+                `<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usable - gSize).toFixed(1)} GB</strong>`;
         }
         const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
         const sourceLabel = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
@@ -888,7 +938,7 @@
         let text = `Service: ${serviceLabel} | SD: ${sdLabel} (${sourceLabel}) | System OS: -${baseOverhead}GB`;
         if ($('androidModeCheck').checked) text += ` | Android: -${partition}GB`;
         if ($('linuxModeCheck').checked) text += ` | Linux: -${partition}GB`;
-        text += `<br>📊 <strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usable} GB</strong>`;
+        text += `<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usable} GB</strong>`;
         return text;
     }
 
@@ -1030,7 +1080,7 @@
         const input = $('phoneInput');
         const phone = input.value.trim();
         if (!phone || phone.length < 4) {
-            alert('📱 Please enter the last 4 digits of your phone number first at the top before choosing games!');
+            alert('Please enter the last 4 digits of your phone number first at the top before choosing games.');
             input.classList.add('required-missing');
             input.focus();
             return false;
@@ -1079,8 +1129,8 @@
 
             const label = (serviceType === 'jailbreak') ? 'Full Jailbreak' : 'System Setup';
             const notice = $('jailbreakNoticeCard');
-            notice.querySelector('h3').innerText = `🎁 You get 3 Free Games with your ${label}!`;
-            notice.querySelector('p').innerText = `Your ${label} service package includes your first 3 games free. Pick 3 free games + additional addon games if desired!`;
+            notice.querySelector('h3').innerText = `Your ${label} package includes 3 games at no extra cost`;
+            notice.querySelector('p').innerText = `Your ${label} package includes your first 3 games at no additional charge. Select them below, then add more if you'd like.`;
 
             if (state.selectedGames.size === 0) {
                 notice.style.display = 'block';
@@ -1135,9 +1185,8 @@
             warningText.innerHTML = msg;
             gameWrapper.classList.add('locked');
             submitBtn.disabled = true;
-            // Show waiting message with vertically centered emoji + text
             const plain = msg.replace(/<[^>]+>/g, '');
-            breakdown.innerHTML = `<span style="display:flex; align-items:center; gap:6px; line-height:1.4;"><span>📋</span><span>${plain}</span></span>`;
+            breakdown.innerHTML = `<span style="display:flex; align-items:center; gap:6px; line-height:1.4;"><span>&#9432;</span><span>${plain}</span></span>`;
             updateCartSummary();
         };
 
@@ -1193,7 +1242,7 @@
                 warningText.innerHTML = 'Please enter your available <strong>Free Storage Space (GB)</strong> above to unlock game selection.';
                 gameWrapper.classList.add('locked');
                 submitBtn.disabled = true;
-                breakdown.innerHTML = '<span>Service: Games Only | <span style="color:#ff5252;">⚠️ Storage space missing! Enter free GB to continue.</span></span>';
+                breakdown.innerHTML = '<span>Service: Games Only | <span style="color:#ff5252;">Storage space missing. Enter free GB to continue.</span></span>';
             } else {
                 state.usableStorageLimit = userSpace;
                 state.isStorageConfigured = true;
@@ -1209,7 +1258,7 @@
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         if (state.isStorageConfigured && state.usableStorageLimit > 0 && gSize > state.usableStorageLimit) {
-            alert(`⚠️ Your new storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB). Excess games will be automatically removed.`);
+            alert(`Your new storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB). Excess games will be automatically removed.`);
             let acc = 0;
             const toRemove = [];
             state.selectedGames.forEach((sz, name) => { acc += sz; if (acc > state.usableStorageLimit) toRemove.push(name); });
@@ -1249,7 +1298,7 @@
 
     function autoExitEditModeForNewPhone(newPhone) {
         resetFormForNewOrder();
-        setStatusMessage(`✨ Cleared previous order. Now starting a new order for phone "${newPhone}".`, '#00e676', 6000);
+        setStatusMessage(`Cleared previous order. Now starting a new order for phone "${newPhone}".`, '#00e676', 6000);
     }
 
     // ============ GAME LIST ============
@@ -1285,7 +1334,7 @@
             notice.className = 'hidden-games-notice';
             notice.innerHTML = `
                 <div class="hidden-notice-text">
-                    <span class="hidden-notice-icon">🔒</span>
+                    <span class="hidden-notice-icon">&#128274;</span>
                     <span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span>
                 </div>
                 <button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>
@@ -1303,7 +1352,7 @@
                 card.className = 'game-card hidden-game';
                 card.innerHTML = `
                     <div class="game-info">
-                        <span class="game-lock-icon">🔒</span>
+                        <span class="game-lock-icon">&#128274;</span>
                         <span class="game-title">${g.name}</span>
                     </div>
                     <span class="game-size" style="color:#888;">${g.size} GB</span>
@@ -1481,11 +1530,9 @@
     }
 
     function checkTierRecommendation(count, serviceType) {
-        // Guard: no service type selected → no recommendation
         if (!serviceType) {
             return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
         }
-        // Guard: no games selected yet → no recommendation
         if (count === 0) {
             return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
         }
@@ -1507,10 +1554,10 @@
             const diff = target - count;
             if (hasFree) {
                 const label = (serviceType === 'jailbreak') ? 'Full Jailbreak' : 'System Setup';
-                if (isFreeGamesNotice) return { hasWarning: true, targetCount: target, remaining: diff, msg: `🎁 <strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your ${label} package includes <strong>3 FREE games</strong>—you can select <strong>${diff} more free game(s)</strong>!` };
-                return { hasWarning: true, targetCount: target, remaining: diff, msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong> (${count - 3} paid). You can choose <strong>${diff} more game(s)</strong> (up to ${target} total) to enter a better pricing tier!` };
+                if (isFreeGamesNotice) return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your ${label} package includes <strong>3 games at no extra cost</strong>—you can select <strong>${diff} more</strong>.` };
+                return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Package Opportunity:</strong> You selected <strong>${count} games</strong> (${count - 3} paid). You can choose <strong>${diff} more game(s)</strong> (up to ${target} total) to enter a better pricing tier.` };
             }
-            return { hasWarning: true, targetCount: target, remaining: diff, msg: `💡 <strong>Package Opportunity:</strong> You selected <strong>${count} games</strong>. You can choose <strong>${diff} more game(s)</strong> (up to ${target} games) to enjoy a better pricing tier rate!` };
+            return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Package Opportunity:</strong> You selected <strong>${count} games</strong>. You can choose <strong>${diff} more game(s)</strong> (up to ${target} games) to enjoy a better pricing tier rate.` };
         }
         return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
     }
@@ -1540,14 +1587,14 @@
 
         const sub = $('checkoutSubtext');
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (count === 0) sub.innerHTML = '3 free games included! Tap here to review & add remarks';
-            else if (count <= 3) sub.innerHTML = `(${count} free games selected, ${3 - count} more free available) | Tap to review`;
+            if (count === 0) sub.innerHTML = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
+            else if (count <= 3) sub.innerHTML = `(${count} free games selected, ${3 - count} more available) | Tap to review`;
             else {
                 const c = count - 3;
-                sub.innerHTML = `(3 free + ${c} addon${c !== 1 ? 's' : ''}) ${tierRec.hasWarning ? '⚠️ Package limit incomplete' : ''} | Tap to review`;
+                sub.innerHTML = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) ${tierRec.hasWarning ? 'Package limit incomplete' : ''} | Tap to review`;
             }
         } else {
-            sub.innerHTML = `${tierRec.hasWarning ? '⚠️ Tier package limit incomplete | ' : ''}Tap here to review & add remarks`;
+            sub.innerHTML = `${tierRec.hasWarning ? 'Tier package limit incomplete | ' : ''}Tap here to review & add remarks`;
         }
     }
 
@@ -1560,7 +1607,7 @@
         const btnIcon = $('loadOrderIcon');
 
         if (phone.length !== 4) {
-            alert('ℹ️ "Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first!');
+            alert('"Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first.');
             input.focus();
             input.classList.add('required-missing');
             return;
@@ -1568,7 +1615,7 @@
 
         const origText = btnText.textContent, origIcon = btnIcon.textContent;
         btn.disabled = true;
-        btnIcon.textContent = '⏳';
+        btnIcon.textContent = '\u23F3';
         btnText.textContent = 'Searching...';
         setStatusMessage('Searching for your saved order...', '#2196F3', 0);
 
@@ -1583,13 +1630,13 @@
             if (data && data.length > 0) {
                 state.pendingLoadedOrder = data[0];
                 showLoadChoiceModal(data[0]);
-                setStatusMessage('💡 Choose an option in the popup to continue.', '#ffc000', 0);
+                setStatusMessage('Choose an option in the popup to continue.', '#ffc000', 0);
             } else {
                 state.currentEditingOrderId = null;
                 state.currentLoadedPhone = null;
                 hideEditModeBanner();
-                alert(`ℹ️ No previous order found for phone "${phone}".\n\nYou can start a new order below!`);
-                setStatusMessage('No order found. Start a new order below!', '#ff9800', 5000);
+                alert(`No previous order found for phone "${phone}".\n\nYou can start a new order below.`);
+                setStatusMessage('No order found. Start a new order below.', '#ff9800', 5000);
             }
         } catch (err) {
             console.error(err);
@@ -1614,7 +1661,7 @@
                 localStorage.setItem('userPhone4', data.phone_ending);
             }
             applyLoadedOrder(data);
-            setStatusMessage(`✅ Loaded shared order! (${state.selectedGames.size} games)`, '#ffc000', 6000);
+            setStatusMessage(`Loaded shared order. (${state.selectedGames.size} games)`, '#ffc000', 6000);
         } catch (err) {
             console.error(err);
             setStatusMessage('Failed to load shared order.', '#ff5252', 5000);
@@ -1647,13 +1694,13 @@
         state.currentLoadedPhone = order.phone_ending || null;
         applyLoadedOrder(order);
         closeLoadChoiceModal();
-        setStatusMessage(`✅ Loaded your order for editing (${state.selectedGames.size} games)`, '#ffc000', 6000);
+        setStatusMessage(`Loaded your order for editing (${state.selectedGames.size} games)`, '#ffc000', 6000);
     }
 
     function chooseNewOrder() {
         resetFormForNewOrder();
         closeLoadChoiceModal();
-        setStatusMessage('✨ New order started. Pick your selection below.', '#00e676', 5000);
+        setStatusMessage('New order started. Pick your selection below.', '#00e676', 5000);
     }
 
     function applyLoadedOrder(order) {
@@ -1727,11 +1774,11 @@
         let servicePrice = 0;
         if (serviceType === 'jailbreak') {
             serviceLabel = `Full Jailbreak (${consoleModel})`;
-            serviceSub = 'Console modification + 3 FREE Games';
+            serviceSub = 'Console modification + 3 games included';
             servicePrice = details.serviceBasePrice;
         } else if (serviceType === 'system_setup') {
             serviceLabel = 'System Setup';
-            serviceSub = 'Console modding & configuration + 3 FREE Games';
+            serviceSub = 'Console modding & configuration + 3 games included';
             servicePrice = details.serviceBasePrice;
         }
 
@@ -1777,7 +1824,7 @@
                 aItem.className = 'cart-item';
                 aItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🤖 Android Mode</span>
+                        <span class="cart-item-title">Android Mode</span>
                         <span class="cart-item-sub">LineageOS dual-boot setup</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -1792,7 +1839,7 @@
                 lItem.className = 'cart-item';
                 lItem.innerHTML = `
                     <div class="cart-item-details">
-                        <span class="cart-item-title">🐧 Linux Mode</span>
+                        <span class="cart-item-title">Linux Mode</span>
                         <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -1825,7 +1872,7 @@
 
         const gamesSummary = document.createElement('summary');
         gamesSummary.className = 'cart-details-summary';
-        gamesSummary.innerHTML = `<span>🎮 Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
+        gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
         gamesDetails.appendChild(gamesSummary);
 
         const gamesBody = document.createElement('div');
@@ -1833,7 +1880,7 @@
         if (state.selectedGames.size === 0) {
             const p = document.createElement('p');
             p.style.cssText = 'text-align:center; color:#888; margin:5px 0; font-size:13px;';
-            p.textContent = isJbOrSetup ? 'No games selected yet (3 Free Games available!)' : 'No games selected.';
+            p.textContent = isJbOrSetup ? 'No games selected yet (3 games included in package)' : 'No games selected.';
             gamesBody.appendChild(p);
         } else {
             let idx = 1;
@@ -1841,7 +1888,7 @@
                 const item = document.createElement('div');
                 item.className = 'cart-item';
                 let tag = '';
-                if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#ffc000; font-size:10px;">[FREE]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
+                if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#ffc000; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
 
                 const titleSpan = document.createElement('span');
                 titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${size} GB)</span>`;
@@ -1875,8 +1922,8 @@
         remarksSummary.className = 'cart-details-summary';
         const hasContent = (state.savedRemarksText || '').trim().length > 0;
         const label = hasContent
-            ? '📝 Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>'
-            : '📝 Add Remarks (Optional)';
+            ? 'Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>'
+            : 'Add Remarks (Optional)';
         remarksSummary.innerHTML = `<span>${label}</span><span class="chev">▼</span>`;
         remarksDetails.appendChild(remarksSummary);
 
@@ -1892,7 +1939,7 @@
         remarksDetails.addEventListener('toggle', () => { state.modalRemarksExpanded = remarksDetails.open; });
         body.appendChild(remarksDetails);
 
-        // ===== Section 4 content — share link + price breakdown =====
+        // ===== Section 4: Share + price breakdown =====
         $('shareLinkInput').value = buildShareUrl();
         $('shareLinkDesc').innerHTML = state.currentEditingOrderId
             ? 'This link reloads <strong style="color:#64b5f6;">this exact order</strong>. Bookmark or share it to edit anytime:'
@@ -1911,7 +1958,7 @@
             if (android) html += `<div class="price-breakdown-row"><span>Android Mode</span><span>RM${details.androidPrice}</span></div>`;
             if (linux) html += `<div class="price-breakdown-row"><span>Linux Mode</span><span>RM${details.linuxPrice}</span></div>`;
             const c = Math.max(0, count - 3);
-            html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''} · 3 FREE)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+            html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
         } else {
             html += `<div class="price-breakdown-row"><span>Games Installation (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
         }
@@ -1935,7 +1982,7 @@
         if (!value || value.includes('phone=____')) { alert('Please enter your 4-digit phone number first.'); return; }
         navigator.clipboard.writeText(value).then(() => {
             const orig = btnEl.innerHTML;
-            btnEl.innerHTML = '✅ Copied!';
+            btnEl.innerHTML = 'Copied';
             btnEl.style.background = '#ffc000';
             btnEl.style.color = '#14110a';
             setTimeout(() => {
@@ -1989,18 +2036,18 @@
 
         const tierRec = checkTierRecommendation(count, serviceType);
         if (tierRec.hasWarning) {
-            let msg = `💡 Tier Package Notice:\n\nYou selected ${count} games.\n`;
+            let msg = `Tier Package Notice:\n\nYou selected ${count} games.\n`;
             if (isJbOrSetup) {
-                if (count < 3) msg += `You selected ${count} game(s), but your ${submitLabel} includes 3 FREE games!\n\nDo you want to save your order now or go back and pick your remaining free games?`;
-                else msg += `Because your ${submitLabel} includes 3 free games, you can select up to ${tierRec.targetCount} games total (${tierRec.remaining} more) at no additional tier cost!\n\nDo you still want to save now, or go back and add more games?`;
+                if (count < 3) msg += `You selected ${count} game(s), but your ${submitLabel} includes 3 games at no extra cost.\n\nDo you want to save your order now or go back and pick your remaining games?`;
+                else msg += `Because your ${submitLabel} includes 3 games at no extra cost, you can select up to ${tierRec.targetCount} games total (${tierRec.remaining} more) at no additional tier cost.\n\nDo you still want to save now, or go back and add more games?`;
             } else {
-                msg += `You can add ${tierRec.remaining} more game(s) (up to ${tierRec.targetCount} games) to enjoy a better pricing tier!\n\nDo you still want to save now, or go back and add more games?`;
+                msg += `You can add ${tierRec.remaining} more game(s) (up to ${tierRec.targetCount} games) to enjoy a better pricing tier.\n\nDo you still want to save now, or go back and add more games?`;
             }
             if (!confirm(msg)) return;
         }
 
         if (isJbOrSetup && count < 3) {
-            if (!confirm(`You have selected only ${count} game(s).\n\nYour ${submitLabel} package includes 3 FREE games! Do you still want to save your order with fewer than 3 games?`)) return;
+            if (!confirm(`You have selected only ${count} game(s).\n\nYour ${submitLabel} package includes 3 games at no extra cost. Do you still want to save your order with fewer than 3 games?`)) return;
         } else if (serviceType === 'games_only') {
             const fs = valOf('userFreeStorageInput');
             if (!fs || parseFloat(fs) <= 0) {
@@ -2011,7 +2058,7 @@
         }
 
         if (state.currentEditingOrderId) {
-            if (!confirm('📝 You are EDITING an existing order.\n\nTap OK to update that order with your current selection.\n\nWant to keep BOTH? Cancel this, then tap "Load Order" and choose "Start New Order".')) return;
+            if (!confirm('You are EDITING an existing order.\n\nTap OK to update that order with your current selection.\n\nWant to keep BOTH? Cancel this, then tap "Load Order" and choose "Start New Order".')) return;
         }
 
         const remarksText = (state.savedRemarksText || '').trim();
@@ -2055,7 +2102,7 @@
                 const res = await supabaseClient.from('orders').update(orderData).eq('id', state.currentEditingOrderId);
                 if (res.error) throw res.error;
                 state.currentLoadedPhone = phone;
-                alert('✅ Order updated successfully!');
+                alert('Order updated successfully.');
             } else {
                 orderData.created_at = nowIso;
                 orderData.progress_stage = 'Order Received';
@@ -2069,11 +2116,11 @@
                     if (fb.data && fb.data.length > 0) savedId = fb.data[0].id;
                 }
                 if (savedId) { state.currentEditingOrderId = savedId; state.currentLoadedPhone = phone; }
-                alert('✅ New order saved successfully!');
+                alert('New order saved successfully.');
             }
 
             closeCartModal();
-            setStatusMessage('Order successfully saved!', '#00e676', 5000);
+            setStatusMessage('Order successfully saved.', '#00e676', 5000);
             showEditModeBanner();
             shareOrderViaWhatsApp();
         } catch (err) {
@@ -2101,28 +2148,28 @@
         const details = calculatePriceDetails(count, gSize);
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
-        let msg = `🎮 *New Pulai PC Order / Inquiry*\n━━━━━━━━━━━\n`;
-        msg += `📱 *Phone ID (Last 4):* ${phone}\n`;
+        let msg = `*New Pulai PC Order*\n`;
+        msg += `Phone ID (Last 4): ${phone}\n`;
         let label = 'Games Only';
         if (serviceType === 'jailbreak') label = `Full Jailbreak (${consoleModel})`;
         else if (serviceType === 'system_setup') label = 'System Setup';
-        msg += `🔧 *Service Type:* ${label}\n`;
+        msg += `Service Type: ${label}\n`;
 
         if (isJbOrSetup) {
             const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
-            msg += `💾 *SD Card:* ${sdLabel} (${sdSource === 'buy' ? 'New Purchase' : 'Own Card'})\n`;
-            if (android) msg += `🤖 *Addon:* Android Mode\n`;
-            if (linux) msg += `🐧 *Addon:* Linux Mode\n`;
+            msg += `SD Card: ${sdLabel} (${sdSource === 'buy' ? 'New Purchase' : 'Own Card'})\n`;
+            if (android) msg += `Addon: Android Mode\n`;
+            if (linux) msg += `Addon: Linux Mode\n`;
         } else {
-            msg += `📊 *Free Storage:* ${valOf('userFreeStorageInput') || 0} GB\n`;
+            msg += `Free Storage: ${valOf('userFreeStorageInput') || 0} GB\n`;
         }
-        msg += `━━━━━━━━━━━\n📦 *Selected Games:* ${count} games (${gSize.toFixed(1)} GB total)\n`;
-        if (remarks) msg += `━━━━━━━━━━━\n📝 *Remarks:* ${remarks}\n`;
-        msg += `━━━━━━━━━━━\n💰 *Total Estimated Price:* RM${Math.round(details.price)}`;
+        msg += `Selected Games: ${count} games (${gSize.toFixed(1)} GB total)\n`;
+        if (remarks) msg += `Remarks: ${remarks}\n`;
+        msg += `Total Estimated Price: RM${Math.round(details.price)}`;
 
         const shareUrl = buildShareUrl();
-        if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\n🔗 *View or edit your order anytime:*\n${shareUrl}`;
-        msg += `\n\n📦 *Track your order progress:*\n${window.location.origin + window.location.pathname.replace('index.html', 'track.html')}?phone=${phone}`;
+        if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\nView or edit your order anytime:\n${shareUrl}`;
+        msg += `\n\nTrack your order progress:\n${window.location.origin + window.location.pathname.replace('index.html', 'track.html')}?phone=${phone}`;
 
         const wa = APP_CONFIG.whatsappNumber || '';
         if (!wa) return alert('WhatsApp number is not configured in APP_CONFIG.');
