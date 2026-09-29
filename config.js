@@ -1,4 +1,4 @@
-﻿﻿// config.js - Central configuration for pricing, games, and backend credentials
+﻿// config.js - Central configuration for pricing, games, and backend credentials
 
 const APP_CONFIG = {
     // Supabase Backend Credentials
@@ -42,11 +42,11 @@ const APP_CONFIG = {
 
     // Customer-facing descriptions for each stage
     progressDescriptions: {
-        'Order Received':   "We've received your order. We'll review it shortly.",
-        'Confirmed':        "Your game list and storage are confirmed. We'll begin work soon.",
+        'Order Received':   "We've received your order and will review it shortly.",
+        'Confirmed':        "Your game list and storage are confirmed. Work will begin soon.",
         'In Progress':      "Your console is being prepared. See details below.",
-        'Ready for Pickup': "Your console is ready! Come collect it anytime — payment on pickup.",
-        'Completed':        "Thanks for your business! Enjoy your games."
+        'Ready for Pickup': "Your console is ready. Come collect it anytime — payment on pickup.",
+        'Completed':        "Thanks for your business. Enjoy your games."
     },
 
     // Sub-stages per service type
@@ -326,7 +326,6 @@ const games = [
       { name: "Sea of Stars", size: 3.22 },
       { name: "Serious Sam Collection", size: 4.28 },
       { name: "Shin chan 1-2", size: 3.55 },
-      { name: "Shin chan 1-2", size: 3.61 },
       { name: "Shin Megami Tensei 5 Vengeance", size: 14.1 },
       { name: "Shin Megami Tensei V", size: 16.42 },
       { name: "Shinobi Art of Vengeance", size: 6.8 },
