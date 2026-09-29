@@ -451,7 +451,7 @@
         </div>
 
         <div class="controls-row">
-            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search Customer ID, WhatsApp, game, or remarks..." onkeyup="filterAndRenderOrders()">
+            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search Customer ID, WhatsApp, game, remarks, or stage..." onkeyup="filterAndRenderOrders()">
             <div class="filter-buttons-wrapper">
                 <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                 <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
@@ -851,13 +851,16 @@
                     const phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().includes(query);
                     const waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().includes(query);
                     const remarksMatch = order.remarks && order.remarks.toLowerCase().includes(query);
+                    // NEW: match progress stage & substage (e.g. "In Progress", "Game Installation")
+                    const stageMatch = order.progress_stage && order.progress_stage.toLowerCase().includes(query);
+                    const substageMatch = order.progress_substage && order.progress_substage.toLowerCase().includes(query);
                     let gameList = [];
                     if (Array.isArray(order.games)) gameList = order.games;
                     else if (typeof order.games === 'string') {
                         try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(','); }
                     }
                     const gameMatch = gameList.some(g => String(g).toLowerCase().includes(query));
-                    return phoneMatch || waMatch || gameMatch || remarksMatch;
+                    return phoneMatch || waMatch || gameMatch || remarksMatch || stageMatch || substageMatch;
                 }
                 return true;
             });
@@ -991,9 +994,21 @@
         }
 
         async function openOrderModal(orderId) {
-            const idField = String(orderId).length > 10 ? 'id' : 'order_id';
-            const { data } = await supabaseClient.from('orders').select('*').eq(idField, orderId).single();
-            const order = data || allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
+            // Robust ID matching: use local cache first (avoids guessing column name),
+            // then fall back to a DB fetch trying both possible column names.
+            let order = allOrders.find(o =>
+                String(o.id) === String(orderId) || String(o.order_id) === String(orderId)
+            );
+
+            if (!order) {
+                const byId = await supabaseClient.from('orders').select('*').eq('id', orderId).maybeSingle();
+                if (byId.data) order = byId.data;
+                else {
+                    const byOrderId = await supabaseClient.from('orders').select('*').eq('order_id', orderId).maybeSingle();
+                    if (byOrderId.data) order = byOrderId.data;
+                }
+            }
+
             if (!order) { alert("Could not load order details."); return; }
 
             currentRemarksOrderId = order.id || order.order_id;
