@@ -85,18 +85,63 @@
             border-color: #ffc000;
         }
 
-        .instructions {
-            text-align: center;
-            color: #b8b0a0;
-            font-size: 12.5px;
-            margin-bottom: 18px;
-            line-height: 1.55;
-            padding: 10px 12px;
-            background: #1f190e;
-            border: 1px solid #3a3018;
+        /* ===== HOW IT WORKS ===== */
+        .how-it-works {
+            background: #1a1814;
+            border: 1px solid #2e2716;
             border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 18px;
         }
-        .instructions br { display: none; }
+        .how-it-works-title {
+            font-size: 11.5px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #8a8272;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .how-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .how-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .how-num {
+            flex: 0 0 auto;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #2e2716;
+            border: 1px solid #3a3018;
+            color: #b8b0a0;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+        .how-step-body {
+            flex: 1;
+            min-width: 0;
+        }
+        .how-step-title {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #e8dcc0;
+            line-height: 1.35;
+        }
+        .how-step-desc {
+            font-size: 12px;
+            color: #8a8272;
+            line-height: 1.5;
+            margin-top: 2px;
+        }
 
         /* ===== PRICING GUIDE ===== */
         .pricing-guide { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #c9c1af; }
@@ -526,7 +571,7 @@
         }
         .remove-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
-        /* ===== NATIVE COLLAPSIBLE (details/summary) ===== */
+        /* ===== NATIVE COLLAPSIBLE ===== */
         .cart-details {
             background: #191309;
             border: 1px solid #2e2716;
@@ -614,7 +659,28 @@
             color: #f0e9d8; font-weight: bold; font-size: 16px;
         }
 
-        /* ===== STICKY FOOTER FOR SAVE BUTTON (cart modal) ===== */
+        /* ===== PAYMENT REASSURANCE ===== */
+        .payment-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #1a2a1a;
+            border: 1px solid #2a4530;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: #c3ffdb;
+            line-height: 1.5;
+        }
+        .payment-note-icon {
+            color: #00e676;
+            font-size: 14px;
+            flex-shrink: 0;
+            line-height: 1.4;
+            font-weight: bold;
+        }
+
+        /* ===== STICKY FOOTER FOR SAVE BUTTON ===== */
         .modal-sticky-footer {
             position: sticky;
             bottom: 0;
@@ -713,8 +779,14 @@
             body { padding: 20px 20px 120px; }
             .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
-            .instructions { font-size: 13px; }
-            .instructions br { display: inline; }
+            .how-it-works { padding: 16px 18px; }
+            .how-steps {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 14px;
+            }
+            .how-step { flex-direction: column; gap: 8px; }
+            .how-num { margin-top: 0; }
             .pricing-details-grid { grid-template-columns: 1fr 1fr; }
             .tier-box { flex: 1; }
             .field-group { flex: 1 1 calc(50% - 6px); min-width: 140px; }
@@ -732,7 +804,9 @@
             body { padding: 10px 10px 150px; }
             .site-logo { width: 40px; height: 40px; }
             h1 { font-size: 15px; }
-            .instructions { font-size: 11.5px; padding: 8px 10px; }
+            .how-it-works { padding: 12px 14px; }
+            .how-step-title { font-size: 12.5px; }
+            .how-step-desc { font-size: 11.5px; }
             .btn-action { padding: 7px 10px; font-size: 11px; }
             .config-card { padding: 12px; }
             .game-card { padding: 12px 10px; }
@@ -757,10 +831,39 @@
             </div>
         </div>
 
-        <div class="instructions">
-            1. Enter the <strong>Last 4 Digits</strong> of your phone number below.<br>
-            2. Select your <strong>Service Type</strong> and specify your <strong>Storage Capacity</strong>.<br>
-            3. Choose your games, then review and submit.
+        <!-- How it works -->
+        <div class="how-it-works" id="howItWorks">
+            <div class="how-it-works-title">How it works</div>
+            <div class="how-steps">
+                <div class="how-step">
+                    <div class="how-num">1</div>
+                    <div class="how-step-body">
+                        <div class="how-step-title">Submit your order</div>
+                        <div class="how-step-desc">Pick your service, storage, and games here.</div>
+                    </div>
+                </div>
+                <div class="how-step">
+                    <div class="how-num">2</div>
+                    <div class="how-step-body">
+                        <div class="how-step-title">We confirm on WhatsApp</div>
+                        <div class="how-step-desc">Usually within an hour during working hours.</div>
+                    </div>
+                </div>
+                <div class="how-step">
+                    <div class="how-num">3</div>
+                    <div class="how-step-body">
+                        <div class="how-step-title">We prepare your console</div>
+                        <div class="how-step-desc">Jailbreak + game installation, typically 1–2 days.</div>
+                    </div>
+                </div>
+                <div class="how-step">
+                    <div class="how-num">4</div>
+                    <div class="how-step-body">
+                        <div class="how-step-title">Pickup &amp; pay</div>
+                        <div class="how-step-desc">Collect in person. Payment on pickup.</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <details class="pricing-guide" id="pricingGuide">
@@ -943,6 +1046,7 @@
             <span id="remainderSize" style="color: #ffb74d; font-weight: bold;">0</span> GB left) | 
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
             <br><span id="checkoutSubtext" style="font-size: 11px; color: #8a8272;">Tap to review and add remarks</span>
+            <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup — no upfront payment required.</span>
         </div>
         <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review &amp; Submit</button>
     </div>
@@ -1003,6 +1107,11 @@
 
                 <div id="modalPriceBreakdown" class="price-breakdown-box"></div>
 
+                <div class="payment-note">
+                    <span class="payment-note-icon">&#9432;</span>
+                    <span>No upfront payment. You pay when you collect your console.</span>
+                </div>
+
                 <div class="modal-sticky-footer">
                     <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
                 </div>
@@ -1044,8 +1153,6 @@
     const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
     // ============ BODY SCROLL LOCK ============
-    // Prevents the page behind a modal from scrolling on mobile.
-    // Uses position:fixed trick so iOS Safari also respects the lock.
     const BodyLock = (function() {
         let scrollY = 0;
         let lockCount = 0;
@@ -1053,7 +1160,7 @@
         function lock() {
             if (lockCount === 0) {
                 scrollY = window.scrollY || window.pageYOffset || 0;
-                document.body.style.top = `-${scrollY}px`;
+                document.body.style.top = '-' + scrollY + 'px';
                 document.body.classList.add('modal-open');
             }
             lockCount++;
@@ -1069,17 +1176,15 @@
             }
         }
 
-        // Prevent touchmove on the backdrop (outside the modal-content).
-        // Scrolling *inside* the modal-content is still allowed.
         function attachBackdropGuard(overlayEl) {
-            overlayEl.addEventListener('touchmove', (e) => {
+            overlayEl.addEventListener('touchmove', function(e) {
                 const modalContent = overlayEl.querySelector('.modal-content, .modal-card, .remarks-modal-card');
                 if (modalContent && modalContent.contains(e.target)) return;
                 e.preventDefault();
             }, { passive: false });
         }
 
-        return { lock, unlock, attachBackdropGuard };
+        return { lock: lock, unlock: unlock, attachBackdropGuard: attachBackdropGuard };
     })();
 
     // ============ STATE ============
@@ -1197,7 +1302,6 @@
 
     // ============ INIT ============
     window.onload = function() {
-        // Attach backdrop scroll guards to all modals
         ['cartModal', 'loadChoiceModal'].forEach(id => {
             const el = $(id);
             if (el) BodyLock.attachBackdropGuard(el);
