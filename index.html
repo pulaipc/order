@@ -85,7 +85,7 @@
             border-color: #ffc000;
         }
 
-        /* ===== HOW IT WORKS ===== */
+        /* ===== WHAT HAPPENS NEXT ===== */
         .how-it-works {
             background: #1a1814;
             border: 1px solid #2e2716;
@@ -831,28 +831,28 @@
             </div>
         </div>
 
-        <!-- How it works -->
+        <!-- What happens next -->
         <div class="how-it-works" id="howItWorks">
-            <div class="how-it-works-title">How it works</div>
+            <div class="how-it-works-title">What happens next</div>
             <div class="how-steps">
                 <div class="how-step">
                     <div class="how-num">1</div>
                     <div class="how-step-body">
-                        <div class="how-step-title">Submit your order</div>
-                        <div class="how-step-desc">Pick your service, storage, and games here.</div>
+                        <div class="how-step-title">Confirm your order details</div>
+                        <div class="how-step-desc">Make sure games and storage match what we discussed.</div>
                     </div>
                 </div>
                 <div class="how-step">
                     <div class="how-num">2</div>
                     <div class="how-step-body">
-                        <div class="how-step-title">We confirm on WhatsApp</div>
-                        <div class="how-step-desc">Usually within an hour during working hours.</div>
+                        <div class="how-step-title">Drop off your console</div>
+                        <div class="how-step-desc">Bring it to us at the agreed time and place.</div>
                     </div>
                 </div>
                 <div class="how-step">
                     <div class="how-num">3</div>
                     <div class="how-step-body">
-                        <div class="how-step-title">We prepare your console</div>
+                        <div class="how-step-title">We prepare it</div>
                         <div class="how-step-desc">Jailbreak + game installation, typically 1–2 days.</div>
                     </div>
                 </div>
@@ -1055,7 +1055,7 @@
         <div class="post-save-card">
             <div class="post-save-title">Order saved</div>
             <div class="post-save-desc">
-                Your order has been submitted. Save the link below to edit it later, or track its progress at any time.
+                Your order has been submitted. We'll be in touch on WhatsApp to arrange drop-off. Save the link below to edit it later, or track its progress at any time.
             </div>
             <div class="post-save-links">
                 <div class="post-save-link-row">
@@ -1124,7 +1124,7 @@
         <div class="modal-content load-choice-content">
             <div class="modal-header">
                 <h2>Found Your Order</h2>
-                <button class="close-modal" onclick="closeLoadChoiceModal()">&times;</button>
+                <button class="close-modal" onclick="dismissLoadChoiceModal()">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="loadChoiceInfo" style="background:#17120a; border:1px solid #2e2716; border-radius:6px; padding:12px 14px; font-size:13px; color:#c9c1af; line-height:1.6;"></div>
@@ -1143,7 +1143,7 @@
                         <small>Begin a fresh order from scratch</small>
                     </span>
                 </button>
-                <button style="background:transparent; border:none; color:#8a8272; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="closeLoadChoiceModal()">Cancel</button>
+                <button style="background:transparent; border:none; color:#8a8272; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="dismissLoadChoiceModal()">Cancel</button>
             </div>
         </div>
     </div>
@@ -1311,46 +1311,24 @@
         const urlPhone = params.get('phone');
         const urlOrderId = params.get('order');
 
-        let autoLoadPhone = false, autoLoadOrderId = null;
-
+        // Explicit URL params → load that order.
+        // Fresh visit with no params → start clean (no auto-fill).
         if (urlOrderId) {
-            autoLoadOrderId = urlOrderId;
+            setTimeout(() => loadSpecificOrderById(urlOrderId), 400);
         } else if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
             $('phoneInput').value = urlPhone;
-            localStorage.setItem('userPhone4', urlPhone);
-            autoLoadPhone = true;
+            setTimeout(() => fetchExistingOrder(), 400);
         } else {
-            const savedPhone = localStorage.getItem('userPhone4');
-            if (savedPhone) $('phoneInput').value = savedPhone;
+            // Fresh visit — clear any stale phone value so the form
+            // always starts empty. The "Load Order" button is right
+            // there for returning customers.
+            $('phoneInput').value = '';
+            try { localStorage.removeItem('userPhone4'); } catch (e) {}
         }
-
-        const restore = (key, id, validValues) => {
-            const v = localStorage.getItem(key);
-            if (v && (!validValues || validValues.includes(v))) $(id).value = v;
-        };
-        restore('userServiceType', 'serviceTypeSelect', ['jailbreak', 'system_setup', 'games_only']);
-        restore('userConsoleModel', 'consoleModelSelect', ['OLED', 'V1_V2', 'LITE']);
-        restore('userSdSource', 'sdSourceSelect', ['own', 'buy']);
-
-        populateSdCardOptions();
-
-        const savedSd = localStorage.getItem('userSdSelect');
-        if (savedSd) {
-            const sdSel = $('sdCardSelect');
-            if (sdSel.querySelector(`option[value="${savedSd}"]`)) {
-                sdSel.value = savedSd;
-                state.maxSdSize = parseInt(savedSd);
-            }
-        }
-        const savedFree = localStorage.getItem('userFreeStorage');
-        if (savedFree) $('userFreeStorageInput').value = savedFree;
 
         toggleServiceFields();
         updateSdLimit();
         filterGames();
-
-        if (autoLoadOrderId) setTimeout(() => loadSpecificOrderById(autoLoadOrderId), 400);
-        else if (autoLoadPhone) setTimeout(() => fetchExistingOrder(), 400);
     };
 
     // ============ SD CARD DROPDOWN ============
@@ -1424,7 +1402,6 @@
     function savePhone() {
         const input = $('phoneInput');
         const phone = input.value.trim();
-        localStorage.setItem('userPhone4', phone);
         if (phone.length >= 4) input.classList.remove('required-missing');
 
         if (state.currentEditingOrderId && phone.length < 4) hideEditModeBanner();
@@ -1534,13 +1511,7 @@
 
         if (isJbOrSetup && !sdValue) return setWaiting('Please select your <strong>SD Card Capacity</strong> to continue.');
 
-        localStorage.setItem('userServiceType', serviceType);
-
         if (isJbOrSetup) {
-            localStorage.setItem('userSdSource', sdSource);
-            localStorage.setItem('userSdSelect', state.maxSdSize);
-            if (serviceType === 'jailbreak') localStorage.setItem('userConsoleModel', consoleModel);
-
             const android = $('androidModeCheck');
             const linux = $('linuxModeCheck');
             if (state.maxSdSize < 128) {
@@ -1578,7 +1549,6 @@
             } else {
                 state.usableStorageLimit = userSpace;
                 state.isStorageConfigured = true;
-                localStorage.setItem('userFreeStorage', userSpace);
                 freeInput.classList.remove('required-missing');
                 warning.style.display = 'none';
                 gameWrapper.classList.remove('locked');
@@ -1602,6 +1572,8 @@
     }
 
     // ============ RESET / EDIT MODE ============
+    // Note: phone input is intentionally NOT cleared here. The phone
+    // identifies the new order's owner, so it persists across resets.
     function resetFormForNewOrder() {
         state.currentEditingOrderId = null;
         state.currentLoadedPhone = null;
@@ -1991,7 +1963,6 @@
             state.currentLoadedPhone = data.phone_ending || null;
             if (data.phone_ending) {
                 $('phoneInput').value = data.phone_ending;
-                localStorage.setItem('userPhone4', data.phone_ending);
             }
             applyLoadedOrder(data);
             setStatusMessage(`Loaded shared order. (${state.selectedGames.size} games)`, '#e8dcc0', 6000);
@@ -2014,27 +1985,41 @@
         BodyLock.lock();
     }
 
-    function closeLoadChoiceModal() {
+    // Cancel / X / tap backdrop → dismiss without touching the form.
+    // The dialog never creates an order — only Save Changes does.
+    function dismissLoadChoiceModal() {
         $('loadChoiceModal').style.display = 'none';
         BodyLock.unlock();
         state.pendingLoadedOrder = null;
-        const sm = $('statusMsg');
-        if (sm && sm.innerText.includes('popup')) clearStatusMessage();
+        clearStatusMessage();
     }
 
     function chooseEditOrder() {
-        if (!state.pendingLoadedOrder) { closeLoadChoiceModal(); return; }
+        if (!state.pendingLoadedOrder) { dismissLoadChoiceModal(); return; }
         const order = state.pendingLoadedOrder;
         state.currentEditingOrderId = order.id;
         state.currentLoadedPhone = order.phone_ending || null;
         applyLoadedOrder(order);
-        closeLoadChoiceModal();
+        $('loadChoiceModal').style.display = 'none';
+        BodyLock.unlock();
+        state.pendingLoadedOrder = null;
         setStatusMessage(`Loaded your order for editing (${state.selectedGames.size} games)`, '#e8dcc0', 6000);
     }
 
     function chooseNewOrder() {
+        // Warn before wiping any unsaved games
+        if (state.selectedGames.size > 0) {
+            const count = state.selectedGames.size;
+            const word = count === 1 ? 'game' : 'games';
+            const msg = 'You have ' + count + ' ' + word + ' selected. Starting a new order will clear them.\n\nContinue?';
+            if (!confirm(msg)) {
+                return; // User cancelled — leave dialog open, do nothing
+            }
+        }
         resetFormForNewOrder();
-        closeLoadChoiceModal();
+        $('loadChoiceModal').style.display = 'none';
+        BodyLock.unlock();
+        state.pendingLoadedOrder = null;
         setStatusMessage('New order started. Pick your selection below.', '#00e676', 5000);
     }
 
