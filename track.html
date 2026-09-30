@@ -85,11 +85,13 @@
         }
         .result-card.show { display: block; }
 
-        /* Summary header */
+        /* Summary header — stacks vertically on mobile, side-by-side on desktop */
         .result-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            gap: 10px; flex-wrap: wrap;
-            padding-bottom: 18px; margin-bottom: 22px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
             border-bottom: 1px solid #2e2716;
         }
         .order-summary-left {
@@ -97,8 +99,7 @@
             flex-direction: column;
             gap: 8px;
             min-width: 0;
-            flex: 1;
-            padding-left: 2px;
+            width: 100%;
         }
         .order-id-line {
             font-size: 20px;
@@ -121,12 +122,24 @@
             line-height: 1.5;
         }
 
+        .result-header-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .result-header-actions > button,
+        .result-header-actions > a {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+
         .refresh-btn {
             background: #2e2716; color: #ffc000; border: 1px solid #3a3018;
             padding: 8px 14px; border-radius: 6px; cursor: pointer;
             font-size: 12.5px; font-weight: bold; font-family: inherit;
             display: inline-flex; align-items: center; gap: 6px;
-            transition: all 0.2s; white-space: nowrap; flex-shrink: 0;
+            transition: all 0.2s; white-space: nowrap;
         }
         .refresh-btn:hover:not(:disabled) { background: #ffc000; color: #14110a; border-color: #ffc000; }
         .refresh-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -140,12 +153,6 @@
         @keyframes spin {
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
-        }
-        .result-header-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-            flex-shrink: 0;
         }
         .copy-link-header-btn {
             background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018;
@@ -398,6 +405,27 @@
             .main-step-icon { width: 52px; height: 52px; font-size: 22px; }
             .main-step-label { font-size: 12.5px; }
             .main-progress::before, .main-progress-line-fill { top: 24px; }
+
+            /* On desktop, put the summary and actions side by side again */
+            .result-header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            .order-summary-left {
+                flex: 1;
+                width: auto;
+            }
+            .result-header-actions {
+                width: auto;
+                flex-shrink: 0;
+                flex-wrap: nowrap;
+            }
+            .result-header-actions > button,
+            .result-header-actions > a {
+                flex: 0 0 auto;
+            }
         }
         @media (max-width: 380px) {
             body { padding: 10px 10px 40px; }
@@ -408,6 +436,7 @@
             .main-step-label { font-size: 9.5px; }
             .main-progress::before, .main-progress-line-fill { top: 16px; }
             .search-row button span { display: none; }
+            .order-id-line { font-size: 18px; }
         }
     </style>
 </head>
