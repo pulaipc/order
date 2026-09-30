@@ -140,7 +140,10 @@
             justify-content: center;
             margin-top: 1px;
         }
-        .how-step-body { flex: 1; min-width: 0; }
+        .how-step-body {
+            flex: 1;
+            min-width: 0;
+        }
         .how-step-title {
             font-size: 13.5px;
             font-weight: 600;
@@ -366,6 +369,16 @@
             border: 1px solid #25D366;
         }
         .summary-btn.whatsapp:hover { background: #1eaa52; border-color: #1eaa52; }
+        .summary-btn.cancel {
+            background: transparent;
+            color: #e57373;
+            border: 1px solid #4a2525;
+        }
+        .summary-btn.cancel:hover {
+            background: #e57373;
+            color: #14110a;
+            border-color: #e57373;
+        }
 
         .locked-notice {
             background: #2a1e0a;
@@ -457,6 +470,80 @@
             background: #ffc000;
             color: #14110a;
             border-color: #ffc000;
+        }
+
+        /* ===== ORDER PICK LIST (multi-order) ===== */
+        .order-pick-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 4px;
+        }
+        .order-pick-item {
+            background: #221c10;
+            border: 1px solid #2e2716;
+            border-radius: 8px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .order-pick-item:hover { border-color: #5a4a20; }
+        .order-pick-item:active { background: #2a2108; }
+        .order-pick-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .order-pick-id {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ffc000;
+        }
+        .order-pick-stage-pill {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 9px;
+            border-radius: 10px;
+            background: #2a2108;
+            color: #e8dcc0;
+            border: 1px solid #7a6820;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .order-pick-stage-pill.in-progress {
+            background: #16202a;
+            color: #7dd3fc;
+            border-color: #3a5a72;
+        }
+        .order-pick-stage-pill.confirmed {
+            background: #2a1e0a;
+            color: #ffb74d;
+            border-color: #7a5420;
+        }
+        .order-pick-stage-pill.completed {
+            background: #1a2a1a;
+            color: #00e676;
+            border-color: #2a4530;
+        }
+        .order-pick-stage-pill.cancelled {
+            background: #2a1212;
+            color: #e57373;
+            border-color: #7a3030;
+        }
+        .order-pick-detail {
+            font-size: 12.5px;
+            color: #b8b0a0;
+            line-height: 1.5;
+        }
+        .order-pick-detail strong { color: #e8dcc0; }
+        .order-pick-date {
+            font-size: 11px;
+            color: #8a8272;
         }
 
         /* ===== FORM VIEW ===== */
@@ -1172,7 +1259,7 @@
     <div class="container">
         <div class="header-bar">
             <div class="header-left">
-                <a href="#" class="logo-link" onclick="scrollToTop(event)" aria-label="Back to top">
+                <a href="#" class="logo-link" onclick="scrollToTop(event)" aria-label="Back to home">
                     <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
                 </a>
                 <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
@@ -1506,6 +1593,28 @@
         </div>
     </div>
 
+    <!-- Order pick list modal (when phone has 2+ orders) -->
+    <div id="orderPickModal" class="modal">
+        <div class="modal-content load-choice-content">
+            <div class="modal-header">
+                <h2>Pick an Order</h2>
+                <button class="close-modal" onclick="dismissOrderPickModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="orderPickSubtitle" style="margin:0; font-size:13px; color:#b8b0a0; line-height:1.5;">We found multiple orders for this phone. Tap one to view or edit it.</p>
+                <div id="orderPickList" class="order-pick-list"></div>
+                <button class="load-choice-btn new" onclick="pickStartNewOrder()">
+                    <span class="choice-icon">&#10024;</span>
+                    <span class="choice-text">
+                        <strong>Start a New Order</strong>
+                        <small>Begin a fresh order from scratch</small>
+                    </span>
+                </button>
+                <button style="background:transparent; border:none; color:#8a8272; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="dismissOrderPickModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
     <script>
     const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
@@ -1551,6 +1660,7 @@
         isStorageConfigured: false,
         currentEditingOrderId: null,
         pendingLoadedOrder: null,
+        pendingOrderList: [],
         currentLoadedPhone: null,
         savedRemarksText: '',
         modalGamesExpanded: false,
@@ -1565,6 +1675,12 @@
 
     function scrollToTop(e) {
         if (e) e.preventDefault();
+        // If the summary view is active, tapping the logo should take the
+        // customer back to a fresh order form (true "home").
+        const summaryView = $('summaryView');
+        if (summaryView && summaryView.classList.contains('active')) {
+            resetFormForNewOrder();
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1589,6 +1705,12 @@
         return stage !== 'Order Received';
     }
 
+    function isOrderCancellable(order) {
+        // Customer can cancel only while we haven't confirmed the order yet.
+        const stage = (order && order.progress_stage) || 'Order Received';
+        return stage === 'Order Received' && order.status !== 'Cancelled';
+    }
+
     function showSummaryView(order) {
         state.loadedOrderForSummary = order;
         const summaryEl = $('summaryView');
@@ -1606,10 +1728,12 @@
         }
 
         const locked = isOrderLocked(order);
+        const cancellable = isOrderCancellable(order);
         const stage = order.progress_stage || 'Order Received';
+        const isCancelled = order.status === 'Cancelled';
 
         let pillClass = '';
-        if (order.status === 'Cancelled') pillClass = 'cancelled';
+        if (isCancelled) pillClass = 'cancelled';
         else if (stage === 'Completed') pillClass = 'done';
         else if (locked) pillClass = 'locked';
 
@@ -1706,11 +1830,26 @@
         html += '</div>';
 
         html += '<div class="summary-card">';
-        if (locked) {
+
+        if (isCancelled) {
+            // Cancelled order — show cancelled notice, only "Start New Order" action
+            html += '<div class="cancelled-banner" style="margin-top:0;">'
+                  +   '<span class="icon">&#10007;</span>'
+                  +   '<div class="msg"><strong>Order Cancelled.</strong><br>'
+                  +   'This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div>'
+                  + '</div>';
+            html += '<div class="summary-actions">';
+            const cancelPrefill = 'Hi, I cancelled my order (#' + (order.phone_ending || '') + ') and would like to ask something.';
+            const waNumberC = APP_CONFIG.whatsappNumber || '';
+            const waUrlC = 'https://wa.me/' + waNumberC + '?text=' + encodeURIComponent(cancelPrefill);
+            html += '<a class="summary-btn whatsapp" href="' + waUrlC + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '</div>';
+        } else if (locked) {
             html += '<div class="locked-notice">';
             html += '<span class="locked-notice-icon">&#128274;</span>';
             html += '<div><strong>This order is locked for changes.</strong><br>';
-            html += 'We\'ve already confirmed the details with you. If you need to make a change, message us on WhatsApp and we\'ll update it for you.</div>';
+            html += 'We\'ve already confirmed the details with you. If you need to make a change or cancel, message us on WhatsApp and we\'ll take care of it.</div>';
             html += '</div>';
             html += '<div class="summary-actions">';
             const prefill = 'Hi, I would like to ask about my order #' + (order.phone_ending || '') + '.';
@@ -1718,11 +1857,17 @@
             const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(prefill);
             html += '<a class="summary-btn whatsapp" href="' + waUrl + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else {
+            // Editable order
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            if (cancellable) {
+                html += '<button class="summary-btn cancel" onclick="cancelOrder()">Cancel Order</button>';
+            }
             html += '</div>';
         }
         html += '</div>';
@@ -1745,10 +1890,6 @@
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
         document.body.classList.remove('summary-active');
-        // Scroll to the config card (start of the editable section)
-        // rather than the top of the page (header + instructions).
-        // A small delay lets the browser finish switching views before
-        // scrolling so the target position is calculated correctly.
         setTimeout(() => {
             const configCard = $('configCard');
             if (configCard) {
@@ -1765,6 +1906,53 @@
         $('checkoutBar').classList.remove('hidden');
         document.body.classList.remove('summary-active');
         state.loadedOrderForSummary = null;
+    }
+
+    async function cancelOrder() {
+        const order = state.loadedOrderForSummary;
+        if (!order) return;
+        if (!isOrderCancellable(order)) {
+            alert('This order can no longer be cancelled here. Please message us on WhatsApp.');
+            return;
+        }
+        const confirmed = confirm('Cancel this order?\n\nThis can\'t be undone. You\'ll need to place a new order if you change your mind.');
+        if (!confirmed) return;
+
+        const btn = document.querySelector('.summary-btn.cancel');
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Cancelling...';
+        }
+
+        try {
+            const orderId = order.id || order.order_id;
+            const nowIso = new Date().toISOString();
+            const { error } = await supabaseClient
+                .from('orders')
+                .update({
+                    status: 'Cancelled',
+                    progress_stage: 'Cancelled',
+                    progress_updated_at: nowIso,
+                    updated_at: nowIso
+                })
+                .eq('id', orderId);
+
+            if (error) throw error;
+
+            // Update local state and re-render
+            order.status = 'Cancelled';
+            order.progress_stage = 'Cancelled';
+            order.progress_updated_at = nowIso;
+            order.updated_at = nowIso;
+            showSummaryView(order);
+        } catch (err) {
+            console.error(err);
+            alert('Failed to cancel: ' + (err.message || 'Please try again or message us on WhatsApp.'));
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Cancel Order';
+            }
+        }
     }
 
     function escapeHtml(str) {
@@ -1811,17 +1999,11 @@
         return gameList;
     }
 
-    // Real-world SD cards always deliver less than their label size because
-    // manufacturers count 1 GB = 1,000,000,000 bytes while operating systems
-    // count 1 GB = 1,073,741,824 bytes. A "256GB" card typically shows ~238GB.
-    // We also reserve space for system overhead (bootloader, firmware, partitions)
-    // so the customer never over-fills their card.
     const SD_REAL_CAPACITY_FACTOR = 0.93;
 
     function computeUsableStorage() {
         const serviceType = valOf('serviceTypeSelect');
         if (serviceType === 'games_only') {
-            // Customer reported their own free space — trust their number.
             const userSpace = parseFloat(valOf('userFreeStorageInput'));
             if (isNaN(userSpace) || userSpace <= 0) return { usable: 0, baseOverhead: 0, partition: 0, realCapacity: 0 };
             return { usable: userSpace, baseOverhead: 0, partition: 0, realCapacity: userSpace };
@@ -1904,7 +2086,7 @@
     }
 
     window.onload = function() {
-        ['cartModal', 'loadChoiceModal'].forEach(id => {
+        ['cartModal', 'loadChoiceModal', 'orderPickModal'].forEach(id => {
             const el = $(id);
             if (el) BodyLock.attachBackdropGuard(el);
         });
@@ -1932,10 +2114,6 @@
     async function loadOrderAndShowSummary(orderId) {
         setStatusMessage('Loading your order...', '#7dd3fc', 0);
         try {
-            // Use .limit(1) instead of .single() so a missing row returns an
-            // empty array instead of throwing "Cannot coerce the result to a
-            // single JSON object". We handle the empty case ourselves with a
-            // friendly message.
             const { data, error } = await supabaseClient
                 .from('orders')
                 .select('*')
@@ -1945,7 +2123,6 @@
             if (error) throw error;
 
             if (!data || data.length === 0) {
-                // Order ID not found — either deleted, or link was mistyped.
                 hideSummaryShowForm();
                 clearStatusMessage();
                 showMissingOrderNotice();
@@ -1967,10 +2144,7 @@
         }
     }
 
-    // Friendly inline banner when a shared order link no longer resolves.
-    // Replaces the raw "Cannot coerce to single JSON object" alert.
     function showMissingOrderNotice() {
-        // Avoid duplicates if called twice
         const existing = document.querySelector('.missing-order-notice');
         if (existing) existing.remove();
 
@@ -1989,7 +2163,6 @@
             + '  <button class="missing-order-btn secondary" onclick="dismissMissingOrderNotice()">Start a new order</button>'
             + '</div>';
         document.body.appendChild(notice);
-        // Hide the checkout bar while the notice is up
         const bar = $('checkoutBar');
         if (bar) bar.classList.add('hidden');
     }
@@ -1997,9 +2170,7 @@
     function dismissMissingOrderNotice() {
         const notice = document.querySelector('.missing-order-notice');
         if (notice) notice.remove();
-        // Reset to a clean new-order form
         resetFormForNewOrder();
-        // Bring the checkout bar back
         const bar = $('checkoutBar');
         if (bar) bar.classList.remove('hidden');
     }
@@ -2256,6 +2427,7 @@
         state.selectedGames.clear();
         state.savedRemarksText = '';
         state.loadedOrderForSummary = null;
+        state.pendingOrderList = [];
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
         ['serviceTypeSelect', 'consoleModelSelect', 'sdSourceSelect', 'userFreeStorageInput', 'searchInput'].forEach(id => $(id).value = '');
         window.history.replaceState({}, '', window.location.pathname);
@@ -2634,27 +2806,39 @@
         btn.disabled = true;
         btnIcon.textContent = '\u23F3';
         btnText.textContent = 'Searching...';
-        setStatusMessage('Searching for your saved order...', '#7dd3fc', 0);
+        setStatusMessage('Searching for your saved orders...', '#7dd3fc', 0);
 
         try {
             const { data, error } = await supabaseClient
                 .from('orders').select('*')
                 .eq('phone_ending', phone)
-                .order('created_at', { ascending: false })
-                .limit(1);
+                .order('created_at', { ascending: false });
             if (error) throw error;
 
-            if (data && data.length > 0) {
-                state.pendingLoadedOrder = data[0];
-                showLoadChoiceModal(data[0]);
-                setStatusMessage('Choose an option in the popup to continue.', '#e8dcc0', 0);
-            } else {
+            const orders = data || [];
+
+            if (orders.length === 0) {
                 state.currentEditingOrderId = null;
                 state.currentLoadedPhone = null;
                 hideEditModeBanner();
                 alert(`No previous order found for phone "${phone}".\n\nYou can start a new order below.`);
                 setStatusMessage('No order found. Start a new order below.', '#ffb74d', 5000);
+                return;
             }
+
+            if (orders.length === 1) {
+                // Single order — keep the existing single-order dialog
+                state.pendingLoadedOrder = orders[0];
+                showLoadChoiceModal(orders[0]);
+                setStatusMessage('Choose an option in the popup to continue.', '#e8dcc0', 0);
+                return;
+            }
+
+            // 2+ orders — show the pick list
+            state.pendingOrderList = orders;
+            showOrderPickModal(orders);
+            setStatusMessage('Pick an order from the popup to continue.', '#e8dcc0', 0);
+
         } catch (err) {
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#e57373', 5000);
@@ -2696,6 +2880,9 @@
         setStatusMessage('');
         showSummaryView(order);
         updateSaveButtonLabel();
+        // Reflect the picked order in the URL so refresh keeps context
+        const url = window.location.pathname + '?order=' + encodeURIComponent(order.id);
+        window.history.replaceState({}, '', url);
     }
 
     function chooseNewOrder() {
@@ -2710,6 +2897,85 @@
         BodyLock.unlock();
         state.pendingLoadedOrder = null;
         setStatusMessage('New order started. Pick your selection below.', '#00e676', 5000);
+    }
+
+    // ===== Multi-order pick list =====
+    function showOrderPickModal(orders) {
+        const list = $('orderPickList');
+        const subtitle = $('orderPickSubtitle');
+        list.innerHTML = '';
+        subtitle.textContent = 'We found ' + orders.length + ' orders for ' + (state.pendingOrderList[0].phone_ending || '') + '. Tap one to view or edit it.';
+
+        orders.forEach(order => {
+            const item = document.createElement('div');
+            item.className = 'order-pick-item';
+
+            const stage = order.progress_stage || 'Order Received';
+            let pillClass = '';
+            if (order.status === 'Cancelled') pillClass = 'cancelled';
+            else if (stage === 'Completed') pillClass = 'completed';
+            else if (stage === 'In Progress') pillClass = 'in-progress';
+            else if (stage === 'Confirmed') pillClass = 'confirmed';
+
+            const serviceLabels = {
+                'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
+                'system_setup': 'System Setup',
+                'games_only': 'Games Only'
+            };
+            const serviceLabel = serviceLabels[order.service_type] || 'Order';
+
+            const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+            const total = order.estimated_price ? 'RM' + Math.round(order.estimated_price) : '';
+            const created = order.created_at
+                ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+                : '';
+
+            item.innerHTML = ''
+                + '<div class="order-pick-item-header">'
+                +   '<div class="order-pick-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
+                +   '<span class="order-pick-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
+                + '</div>'
+                + '<div class="order-pick-detail">'
+                +   escapeHtml(serviceLabel) + ' &nbsp;·&nbsp; <strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : '')
+                +   (total ? ' &nbsp;·&nbsp; <strong>' + total + '</strong>' : '')
+                + '</div>'
+                + '<div class="order-pick-date">Placed ' + escapeHtml(created) + '</div>';
+
+            item.onclick = () => pickOrderFromList(order.id);
+            list.appendChild(item);
+        });
+
+        $('orderPickModal').style.display = 'flex';
+        BodyLock.lock();
+    }
+
+    function pickOrderFromList(orderId) {
+        const order = state.pendingOrderList.find(o => String(o.id) === String(orderId));
+        if (!order) return;
+        state.currentEditingOrderId = order.id;
+        state.currentLoadedPhone = order.phone_ending || null;
+        $('orderPickModal').style.display = 'none';
+        BodyLock.unlock();
+        state.pendingOrderList = [];
+        setStatusMessage('');
+        showSummaryView(order);
+        updateSaveButtonLabel();
+        const url = window.location.pathname + '?order=' + encodeURIComponent(order.id);
+        window.history.replaceState({}, '', url);
+    }
+
+    function pickStartNewOrder() {
+        $('orderPickModal').style.display = 'none';
+        BodyLock.unlock();
+        state.pendingOrderList = [];
+        chooseNewOrder();
+    }
+
+    function dismissOrderPickModal() {
+        $('orderPickModal').style.display = 'none';
+        BodyLock.unlock();
+        state.pendingOrderList = [];
+        clearStatusMessage();
     }
 
     function applyLoadedOrder(order) {
