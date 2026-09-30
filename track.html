@@ -18,7 +18,6 @@
         }
         .container { max-width: 900px; margin: 0 auto; }
 
-        /* ===== HEADER BAR ===== */
         .header-bar {
             display: flex; justify-content: space-between; align-items: center;
             border-bottom: 1px solid #3a3018; padding-bottom: 15px;
@@ -29,6 +28,15 @@
             display: block; width: 48px; height: 48px; border-radius: 50%;
             box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5); flex-shrink: 0;
         }
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s;
+        }
+        .logo-link:active { transform: scale(0.96); }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
         .btn-action {
@@ -41,7 +49,6 @@
         }
         .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
-        /* ===== SEARCH CARD ===== */
         .search-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 18px; margin-bottom: 20px;
@@ -70,7 +77,6 @@
         .search-row button:hover:not(:disabled) { background: #e6ac00; }
         .search-row button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        /* ===== STATUS MESSAGE ===== */
         .status-msg {
             text-align: center; font-size: 13.5px; color: #e8dcc0;
             margin-bottom: 16px; min-height: 20px;
@@ -78,14 +84,12 @@
         }
         .status-msg.fading { opacity: 0; }
 
-        /* ===== RESULT CARD ===== */
         .result-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 20px; display: none;
         }
         .result-card.show { display: block; }
 
-        /* Summary header — stacks vertically on mobile, side-by-side on desktop */
         .result-header {
             display: flex;
             flex-direction: column;
@@ -165,7 +169,6 @@
             background: #7dd3fc; color: #14110a; border-color: #7dd3fc;
         }
 
-        /* ===== MAIN PROGRESS BAR ===== */
         .main-progress {
             display: flex; justify-content: space-between; align-items: flex-start;
             position: relative; margin: 20px 0 8px;
@@ -212,7 +215,6 @@
         .main-step.completed .main-step-label,
         .main-step.current .main-step-label { color: #e8dcc0; }
 
-        /* ===== CURRENT STAGE CARD ===== */
         .current-stage-card {
             background: #2a2108; border: 1px solid #7a6820;
             border-left: 4px solid #ffc000; border-radius: 6px;
@@ -238,7 +240,6 @@
             padding-top: 10px; border-top: 1px solid #3a3018;
         }
 
-        /* Next-step hint */
         .next-step-hint {
             background: #16202a;
             border: 1px solid #3a5a72;
@@ -263,7 +264,6 @@
         }
         .next-step-hint strong { color: #7dd3fc; }
 
-        /* ===== SUB-STAGES ===== */
         .substages {
             margin-top: 18px; padding-top: 16px;
             border-top: 1px solid #2e2716;
@@ -344,7 +344,6 @@
             flex: 1; min-width: 0;
         }
 
-        /* ===== WHATSAPP BUTTON ===== */
         .wa-button-wrap {
             margin-top: 22px; text-align: center;
         }
@@ -358,7 +357,6 @@
         }
         .wa-btn:hover { opacity: 0.85; }
 
-        /* ===== CANCELLED BANNER ===== */
         .cancelled-banner {
             background: #3a1212; border: 1px solid #7a3030;
             border-left: 4px solid #e57373; border-radius: 6px;
@@ -369,7 +367,6 @@
         .cancelled-banner .msg { font-size: 13.5px; color: #f5cdcd; line-height: 1.55; }
         .cancelled-banner .msg strong { color: #e57373; }
 
-        /* ===== TRUST FOOTER ===== */
         .trust-footer {
             margin-top: 40px;
             padding-top: 20px;
@@ -391,13 +388,11 @@
             margin-top: 4px; color: #6a6357; font-size: 11px;
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
-        /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
             body { padding: 20px 20px 40px; }
             .site-logo { width: 52px; height: 52px; }
@@ -406,7 +401,6 @@
             .main-step-label { font-size: 12.5px; }
             .main-progress::before, .main-progress-line-fill { top: 24px; }
 
-            /* On desktop, put the summary and actions side by side again */
             .result-header {
                 flex-direction: row;
                 justify-content: space-between;
@@ -444,11 +438,13 @@
     <div class="container">
         <div class="header-bar">
             <div class="header-left">
-                <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
+                <a href="index.html" class="logo-link" aria-label="Go to order page">
+                    <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
+                </a>
                 <h1>Track Your Order</h1>
             </div>
             <div class="header-actions">
-                <a href="index.html" class="btn-action">Order Page</a>
+                <a href="index.html" class="btn-action" id="headerOrderPageLink">Order Page</a>
             </div>
         </div>
 
@@ -527,9 +523,6 @@
     let currentOrder = null;
     let currentPhone = null;
 
-    // =========================================================
-    // RATE-LIMITING (brute-force protection)
-    // =========================================================
     const RATE_LIMIT = {
         maxAttempts: 5,
         windowMs: 10 * 60 * 1000,
@@ -776,6 +769,13 @@
     function renderTracker(order) {
         $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
 
+        // Header Order Page link carries the tracked phone number so the
+        // customer lands directly in their order context on index.html.
+        const orderPageLink = $('headerOrderPageLink');
+        if (orderPageLink && order.phone_ending) {
+            orderPageLink.href = 'index.html?phone=' + encodeURIComponent(order.phone_ending);
+        }
+
         const serviceLabels = {
             'jailbreak': `Full Jailbreak${order.console_model ? ' (' + order.console_model + ')' : ''}`,
             'system_setup': 'System Setup',
@@ -786,7 +786,6 @@
         const gameCount = Array.isArray(order.games) ? order.games.length : 0;
         const sizeGb = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
 
-        // Build the detail line as separate readable fragments
         const detailParts = [];
         detailParts.push(serviceLabel);
         detailParts.push(`<strong>${gameCount}</strong> game${gameCount !== 1 ? 's' : ''}`);
@@ -856,7 +855,6 @@
             $('currentStageName').innerText = currentStage;
             $('currentStageDesc').innerText = (APP_CONFIG.progressDescriptions && APP_CONFIG.progressDescriptions[currentStage]) || '';
 
-            // Next-step hint — tells the customer what to do right now
             const nextStepEl = $('nextStepHint');
             const nextStepTextEl = $('nextStepText');
             const nextStepMap = {
