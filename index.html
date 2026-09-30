@@ -1361,7 +1361,7 @@
                 </div>
 
                 <div class="modal-sticky-footer">
-                    <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Save Changes</button>
+                    <button id="modalSaveBtn" class="submit-btn" onclick="submitOrUpdateOrder()">Place Order</button>
                 </div>
             </div>
         </div>
@@ -1563,7 +1563,6 @@
         html += '</div>';
         html += '</div>';
 
-        // Remarks (only if present)
         if (order.remarks && String(order.remarks).trim() !== '') {
             html += '<div class="summary-section">';
             html += '<div class="summary-label">Your remarks</div>';
@@ -1776,6 +1775,7 @@
         toggleServiceFields();
         updateSdLimit();
         filterGames();
+        updateSaveButtonLabel();
     };
 
     async function loadOrderAndShowSummary(orderId) {
@@ -1788,6 +1788,7 @@
             state.currentLoadedPhone = data.phone_ending || null;
             $('phoneInput').value = data.phone_ending || '';
             showSummaryView(data);
+            updateSaveButtonLabel();
             clearStatusMessage();
         } catch (err) {
             console.error(err);
@@ -2055,6 +2056,7 @@
         const trackLink = $('headerTrackLink');
         if (trackLink) trackLink.href = 'track.html';
         hideSummaryShowForm();
+        updateSaveButtonLabel();
     }
 
     function clearAllSelections() {
@@ -2301,36 +2303,76 @@
         };
     }
 
+    // ============ TIER RECOMMENDATION ============
+    // Only fires when a real price break is coming up.
+    // Silent at tier boundaries (3, 13, 23, 43 for jailbreak; 10, 20, 40 for games-only).
     function checkTierRecommendation(count, serviceType) {
-        if (!serviceType) {
-            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
-        }
-        if (count === 0) {
-            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
-        }
+        if (!serviceType) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        if (count === 0) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
 
-        let target = 0, isFreeGamesNotice = false;
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            if (count < 3) { target = 3; isFreeGamesNotice = true; }
-            else if (count <= 13) target = 13;
-            else if (count <= 23) target = 23;
-            else if (count <= 43) target = 43;
-        } else {
-            if (count > 0 && count <= 10) target = 10;
-            else if (count <= 20) target = 20;
-            else if (count <= 40) target = 40;
-        }
-        if (target > 0 && count < target) {
-            const diff = target - count;
-            if (hasFree) {
-                const label = (serviceType === 'jailbreak') ? 'Full Jailbreak' : 'System Setup';
-                if (isFreeGamesNotice) return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your ${label} package includes <strong>3 games at no extra cost</strong>—you can select <strong>${diff} more</strong>.` };
-                return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Package Opportunity:</strong> You selected <strong>${count} games</strong> (${count - 3} paid). You can choose <strong>${diff} more game(s)</strong> (up to ${target} total) to enter a better pricing tier.` };
+            // Not enough to use the free allocation yet
+            if (count < 3) {
+                return {
+                    hasWarning: true,
+                    targetCount: 3,
+                    remaining: 3 - count,
+                    msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`
+                };
             }
-            return { hasWarning: true, targetCount: target, remaining: diff, msg: `<strong>Package Opportunity:</strong> You selected <strong>${count} games</strong>. You can choose <strong>${diff} more game(s)</strong> (up to ${target} games) to enjoy a better pricing tier rate.` };
+
+            // Exactly at the free boundary — clean state, no banner
+            if (count === 3) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+
+            // Heading into the RM2.50/game bracket at 23 total
+            if (count > 13 && count < 23) {
+                return {
+                    hasWarning: true,
+                    targetCount: 23,
+                    remaining: 23 - count,
+                    msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>23 games</strong> drops the per-game rate to RM2.50 — add <strong>${23 - count} more</strong> and every game you've picked gets cheaper.`
+                };
+            }
+            if (count === 23) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+
+            // Heading into the RM2/game bracket at 43 total
+            if (count > 23 && count < 43) {
+                return {
+                    hasWarning: true,
+                    targetCount: 43,
+                    remaining: 43 - count,
+                    msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>43 games</strong> drops the per-game rate to RM2 — add <strong>${43 - count} more</strong> and every game you've picked gets cheaper.`
+                };
+            }
+            if (count === 43) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+
+            // Past 43 — no more brackets
+            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
         }
+
+        // Games-only service (no free allocation)
+        if (count > 10 && count < 20) {
+            return {
+                hasWarning: true,
+                targetCount: 20,
+                remaining: 20 - count,
+                msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>20 games</strong> drops the per-game rate to RM2.50 — add <strong>${20 - count} more</strong> and every game you've picked gets cheaper.`
+            };
+        }
+        if (count === 20) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+
+        if (count > 20 && count < 40) {
+            return {
+                hasWarning: true,
+                targetCount: 40,
+                remaining: 40 - count,
+                msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>40 games</strong> drops the per-game rate to RM2 — add <strong>${40 - count} more</strong> and every game you've picked gets cheaper.`
+            };
+        }
+        if (count === 40) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+
         return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
     }
 
@@ -2359,14 +2401,18 @@
 
         const sub = $('checkoutSubtext');
         if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (count === 0) sub.innerHTML = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
-            else if (count <= 3) sub.innerHTML = `(${count} free games selected, ${3 - count} more available) | Tap to review`;
-            else {
+            if (count === 0) {
+                sub.innerHTML = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
+            } else if (count <= 3) {
+                sub.innerHTML = `(${count} free games selected, ${3 - count} more available) | Tap to review`;
+            } else {
                 const c = count - 3;
-                sub.innerHTML = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) ${tierRec.hasWarning ? 'Package limit incomplete' : ''} | Tap to review`;
+                const extra = tierRec.hasWarning ? ' · price break at ' + tierRec.targetCount : '';
+                sub.innerHTML = `(3 included + ${c} addon${c !== 1 ? 's' : ''}${extra}) | Tap to review`;
             }
         } else {
-            sub.innerHTML = `${tierRec.hasWarning ? 'Tier package limit incomplete | ' : ''}Tap here to review & add remarks`;
+            const extra = tierRec.hasWarning ? 'Price break at ' + tierRec.targetCount + ' games | ' : '';
+            sub.innerHTML = `${extra}Tap here to review & add remarks`;
         }
     }
 
@@ -2450,6 +2496,7 @@
         state.pendingLoadedOrder = null;
         setStatusMessage('');
         showSummaryView(order);
+        updateSaveButtonLabel();
     }
 
     function chooseNewOrder() {
@@ -2495,6 +2542,18 @@
         filterGames();
         if (state.selectedGames.size > 0) revealGameSection();
         showEditModeBanner();
+        updateSaveButtonLabel();
+    }
+
+    // ============ SAVE BUTTON LABEL ============
+    function updateSaveButtonLabel() {
+        const btn = $('modalSaveBtn');
+        if (!btn) return;
+        if (state.currentEditingOrderId) {
+            btn.textContent = 'Save Changes';
+        } else {
+            btn.textContent = 'Place Order';
+        }
     }
 
     // ============ CART MODAL ============
@@ -2730,6 +2789,9 @@
         priceBox.innerHTML = html;
 
         $('sizeWarningBox').style.display = details.exceeded ? 'block' : 'none';
+
+        // Ensure button label matches current mode
+        updateSaveButtonLabel();
     }
 
     function buildShareUrl() {
@@ -2847,12 +2909,14 @@
 
         const tierRec = checkTierRecommendation(count, serviceType);
         if (tierRec.hasWarning) {
-            let msg = `Tier Package Notice:\n\nYou selected ${count} games.\n`;
-            if (isJbOrSetup) {
-                if (count < 3) msg += `You selected ${count} game(s), but your ${submitLabel} includes 3 games at no extra cost.\n\nDo you want to save your order now or go back and pick your remaining games?`;
-                else msg += `Because your ${submitLabel} includes 3 games at no extra cost, you can select up to ${tierRec.targetCount} games total (${tierRec.remaining} more) at no additional tier cost.\n\nDo you still want to save now, or go back and add more games?`;
+            let msg;
+            if (isJbOrSetup && count < 3) {
+                msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\n` +
+                      `Pick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
             } else {
-                msg += `You can add ${tierRec.remaining} more game(s) (up to ${tierRec.targetCount} games) to enjoy a better pricing tier.\n\nDo you still want to save now, or go back and add more games?`;
+                msg = `You've selected ${count} games.\n\n` +
+                      `If you add ${tierRec.remaining} more (reaching ${tierRec.targetCount} games total), the per-game rate drops — every game you've picked gets cheaper.\n\n` +
+                      `Save now with ${count} games, or go back and add more?`;
             }
             if (!confirm(msg)) return;
         }
@@ -2874,7 +2938,8 @@
 
         const remarksText = (state.savedRemarksText || '').trim();
         const btn = $('modalSaveBtn');
-        btn.innerText = 'Saving...';
+        const isEditing = !!state.currentEditingOrderId;
+        btn.innerText = isEditing ? 'Saving...' : 'Placing...';
         btn.disabled = true;
         btn.style.pointerEvents = 'none';
 
@@ -2939,7 +3004,7 @@
             console.error(err);
             alert('Failed to save order: ' + (err.message || 'Check console details.'));
         } finally {
-            btn.innerText = 'Save Changes';
+            btn.innerText = state.currentEditingOrderId ? 'Save Changes' : 'Place Order';
             btn.disabled = false;
             btn.style.pointerEvents = 'auto';
         }
