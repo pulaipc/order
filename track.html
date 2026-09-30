@@ -84,7 +84,6 @@
         }
         .result-card.show { display: block; }
 
-        /* Refresh button + summary header row */
         .result-header {
             display: flex; justify-content: space-between; align-items: flex-start;
             gap: 10px; flex-wrap: wrap;
@@ -116,7 +115,6 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
-        /* Small buttons row in result-header */
         .result-header-actions {
             display: flex;
             gap: 6px;
@@ -133,6 +131,7 @@
         .copy-link-header-btn:hover {
             background: #2196F3; color: #fff;
         }
+
         /* ===== MAIN PROGRESS BAR ===== */
         .main-progress {
             display: flex; justify-content: space-between; align-items: flex-start;
@@ -270,7 +269,6 @@
             background: #ffc000; color: #14110a;
         }
 
-        /* Simple single-substage mode (for Games Only) */
         .substage-simple {
             background: #2a2108; border: 1px solid #ffc000;
             border-left: 4px solid #ffc000; border-radius: 6px;
@@ -312,13 +310,34 @@
         .cancelled-banner .msg { font-size: 13.5px; color: #ffcdd2; line-height: 1.55; }
         .cancelled-banner .msg strong { color: #ff5252; }
 
+        /* ===== TRUST FOOTER ===== */
+        .trust-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #2e2716;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.7;
+        }
+        .trust-footer .brand {
+            color: #ffc000; font-weight: bold; margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .trust-footer a {
+            color: #25D366; text-decoration: none;
+        }
+        .trust-footer a:hover { text-decoration: underline; }
+        .trust-footer .note {
+            margin-top: 4px; color: #666; font-size: 11px;
+        }
+
         /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
-        /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
             body { padding: 20px 20px 40px; }
             .site-logo { width: 52px; height: 52px; }
@@ -341,32 +360,29 @@
 </head>
 <body>
     <div class="container">
-        <!-- Header Bar -->
         <div class="header-bar">
             <div class="header-left">
                 <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
-                <h1>📦 Track Your Order</h1>
+                <h1>Track Your Order</h1>
             </div>
             <div class="header-actions">
-                <a href="index.html" class="btn-action">🏠 Order Page</a>
+                <a href="index.html" class="btn-action">Order Page</a>
             </div>
         </div>
 
-        <!-- Search Card -->
         <div class="search-card">
-            <h2>🔍 Enter your phone ID</h2>
+            <h2>Enter your phone ID</h2>
             <p>Type the last 4 digits of your phone number to see your order's progress.</p>
             <div class="search-row">
                 <input type="text" id="trackPhoneInput" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*">
                 <button id="trackBtn" onclick="trackOrder()">
-                    <span>🔍</span><span>Track</span>
+                    <span>Track</span>
                 </button>
             </div>
         </div>
 
         <div id="statusMsg" class="status-msg"></div>
 
-        <!-- Result Card -->
         <div id="resultCard" class="result-card">
             <div class="result-header">
                 <div class="order-summary-left">
@@ -376,24 +392,21 @@
                 </div>
                 <div class="result-header-actions">
                     <button class="copy-link-header-btn" id="copyLinkBtn" onclick="copyTrackerUrl(this)" title="Copy this tracking link">
-                        🔗 Copy Link
+                        Copy Link
                     </button>
                     <button class="refresh-btn" id="refreshBtn" onclick="refreshOrder()" title="Refresh status">
-                        <span class="spin">🔄</span><span>Refresh</span>
+                        <span class="spin">&#8635;</span><span>Refresh</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Main progress bar -->
             <div id="mainProgress" class="main-progress">
                 <div class="main-progress-line-fill" id="progressLineFill"></div>
-                <!-- Steps injected by JS -->
             </div>
 
-            <!-- Current stage card -->
             <div id="currentStageCard" class="current-stage-card">
                 <div class="current-stage-title">
-                    <span class="stage-icon" id="currentIcon">🔧</span>
+                    <span class="stage-icon" id="currentIcon">&#9679;</span>
                     <span id="currentStageName">In Progress</span>
                 </div>
                 <div class="current-stage-desc" id="currentStageDesc">—</div>
@@ -401,16 +414,23 @@
                 <div class="current-stage-updated" id="currentStageUpdated"></div>
             </div>
 
-            <!-- Sub-stages (injected by JS) -->
             <div id="substagesContainer"></div>
 
-            <!-- WhatsApp button -->
             <div class="wa-button-wrap">
                 <a id="waChatBtn" class="wa-btn" href="#" target="_blank" rel="noopener noreferrer">
-                    💬 Chat with us on WhatsApp
+                    Chat on WhatsApp
                 </a>
             </div>
         </div>
+
+        <footer class="trust-footer">
+            <div class="brand">Pulai PC</div>
+            <div>Jailbreak &amp; Game Installation Service</div>
+            <div style="margin-top: 6px;">
+                WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
+            </div>
+            <div class="note">All orders are processed manually. Payment on pickup.</div>
+        </footer>
     </div>
 
     <script src="config.js"></script>
@@ -423,17 +443,11 @@
 
     // =========================================================
     // RATE-LIMITING (brute-force protection)
-    // ---------------------------------------------------------
-    // Tracks failed lookups in localStorage. After N consecutive
-    // failures within a rolling window, the Track button is
-    // disabled for a cooldown period. Successful lookup resets
-    // the counter. Slows down casual enumeration of all 10,000
-    // possible phone endings.
     // =========================================================
     const RATE_LIMIT = {
-        maxAttempts: 5,           // failures before lockout
-        windowMs: 10 * 60 * 1000, // 10-minute rolling window
-        cooldownMs: 60 * 1000,    // 60s cooldown after limit hit
+        maxAttempts: 5,
+        windowMs: 10 * 60 * 1000,
+        cooldownMs: 60 * 1000,
         storageKey: 'trackRateLimit'
     };
 
@@ -463,22 +477,15 @@
     function checkRateLimit() {
         const state = getRateState();
         const now = Date.now();
-
-        // Still in cooldown?
         if (state.lockedUntil > now) {
             return { allowed: false, remainingMs: state.lockedUntil - now };
         }
-
-        // Prune expired failures
         state.fails = pruneOldFails(state.fails);
-
-        // Too many recent failures? Lock out.
         if (state.fails.length >= RATE_LIMIT.maxAttempts) {
             state.lockedUntil = now + RATE_LIMIT.cooldownMs;
             saveRateState(state);
             return { allowed: false, remainingMs: RATE_LIMIT.cooldownMs };
         }
-
         saveRateState(state);
         return { allowed: true, remainingMs: 0 };
     }
@@ -509,7 +516,6 @@
             return false;
         }
 
-        // Locked out — show live countdown
         btn.disabled = true;
         input.disabled = true;
         const totalSec = Math.ceil(result.remainingMs / 1000);
@@ -522,7 +528,7 @@
                 setStatus('');
                 return;
             }
-            setStatus(`🚫 Too many attempts. Please wait ${remaining}s before trying again.`, '#ff5252', 0);
+            setStatus(`Too many attempts. Please wait ${remaining}s before trying again.`, '#ff5252', 0);
             remaining--;
             setTimeout(tick, 1000);
         };
@@ -530,19 +536,17 @@
         return true;
     }
 
-    // Stage icon map
+    // Stage icons — typographic symbols instead of emoji
     const STAGE_ICONS = {
-        'Order Received':   '📥',
-        'Confirmed':        '✅',
-        'In Progress':      '🔧',
-        'Ready for Pickup': '📦',
-        'Completed':        '🎉',
-        'Cancelled':        '❌'
+        'Order Received':   '\u2022', // •
+        'Confirmed':        '\u2713', // ✓
+        'In Progress':      '\u25D0', // ◐
+        'Ready for Pickup': '\u25D1', // ◑
+        'Completed':        '\u2713', // ✓
+        'Cancelled':        '\u2717'  // ✗
     };
 
-    // Auto-load if URL has ?phone=XXXX
     window.onload = function() {
-        // Apply any existing lockout immediately
         applyRateLimitUI();
 
         const params = new URLSearchParams(window.location.search);
@@ -566,7 +570,6 @@
         const btn = $('trackBtn');
         const statusMsg = $('statusMsg');
 
-        // Rate-limit check BEFORE anything else
         const rl = checkRateLimit();
         if (!rl.allowed) {
             applyRateLimitUI();
@@ -580,7 +583,7 @@
         }
 
         btn.disabled = true;
-        btn.innerHTML = '<span>⏳</span><span>Loading...</span>';
+        btn.innerHTML = '<span>Loading...</span>';
         setStatus('Looking up your order...', '#2196F3', 0);
         $('resultCard').classList.remove('show');
 
@@ -601,9 +604,7 @@
                 return;
             }
 
-            // Successful lookup → reset rate-limit counter
             recordSuccess();
-
             currentPhone = phone;
             currentOrder = data[0];
             renderTracker(data[0]);
@@ -614,18 +615,16 @@
             recordFailure();
             setStatus('Could not load your order. Please try again.', '#ff5252', 6000);
         } finally {
-            // Only re-enable if not locked out
             const post = checkRateLimit();
             if (post.allowed) {
                 btn.disabled = false;
-                btn.innerHTML = '<span>🔍</span><span>Track</span>';
+                btn.innerHTML = '<span>Track</span>';
             } else {
                 applyRateLimitUI();
             }
         }
     }
 
-    // Refresh the currently displayed order
     async function refreshOrder() {
         if (!currentPhone) return;
         const btn = $('refreshBtn');
@@ -642,7 +641,7 @@
             if (data && data.length > 0) {
                 currentOrder = data[0];
                 renderTracker(data[0]);
-                setStatus('✅ Status updated!', '#00e676', 3000);
+                setStatus('Status updated.', '#00e676', 3000);
             }
         } catch (err) {
             console.error(err);
@@ -653,7 +652,6 @@
         }
     }
 
-    // Copy the customer's tracker URL to clipboard
     function copyTrackerUrl(btnElement) {
         if (!currentPhone) {
             alert('No active order to copy.');
@@ -662,7 +660,7 @@
         const url = window.location.origin + window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
         navigator.clipboard.writeText(url).then(() => {
             const originalText = btnElement.innerHTML;
-            btnElement.innerHTML = '✅ Copied!';
+            btnElement.innerHTML = 'Copied';
             btnElement.style.background = '#ffc000';
             btnElement.style.color = '#14110a';
             btnElement.style.borderColor = '#ffc000';
@@ -691,7 +689,6 @@
     }
 
     function renderTracker(order) {
-        // ===== Summary =====
         $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
 
         const serviceLabels = {
@@ -709,12 +706,10 @@
             ? `Placed: ${new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`
             : '';
 
-        // ===== Determine current stage =====
         const stages = APP_CONFIG.progressStages || ['Order Received','Confirmed','In Progress','Ready for Pickup','Completed'];
         let currentStage = order.progress_stage || 'Order Received';
         if (order.status === 'Cancelled') currentStage = 'Cancelled';
 
-        // ===== Render main progress bar =====
         const mainProgress = $('mainProgress');
         mainProgress.querySelectorAll('.main-step').forEach(el => el.remove());
 
@@ -728,7 +723,7 @@
 
             const icon = document.createElement('div');
             icon.className = 'main-step-icon';
-            icon.innerText = isCompleted ? '✓' : (STAGE_ICONS[stage] || '•');
+            icon.innerText = isCompleted ? '\u2713' : (STAGE_ICONS[stage] || '\u2022');
 
             const label = document.createElement('div');
             label.className = 'main-step-label';
@@ -739,21 +734,16 @@
             mainProgress.appendChild(step);
         });
 
-        // ===== Progress line fill =====
-        // Width is derived from the actual stage count rather than hardcoded,
-        // so the fill always lines up with the current step's icon center.
-        // CSS uses `left: 8%; right: 8%` → usable track = 84% of container width.
         const lineFill = $('progressLineFill');
         if (currentIndex <= 0 || stages.length <= 1) {
             lineFill.style.width = '0%';
         } else {
-            const usablePercent = 84; // 100% - 8% (left inset) - 8% (right inset)
+            const usablePercent = 84;
             const stepCount = stages.length - 1;
             const percent = (currentIndex / stepCount) * usablePercent;
             lineFill.style.width = percent + '%';
         }
 
-        // ===== Current stage card =====
         const currentCard = $('currentStageCard');
         const waWrap = document.querySelector('.wa-button-wrap');
         const etaBox = $('currentStageEta');
@@ -761,7 +751,7 @@
         if (currentStage === 'Cancelled') {
             currentCard.style.display = 'none';
             $('substagesContainer').innerHTML = `<div class="cancelled-banner">
-                <span class="icon">❌</span>
+                <span class="icon">&#10007;</span>
                 <div class="msg">
                     <strong>Order Cancelled.</strong><br>
                     This order has been cancelled. If you believe this is a mistake, please contact us on WhatsApp.
@@ -770,17 +760,16 @@
             waWrap.style.display = 'block';
         } else {
             currentCard.style.display = 'block';
-            $('currentIcon').innerText = STAGE_ICONS[currentStage] || '🔧';
+            $('currentIcon').innerText = STAGE_ICONS[currentStage] || '\u25CF';
             $('currentStageName').innerText = currentStage;
             $('currentStageDesc').innerText = (APP_CONFIG.progressDescriptions && APP_CONFIG.progressDescriptions[currentStage]) || '';
 
             if (order.progress_updated_at) {
-                $('currentStageUpdated').innerHTML = `🕒 Last updated: <strong>${formatTimeAgo(order.progress_updated_at)}</strong>`;
+                $('currentStageUpdated').innerHTML = `Last updated: <strong>${formatTimeAgo(order.progress_updated_at)}</strong>`;
             } else {
                 $('currentStageUpdated').innerText = '';
             }
 
-            // ===== Sub-stages =====
             const substagesContainer = $('substagesContainer');
             substagesContainer.innerHTML = '';
             etaBox.style.display = 'none';
@@ -791,16 +780,15 @@
                 const currentSub = order.progress_substage || (stagesList[0] || null);
                 const currentSubIdx = stagesList.indexOf(currentSub);
 
-                // Show ETA for the current substage (optional)
                 if (APP_CONFIG.showEstimatedTime && currentSub && APP_CONFIG.subStageEstimatedTimes && APP_CONFIG.subStageEstimatedTimes[currentSub]) {
-                    etaBox.innerHTML = `⏱️ Estimated time: <strong>${APP_CONFIG.subStageEstimatedTimes[currentSub]}</strong>`;
+                    etaBox.innerHTML = `Estimated time: <strong>${APP_CONFIG.subStageEstimatedTimes[currentSub]}</strong>`;
                     etaBox.style.display = 'inline-flex';
                 }
 
                 if (stagesList.length > 1) {
                     const wrapper = document.createElement('div');
                     wrapper.className = 'substages';
-                    wrapper.innerHTML = `<div class="substages-title">🔧 Work in progress — detailed steps</div>`;
+                    wrapper.innerHTML = `<div class="substages-title">Work in progress — detailed steps</div>`;
 
                     const list = document.createElement('div');
                     list.className = 'substage-list';
@@ -812,7 +800,6 @@
                         const item = document.createElement('div');
                         item.className = 'substage-item' + (isDone ? ' completed' : '') + (isCur ? ' current' : '');
 
-                        // Meta line for Game Installation
                         let metaLine = '';
                         if (sub === 'Game Installation' && isCur && !isDone) {
                             const gc = Array.isArray(order.games) ? order.games.length : 0;
@@ -823,10 +810,10 @@
                         }
 
                         item.innerHTML = `
-                            <div class="substage-icon">${isDone ? '✓' : (isCur ? '◐' : '○')}</div>
+                            <div class="substage-icon">${isDone ? '&#10003;' : (isCur ? '&#9680;' : '&#9675;')}</div>
                             <div class="substage-content">
                                 <div class="substage-name">${sub}</div>
-                                ${metaLine ? `<div class="substage-meta">📦 ${metaLine}</div>` : ''}
+                                ${metaLine ? `<div class="substage-meta">${metaLine}</div>` : ''}
                             </div>
                             <div class="substage-badge">${isDone ? 'Done' : (isCur ? 'Now' : 'Pending')}</div>
                         `;
@@ -836,7 +823,6 @@
                     wrapper.appendChild(list);
                     substagesContainer.appendChild(wrapper);
                 } else if (stagesList.length === 1) {
-                    // Single substage → friendly message with details
                     const simple = document.createElement('div');
                     simple.className = 'substage-simple';
                     const desc = (APP_CONFIG.subStageDescriptions && APP_CONFIG.subStageDescriptions[stagesList[0]]) || 'Working on it...';
@@ -844,10 +830,10 @@
                     const gc = Array.isArray(order.games) ? order.games.length : 0;
                     const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                     let detail = '';
-                    if (gc > 0) detail = `<div style="margin-top:6px; font-size:12.5px; color:#ffca28; font-weight:600;">📦 Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total</div>`;
+                    if (gc > 0) detail = `<div style="margin-top:6px; font-size:12.5px; color:#ffca28; font-weight:600;">Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total</div>`;
 
                     simple.innerHTML = `
-                        <span class="spin-icon">⚙️</span>
+                        <span class="spin-icon">&#8635;</span>
                         <div class="substage-simple-content">
                             <div>${desc}</div>
                             ${detail}
@@ -858,7 +844,6 @@
             }
         }
 
-        // ===== WhatsApp button =====
         const wa = APP_CONFIG.whatsappNumber || '';
         const waBtn = $('waChatBtn');
         if (wa) {
