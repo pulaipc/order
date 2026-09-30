@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Login Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body style="font-family: sans-serif; padding: 24px; background:#14110a; color:#f0e9d8;">
+    <h2 style="color:#ffc000;">Login Debug</h2>
+    <p>Email: <input id="email" style="padding:8px; font-size:14px;"></p>
+    <p>Password: <input id="password" type="password" style="padding:8px; font-size:14px;"></p>
+    <button id="btn" style="padding:10px 18px; background:#ffc000; border:none; font-weight:bold; cursor:pointer;">Log In</button>
+    <pre id="out" style="margin-top:20px; padding:14px; background:#1f190e; border:1px solid #3a3018; white-space:pre-wrap; font-size:13px;"></pre>
+
+    <script src="config.js"></script>
+    <script>
+        const out = document.getElementById('out');
+        const log = (msg, obj) => {
+            out.textContent += msg + (obj ? '\n' + JSON.stringify(obj, null, 2) : '') + '\n';
+        };
+
+        log('config loaded?', { hasConfig: typeof APP_CONFIG !== 'undefined', url: typeof APP_CONFIG !== 'undefined' ? APP_CONFIG.supabaseUrl : null });
+
+        const sb = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
+        log('supabase client created');
+
+        document.getElementById('btn').addEventListener('click', async () => {
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            log('Attempting login for ' + email + '...');
+            try {
+                const { data, error } = await sb.auth.signInWithPassword({ email, password });
+                if (error) { log('ERROR:', error); return; }
+                log('SUCCESS', { user: data.user && data.user.email, hasSession: !!data.session });
+            } catch (err) {
+                log('EXCEPTION: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>
