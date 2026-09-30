@@ -685,6 +685,10 @@
 
     <script src="config.js"></script>
     <script>
+    window.addEventListener('error', function(e) {
+    alert('CRASH DETECTED\n\nMessage: ' + e.message + '\n\nLine: ' + e.lineno + ', Column: ' + e.colno);
+});
+    
         const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
         let allOrders = [];
         let currentStatusFilter = 'ALL';
