@@ -143,6 +143,236 @@
             margin-top: 2px;
         }
 
+        /* ===== SUMMARY VIEW (Batch B) ===== */
+        .summary-view {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .summary-view.active { display: flex; }
+        .summary-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #2e2716;
+        }
+        .summary-header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 0;
+            flex: 1;
+        }
+        .summary-order-id {
+            font-size: 17px;
+            font-weight: bold;
+            color: #e8dcc0;
+        }
+        .summary-order-meta {
+            font-size: 12.5px;
+            color: #8a8272;
+            line-height: 1.5;
+        }
+        .summary-stage-pill {
+            font-size: 11.5px;
+            font-weight: bold;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #2a2108;
+            color: #e8dcc0;
+            border: 1px solid #7a6820;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .summary-stage-pill.locked {
+            background: #2a1e0a;
+            color: #ffb74d;
+            border-color: #7a5420;
+        }
+        .summary-stage-pill.done {
+            background: #1a2a1a;
+            color: #00e676;
+            border-color: #2a4530;
+        }
+        .summary-stage-pill.cancelled {
+            background: #2a1212;
+            color: #e57373;
+            border-color: #7a3030;
+        }
+
+        .summary-section {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .summary-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8a8272;
+            font-weight: 700;
+        }
+        .summary-value {
+            font-size: 14px;
+            color: #f0e9d8;
+            line-height: 1.5;
+        }
+        .summary-value.muted {
+            color: #b8b0a0;
+            font-size: 13px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .summary-total {
+            background: #251d08;
+            border: 1px solid #7a6820;
+            border-radius: 6px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .summary-total-label {
+            font-size: 13px;
+            color: #b8b0a0;
+            font-weight: 600;
+        }
+        .summary-total-value {
+            font-size: 20px;
+            color: #ffc000;
+            font-weight: bold;
+        }
+
+        .summary-games-toggle {
+            background: #191309;
+            border: 1px solid #2e2716;
+            border-radius: 6px;
+            padding: 12px 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            font-size: 13.5px;
+            color: #f0e9d8;
+            font-weight: 600;
+            user-select: none;
+        }
+        .summary-games-toggle:hover { border-color: #3a3018; }
+        .summary-games-toggle .chev {
+            color: #b8b0a0;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .summary-games-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+        .summary-games-list {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px 4px 4px 4px;
+        }
+        .summary-games-list.expanded { display: flex; }
+        .summary-game-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            background: #17120a;
+            border: 1px solid #241e12;
+            border-radius: 5px;
+            padding: 8px 10px;
+            font-size: 12.5px;
+        }
+        .summary-game-name { color: #f0e9d8; flex: 1; min-width: 0; word-break: break-word; }
+        .summary-game-size { color: #ffc000; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+
+        .summary-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+        }
+        .summary-btn {
+            flex: 1 1 auto;
+            min-width: 140px;
+            min-height: 48px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            padding: 12px 18px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        .summary-btn.primary {
+            background: #ffc000;
+            color: #14110a;
+            border: 1px solid #ffc000;
+        }
+        .summary-btn.primary:hover { background: #e6ac00; border-color: #e6ac00; }
+        .summary-btn.secondary {
+            background: #2e2716;
+            color: #e8dcc0;
+            border: 1px solid #3a3018;
+        }
+        .summary-btn.secondary:hover {
+            background: #ffc000;
+            color: #14110a;
+            border-color: #ffc000;
+        }
+        .summary-btn.whatsapp {
+            background: #25D366;
+            color: #fff;
+            border: 1px solid #25D366;
+        }
+        .summary-btn.whatsapp:hover { background: #1eaa52; border-color: #1eaa52; }
+
+        .locked-notice {
+            background: #2a1e0a;
+            border: 1px solid #7a5420;
+            border-left: 4px solid #ffb74d;
+            border-radius: 6px;
+            padding: 12px 14px;
+            font-size: 12.5px;
+            color: #ffd9a0;
+            line-height: 1.55;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .locked-notice-icon {
+            flex-shrink: 0;
+            font-size: 16px;
+            color: #ffb74d;
+            line-height: 1.3;
+        }
+        .locked-notice strong { color: #ffb74d; }
+
+        /* ===== FORM VIEW ===== */
+        .form-view { display: block; }
+        .form-view.hidden { display: none; }
+
         /* ===== PRICING GUIDE ===== */
         .pricing-guide { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #c9c1af; }
         .pricing-guide summary { color: #e8dcc0; font-weight: bold; cursor: pointer; outline: none; padding: 4px 0; }
@@ -348,6 +578,7 @@
             display: flex; flex-direction: column; gap: 10px;
             box-shadow: 0 -4px 10px rgba(0,0,0,0.5); z-index: 100;
         }
+        .checkout-bar.hidden { display: none; }
         .checkout-info { font-size: 13.5px; cursor: pointer; line-height: 1.45; text-align: center; color: #f0e9d8; }
         .submit-btn {
             background-color: #ffc000; color: #14110a; border: none;
@@ -814,6 +1045,8 @@
             .checkout-info { font-size: 12.5px; }
             .load-order-btn span:not(.btn-text) { display: none; }
             .load-order-btn { padding: 12px 14px; min-width: 46px; justify-content: center; }
+            .summary-order-id { font-size: 15px; }
+            .summary-total-value { font-size: 18px; }
         }
     </style>
 </head>
@@ -825,221 +1058,227 @@
                 <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
             </div>
             <div class="header-actions">
-                <a href="track.html" class="btn-action">Track Order</a>
+                <a href="track.html" class="btn-action" id="headerTrackLink">Track Order</a>
                 <button type="button" class="btn-action" onclick="scrollToPricing()">Pricing</button>
                 <button type="button" class="btn-action" onclick="scrollToGames()">Games</button>
             </div>
         </div>
 
-        <!-- What happens next -->
-        <div class="how-it-works" id="howItWorks">
-            <div class="how-it-works-title">What happens next</div>
-            <div class="how-steps">
-                <div class="how-step">
-                    <div class="how-num">1</div>
-                    <div class="how-step-body">
-                        <div class="how-step-title">Confirm your order details</div>
-                        <div class="how-step-desc">Make sure games and storage match what we discussed.</div>
-                    </div>
-                </div>
-                <div class="how-step">
-                    <div class="how-num">2</div>
-                    <div class="how-step-body">
-                        <div class="how-step-title">Drop off your console</div>
-                        <div class="how-step-desc">Bring it to us at the agreed time and place.</div>
-                    </div>
-                </div>
-                <div class="how-step">
-                    <div class="how-num">3</div>
-                    <div class="how-step-body">
-                        <div class="how-step-title">We prepare it</div>
-                        <div class="how-step-desc">Jailbreak + game installation, typically 1–2 days.</div>
-                    </div>
-                </div>
-                <div class="how-step">
-                    <div class="how-num">4</div>
-                    <div class="how-step-body">
-                        <div class="how-step-title">Pickup &amp; pay</div>
-                        <div class="how-step-desc">Collect in person. Payment on pickup.</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- SUMMARY VIEW (shown for ?order= loads) -->
+        <div id="summaryView" class="summary-view"></div>
 
-        <details class="pricing-guide" id="pricingGuide">
-            <summary>View Pricing Tiers &amp; Game Size Rates (Tap to expand)</summary>
-            <div class="pricing-tiers">
-                <div class="tier-box">Jailbreak (OLED)<span>RM300<br><small>Includes 3 games</small></span></div>
-                <div class="tier-box">Jailbreak (V1/V2)<span>RM190<br><small>Includes 3 games</small></span></div>
-                <div class="tier-box">Jailbreak (Lite)<span>RM230<br><small>Includes 3 games</small></span></div>
-            </div>
-            <div class="pricing-details-grid">
-                <div class="pricing-col">
-                    <h4>Game Count Pricing</h4>
-                    <ul>
-                        <li><strong>10 Games:</strong> RM30</li>
-                        <li><strong>20 Games:</strong> RM50</li>
-                        <li><strong>40 Games:</strong> RM80</li>
-                    </ul>
+        <!-- FORM VIEW (default) -->
+        <div id="formView" class="form-view">
+            <!-- What happens next -->
+            <div class="how-it-works" id="howItWorks">
+                <div class="how-it-works-title">What happens next</div>
+                <div class="how-steps">
+                    <div class="how-step">
+                        <div class="how-num">1</div>
+                        <div class="how-step-body">
+                            <div class="how-step-title">Build your order</div>
+                            <div class="how-step-desc">Pick your service, games, and storage here.</div>
+                        </div>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-num">2</div>
+                        <div class="how-step-body">
+                            <div class="how-step-title">Drop off your console</div>
+                            <div class="how-step-desc">We'll confirm the details and arrange a time on WhatsApp.</div>
+                        </div>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-num">3</div>
+                        <div class="how-step-body">
+                            <div class="how-step-title">We prepare it</div>
+                            <div class="how-step-desc">Jailbreak + game installation, typically 1–2 days.</div>
+                        </div>
+                    </div>
+                    <div class="how-step">
+                        <div class="how-num">4</div>
+                        <div class="how-step-body">
+                            <div class="how-step-title">Pickup &amp; pay</div>
+                            <div class="how-step-desc">Collect in person. Payment on pickup.</div>
+                        </div>
+                    </div>
                 </div>
-                <div class="pricing-col">
-                    <h4>Game Size Volume Override</h4>
-                    <ul>
-                        <li><strong>Up to 100 GB:</strong> RM30 equivalent</li>
-                        <li><strong>Up to 200 GB:</strong> RM50 equivalent</li>
-                        <li><strong>Up to 400 GB:</strong> RM80 equivalent</li>
-                        <li><em>Note: If total storage size exceeds standard count limits due to massive game files, pricing automatically scales based on total GB volume.</em></li>
-                    </ul>
-                </div>
             </div>
-            <p style="font-size: 11.5px; color: #8a8272; margin-top: 10px; margin-bottom: 0; text-align: center;">
-                * Android/Linux system modes require 128GB+ cards (+RM30 each). Full jailbreak includes your first 3 games.
-            </p>
-        </details>
 
-        <div class="config-card">
-            <div class="field-group">
-                <div class="phone-load-row">
-                    <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
-                    <button type="button" class="load-order-btn" id="loadOrderBtn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
-                        <span class="btn-icon" id="loadOrderIcon">&#128193;</span>
-                        <span class="btn-text" id="loadOrderText">Load Order</span>
+            <details class="pricing-guide" id="pricingGuide">
+                <summary>View Pricing Tiers &amp; Game Size Rates (Tap to expand)</summary>
+                <div class="pricing-tiers">
+                    <div class="tier-box">Jailbreak (OLED)<span>RM300<br><small>Includes 3 games</small></span></div>
+                    <div class="tier-box">Jailbreak (V1/V2)<span>RM190<br><small>Includes 3 games</small></span></div>
+                    <div class="tier-box">Jailbreak (Lite)<span>RM230<br><small>Includes 3 games</small></span></div>
+                </div>
+                <div class="pricing-details-grid">
+                    <div class="pricing-col">
+                        <h4>Game Count Pricing</h4>
+                        <ul>
+                            <li><strong>10 Games:</strong> RM30</li>
+                            <li><strong>20 Games:</strong> RM50</li>
+                            <li><strong>40 Games:</strong> RM80</li>
+                        </ul>
+                    </div>
+                    <div class="pricing-col">
+                        <h4>Game Size Volume Override</h4>
+                        <ul>
+                            <li><strong>Up to 100 GB:</strong> RM30 equivalent</li>
+                            <li><strong>Up to 200 GB:</strong> RM50 equivalent</li>
+                            <li><strong>Up to 400 GB:</strong> RM80 equivalent</li>
+                            <li><em>Note: If total storage size exceeds standard count limits due to massive game files, pricing automatically scales based on total GB volume.</em></li>
+                        </ul>
+                    </div>
+                </div>
+                <p style="font-size: 11.5px; color: #8a8272; margin-top: 10px; margin-bottom: 0; text-align: center;">
+                    * Android/Linux system modes require 128GB+ cards (+RM30 each). Full jailbreak includes your first 3 games.
+                </p>
+            </details>
+
+            <div class="config-card">
+                <div class="field-group">
+                    <div class="phone-load-row">
+                        <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
+                        <button type="button" class="load-order-btn" id="loadOrderBtn" onclick="fetchExistingOrder()" title="Returning customer? Load your previously saved order">
+                            <span class="btn-icon" id="loadOrderIcon">&#128193;</span>
+                            <span class="btn-text" id="loadOrderText">Load Order</span>
+                        </button>
+                    </div>
+                    <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
+                </div>
+
+                <div class="returning-hint">
+                    <span class="hint-icon">&#8617;</span>
+                    <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
+                </div>
+
+                <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
+                    <span class="edit-icon">&#9998;</span>
+                    <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
+                </div>
+
+                <div class="config-row">
+                    <div class="field-group">
+                        <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
+                            <option value="" disabled selected>— Please select service —</option>
+                            <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
+                            <option value="system_setup">System Setup</option>
+                            <option value="games_only">Games Only</option>
+                        </select>
+                        <span class="field-hint">Choose full jailbreak, system setup, or a games-only install</span>
+                    </div>
+                    <div class="field-group" id="consoleModelGroup">
+                        <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
+                            <option value="" disabled selected>— Please select model —</option>
+                            <option value="OLED">OLED (RM300)</option>
+                            <option value="V1_V2">V1/V2 (RM190)</option>
+                            <option value="LITE">LITE (RM230)</option>
+                        </select>
+                        <span class="field-hint">Select your Nintendo Switch model variant</span>
+                    </div>
+                    <div class="field-group" id="sdSourceGroup">
+                        <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
+                            <option value="" disabled selected>— Please select —</option>
+                            <option value="own">Bring Own SD Card</option>
+                            <option value="buy">Purchase New SD Card</option>
+                        </select>
+                        <span class="field-hint">Providing your own card or buying a new one</span>
+                    </div>
+                    <div class="field-group" id="sdCardGroup">
+                        <select id="sdCardSelect" class="sd-select" onchange="updateSdLimit()">
+                            <option value="" disabled selected>— Please select card —</option>
+                        </select>
+                        <span class="field-hint">Total capacity of memory card used</span>
+                    </div>
+                    <div id="freeStorageContainer" class="free-storage-container">
+                        <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
+                        <button type="button" class="guide-btn" onclick="toggleStorageGuide()">How to check free storage?</button>
+                        <span class="field-hint">Remaining GB available on your Switch SD card</span>
+                    </div>
+                </div>
+
+                <div id="storageGuideBox" class="storage-guide-box">
+                    <h4>How to check your remaining microSD card free space:</h4>
+                    <p><strong>Method 1: Official Switch Settings</strong><br>
+                    1. Go to Home Menu → <strong>System Settings</strong> (gear icon).<br>
+                    2. Scroll down to <strong>Data Management</strong>.<br>
+                    3. Look under <strong>microSD Card</strong> on the right for <strong>Free Space</strong> (e.g. 145 GB).</p>
+                    <p style="margin-bottom:0;"><strong>Method 2: Via DBI App (Modded Console)</strong><br>
+                    1. Launch <strong>DBI</strong> app on your Switch.<br>
+                    2. Check the bottom-left text: <em>Free: XX.X GB</em> and enter that number above.</p>
+                </div>
+
+                <div id="jailbreakModesContainer" class="modes-container">
+                    <span class="addon-label-title">Multi-Boot System Addons:</span>
+                    <div class="mode-options-row">
+                        <div class="mode-wrapper">
+                            <label class="mode-checkbox-label">
+                                <input type="checkbox" id="androidModeCheck" onchange="updateSdLimit()"> 
+                                <span>Android Mode (+RM30)</span>
+                            </label>
+                            <span class="field-hint">Runs Android OS for cloud gaming (Game Pass), streaming & Android games</span>
+                        </div>
+                        <div class="mode-wrapper">
+                            <label class="mode-checkbox-label">
+                                <input type="checkbox" id="linuxModeCheck" onchange="updateSdLimit()"> 
+                                <span>Linux Mode (+RM30)</span>
+                            </label>
+                            <span class="field-hint">Runs Ubuntu Linux desktop for retro emulation & lightweight PC apps</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="storageBreakdown" class="storage-breakdown">
+                    Usable Space: <span id="maxUsableLabel">--</span> GB
+                </div>
+
+                <div class="clear-games-row">
+                    <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
+                        Clear All Selections
                     </button>
                 </div>
-                <span class="field-hint">Last 4 digits of phone number (Required ID)</span>
             </div>
 
-            <div class="returning-hint">
-                <span class="hint-icon">&#8617;</span>
-                <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
+            <div id="storageWarningBanner" class="storage-warning-banner">
+                <span class="warning-icon">&#9888;</span>
+                <span id="storageWarningText">Please select a <strong>Service Type</strong> above to begin.</span>
             </div>
 
-            <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
-                <span class="edit-icon">&#9998;</span>
-                <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
+            <div id="tierWarningBanner" class="tier-warning-banner">
+                <span>&#9432;</span>
+                <span id="tierWarningText">You can add more games to reach your package limit at no extra cost.</span>
             </div>
 
-            <div class="config-row">
-                <div class="field-group">
-                    <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
-                        <option value="" disabled selected>— Please select service —</option>
-                        <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
-                        <option value="system_setup">System Setup</option>
-                        <option value="games_only">Games Only</option>
-                    </select>
-                    <span class="field-hint">Choose full jailbreak, system setup, or a games-only install</span>
-                </div>
-                <div class="field-group" id="consoleModelGroup">
-                    <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
-                        <option value="" disabled selected>— Please select model —</option>
-                        <option value="OLED">OLED (RM300)</option>
-                        <option value="V1_V2">V1/V2 (RM190)</option>
-                        <option value="LITE">LITE (RM230)</option>
-                    </select>
-                    <span class="field-hint">Select your Nintendo Switch model variant</span>
-                </div>
-                <div class="field-group" id="sdSourceGroup">
-                    <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
-                        <option value="" disabled selected>— Please select —</option>
-                        <option value="own">Bring Own SD Card</option>
-                        <option value="buy">Purchase New SD Card</option>
-                    </select>
-                    <span class="field-hint">Providing your own card or buying a new one</span>
-                </div>
-                <div class="field-group" id="sdCardGroup">
-                    <select id="sdCardSelect" class="sd-select" onchange="updateSdLimit()">
-                        <option value="" disabled selected>— Please select card —</option>
-                    </select>
-                    <span class="field-hint">Total capacity of memory card used</span>
-                </div>
-                <div id="freeStorageContainer" class="free-storage-container">
-                    <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
-                    <button type="button" class="guide-btn" onclick="toggleStorageGuide()">How to check free storage?</button>
-                    <span class="field-hint">Remaining GB available on your Switch SD card</span>
-                </div>
+            <div id="jailbreakNoticeCard" class="jailbreak-notice-card" style="display:none;">
+                <h3>Your package includes 3 games at no extra cost</h3>
+                <p>Full Jailbreak and System Setup packages include your first 3 games at no additional charge. Select them below, then add more if you'd like.</p>
+                <button id="browseGamesBtn" class="browse-games-btn" onclick="revealGameSection()">Browse Games</button>
             </div>
 
-            <div id="storageGuideBox" class="storage-guide-box">
-                <h4>How to check your remaining microSD card free space:</h4>
-                <p><strong>Method 1: Official Switch Settings</strong><br>
-                1. Go to Home Menu → <strong>System Settings</strong> (gear icon).<br>
-                2. Scroll down to <strong>Data Management</strong>.<br>
-                3. Look under <strong>microSD Card</strong> on the right for <strong>Free Space</strong> (e.g. 145 GB).</p>
-                <p style="margin-bottom:0;"><strong>Method 2: Via DBI App (Modded Console)</strong><br>
-                1. Launch <strong>DBI</strong> app on your Switch.<br>
-                2. Check the bottom-left text: <em>Free: XX.X GB</em> and enter that number above.</p>
-            </div>
-
-            <div id="jailbreakModesContainer" class="modes-container">
-                <span class="addon-label-title">Multi-Boot System Addons:</span>
-                <div class="mode-options-row">
-                    <div class="mode-wrapper">
-                        <label class="mode-checkbox-label">
-                            <input type="checkbox" id="androidModeCheck" onchange="updateSdLimit()"> 
-                            <span>Android Mode (+RM30)</span>
-                        </label>
-                        <span class="field-hint">Runs Android OS for cloud gaming (Game Pass), streaming & Android games</span>
+            <div id="gameSectionWrapper" class="game-section-wrapper" style="display: none;">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="searchInput" class="search-box" placeholder="Search games in library..." onkeyup="filterGames()">
+                        <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">&times;</button>
                     </div>
-                    <div class="mode-wrapper">
-                        <label class="mode-checkbox-label">
-                            <input type="checkbox" id="linuxModeCheck" onchange="updateSdLimit()"> 
-                            <span>Linux Mode (+RM30)</span>
-                        </label>
-                        <span class="field-hint">Runs Ubuntu Linux desktop for retro emulation & lightweight PC apps</span>
-                    </div>
+                    <span class="field-hint" style="margin-left: 2px;">Type game title or keyword to filter the game list</span>
                 </div>
+                <div id="statusMsg" class="status-msg"></div>
+                <div id="gameList" class="game-list"></div>
             </div>
 
-            <div id="storageBreakdown" class="storage-breakdown">
-                Usable Space: <span id="maxUsableLabel">--</span> GB
-            </div>
-
-            <div class="clear-games-row">
-                <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
-                    Clear All Selections
-                </button>
-            </div>
-        </div>
-
-        <div id="storageWarningBanner" class="storage-warning-banner">
-            <span class="warning-icon">&#9888;</span>
-            <span id="storageWarningText">Please select a <strong>Service Type</strong> above to begin.</span>
-        </div>
-
-        <div id="tierWarningBanner" class="tier-warning-banner">
-            <span>&#9432;</span>
-            <span id="tierWarningText">You can add more games to reach your package limit at no extra cost.</span>
-        </div>
-
-        <div id="jailbreakNoticeCard" class="jailbreak-notice-card" style="display:none;">
-            <h3>Your package includes 3 games at no extra cost</h3>
-            <p>Full Jailbreak and System Setup packages include your first 3 games at no additional charge. Select them below, then add more if you'd like.</p>
-            <button id="browseGamesBtn" class="browse-games-btn" onclick="revealGameSection()">Browse Games</button>
-        </div>
-
-        <div id="gameSectionWrapper" class="game-section-wrapper" style="display: none;">
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" class="search-box" placeholder="Search games in library..." onkeyup="filterGames()">
-                    <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">&times;</button>
+            <footer class="trust-footer">
+                <div class="brand">Pulai PC</div>
+                <div>Jailbreak &amp; Game Installation Service</div>
+                <div style="margin-top: 6px;">
+                    WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
                 </div>
-                <span class="field-hint" style="margin-left: 2px;">Type game title or keyword to filter the game list</span>
-            </div>
-            <div id="statusMsg" class="status-msg"></div>
-            <div id="gameList" class="game-list"></div>
+                <div class="note">All orders are processed manually. Payment on pickup.</div>
+            </footer>
         </div>
-
-        <footer class="trust-footer">
-            <div class="brand">Pulai PC</div>
-            <div>Jailbreak &amp; Game Installation Service</div>
-            <div style="margin-top: 6px;">
-                WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
-            </div>
-            <div class="note">All orders are processed manually. Payment on pickup.</div>
-        </footer>
     </div>
 
-    <div class="checkout-bar">
+    <div class="checkout-bar" id="checkoutBar">
         <div class="checkout-info" onclick="openCartModal()">
             <span id="selectedCount" style="color: #ffc000; font-weight: bold;">0</span> games 
             (<span id="selectedSize" style="color: #ffc000; font-weight: bold;">0</span> GB selected | 
@@ -1132,8 +1371,8 @@
                 <button class="load-choice-btn edit" onclick="chooseEditOrder()">
                     <span class="choice-icon">&#9998;</span>
                     <span class="choice-text">
-                        <strong>Edit Previous Order</strong>
-                        <small>Load your existing order and update it</small>
+                        <strong>View / Edit Order</strong>
+                        <small>See the summary or make changes</small>
                     </span>
                 </button>
                 <button class="load-choice-btn new" onclick="chooseNewOrder()">
@@ -1200,7 +1439,8 @@
         modalGamesExpanded: false,
         modalRemarksExpanded: false,
         statusMsgTimeout: null,
-        gamesRerenderTimer: null
+        gamesRerenderTimer: null,
+        loadedOrderForSummary: null
     };
 
     const $ = id => document.getElementById(id);
@@ -1221,6 +1461,215 @@
         } else {
             alert('Please complete your configuration first (phone, service type, storage).');
         }
+    }
+
+    // ============ SUMMARY VIEW (Batch B) ============
+    function isOrderLocked(order) {
+        const stage = (order && order.progress_stage) || 'Order Received';
+        return stage !== 'Order Received';
+    }
+
+    function showSummaryView(order) {
+        state.loadedOrderForSummary = order;
+        const summaryEl = $('summaryView');
+        const formEl = $('formView');
+        const checkoutBar = $('checkoutBar');
+
+        formEl.classList.add('hidden');
+        checkoutBar.classList.add('hidden');
+        summaryEl.classList.add('active');
+
+        // Header Track link points to this specific order
+        const trackLink = $('headerTrackLink');
+        if (trackLink && order.phone_ending) {
+            trackLink.href = 'track.html?phone=' + encodeURIComponent(order.phone_ending);
+        }
+
+        const locked = isOrderLocked(order);
+        const stage = order.progress_stage || 'Order Received';
+
+        // Stage pill class
+        let pillClass = '';
+        if (order.status === 'Cancelled') pillClass = 'cancelled';
+        else if (stage === 'Completed') pillClass = 'done';
+        else if (locked) pillClass = 'locked';
+
+        const gameList = gameListOf(order);
+        sortGameList(gameList);
+        const gameCount = gameList.length;
+        let totalGb = 0;
+        const gamesWithSize = [];
+        const sourceGames = typeof games !== 'undefined' ? games : [];
+        gameList.forEach(name => {
+            const found = sourceGames.find(g => g.name === name);
+            const size = found ? found.size : 0;
+            totalGb += size;
+            gamesWithSize.push({ name: name, size: size });
+        });
+
+        const serviceLabels = {
+            'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
+            'system_setup': 'System Setup',
+            'games_only': 'Games Only'
+        };
+        const serviceLabel = serviceLabels[order.service_type] || 'Order';
+
+        const created = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : 'N/A';
+        const updated = order.progress_updated_at || order.updated_at;
+        const updatedStr = updated ? new Date(updated).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : created;
+
+        const storageLabel = order.sd_card_size
+            ? (order.sd_card_size >= 1000 ? (order.sd_card_size / 1024).toFixed(0) + ' TB' : order.sd_card_size + ' GB')
+            : (order.free_storage_gb ? order.free_storage_gb + ' GB free' : 'N/A');
+
+        let html = '';
+
+        // Card 1: Header
+        html += '<div class="summary-card">';
+        html += '<div class="summary-header">';
+        html += '<div class="summary-header-left">';
+        html += '<div class="summary-order-id">Order #' + (order.phone_ending || 'N/A') + '</div>';
+        html += '<div class="summary-order-meta">Placed ' + created + '</div>';
+        html += '</div>';
+        html += '<span class="summary-stage-pill ' + pillClass + '">' + stage + '</span>';
+        html += '</div>';
+
+        // Service + storage
+        html += '<div class="summary-grid">';
+        html += '<div class="summary-section"><div class="summary-label">Service</div><div class="summary-value">' + serviceLabel + '</div></div>';
+        html += '<div class="summary-section"><div class="summary-label">Storage</div><div class="summary-value">' + storageLabel + '</div></div>';
+        html += '</div>';
+
+        // Games expandable
+        html += '<div>';
+        html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
+        html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
+        html += '<span class="chev">▼</span>';
+        html += '</div>';
+        html += '<div class="summary-games-list" id="summaryGamesList">';
+        if (gamesWithSize.length === 0) {
+            html += '<div style="text-align:center; color:#8a8272; padding:14px; font-size:13px;">No games selected yet.</div>';
+        } else {
+            gamesWithSize.forEach(function(g) {
+                html += '<div class="summary-game-item">';
+                html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
+                html += '<div class="summary-game-size">' + g.size.toFixed(1) + ' GB</div>';
+                html += '</div>';
+            });
+        }
+        html += '</div>';
+        html += '</div>';
+
+        // Total
+        html += '<div class="summary-total">';
+        html += '<span class="summary-total-label">Total estimated</span>';
+        html += '<span class="summary-total-value">RM' + Math.round(order.estimated_price || 0) + '</span>';
+        html += '</div>';
+
+        // Last updated
+        if (updated) {
+            html += '<div style="font-size:11.5px; color:#8a8272;">Last updated: ' + updatedStr + '</div>';
+        }
+
+        html += '</div>'; // end summary-card
+
+        // Card 2: Actions / locked notice
+        html += '<div class="summary-card">';
+        if (locked) {
+            // Locked view
+            html += '<div class="locked-notice">';
+            html += '<span class="locked-notice-icon">&#128274;</span>';
+            html += '<div><strong>This order is locked for changes.</strong><br>';
+            html += 'We\'ve already confirmed the details with you. If you need to make a change, message us on WhatsApp and we\'ll update it for you.</div>';
+            html += '</div>';
+            html += '<div class="summary-actions">';
+            const prefill = 'Hi, I would like to ask about my order #' + (order.phone_ending || '') + '.';
+            const waNumber = APP_CONFIG.whatsappNumber || '';
+            const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(prefill);
+            html += '<a class="summary-btn whatsapp" href="' + waUrl + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
+            html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '</div>';
+        } else {
+            // Editable view
+            html += '<div class="summary-actions">';
+            html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
+            html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '</div>';
+        }
+        html += '</div>'; // end summary-card
+
+        summaryEl.innerHTML = html;
+    }
+
+    function toggleSummaryGames(el) {
+        const list = $('summaryGamesList');
+        if (!list) return;
+        const expanded = list.classList.toggle('expanded');
+        el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+
+    function switchToEditForm() {
+        const order = state.loadedOrderForSummary;
+        if (!order) return;
+        // Pre-fill the form with the loaded order
+        applyLoadedOrder(order);
+        // Switch views
+        $('summaryView').classList.remove('active');
+        $('formView').classList.remove('hidden');
+        $('checkoutBar').classList.remove('hidden');
+        // Scroll to top of form
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function hideSummaryShowForm() {
+        $('summaryView').classList.remove('active');
+        $('formView').classList.remove('hidden');
+        $('checkoutBar').classList.remove('hidden');
+        state.loadedOrderForSummary = null;
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function gameListOf(order) {
+        let list = [];
+        if (!order) return list;
+        if (Array.isArray(order.games)) list = order.games;
+        else if (typeof order.games === 'string') {
+            try { list = JSON.parse(order.games); }
+            catch (e) { list = order.games.split(','); }
+        }
+        return list;
+    }
+
+    function sortGameList(gameList) {
+        let masterList = [];
+        if (typeof APP_CONFIG !== 'undefined') {
+            masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
+        }
+        const names = masterList.map(g => typeof g === 'string' ? g : g.name);
+        if (names.length > 0) {
+            gameList.sort(function(a, b) {
+                const ia = names.indexOf(a);
+                const ib = names.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia === -1 && ib !== -1) return 1;
+                if (ia !== -1 && ib === -1) return -1;
+                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
+            });
+        } else {
+            gameList.sort(function(a, b) {
+                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
+            });
+        }
+        return gameList;
     }
 
     // ============ STORAGE MATH ============
@@ -1311,17 +1760,15 @@
         const urlPhone = params.get('phone');
         const urlOrderId = params.get('order');
 
-        // Explicit URL params → load that order.
-        // Fresh visit with no params → start clean (no auto-fill).
         if (urlOrderId) {
-            setTimeout(() => loadSpecificOrderById(urlOrderId), 400);
+            // Summary screen path — load order, show summary
+            setTimeout(() => loadOrderAndShowSummary(urlOrderId), 400);
         } else if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
+            // Lookup path — try to find order, show choice dialog
             $('phoneInput').value = urlPhone;
             setTimeout(() => fetchExistingOrder(), 400);
         } else {
-            // Fresh visit — clear any stale phone value so the form
-            // always starts empty. The "Load Order" button is right
-            // there for returning customers.
+            // Fresh visit — clear any stale phone and show form
             $('phoneInput').value = '';
             try { localStorage.removeItem('userPhone4'); } catch (e) {}
         }
@@ -1330,6 +1777,24 @@
         updateSdLimit();
         filterGames();
     };
+
+    async function loadOrderAndShowSummary(orderId) {
+        setStatusMessage('Loading your order...', '#7dd3fc', 0);
+        try {
+            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+            if (error) throw error;
+            if (!data) { alert('This order link is no longer valid.'); hideSummaryShowForm(); return; }
+            state.currentEditingOrderId = data.id;
+            state.currentLoadedPhone = data.phone_ending || null;
+            $('phoneInput').value = data.phone_ending || '';
+            showSummaryView(data);
+            clearStatusMessage();
+        } catch (err) {
+            console.error(err);
+            alert('Failed to load shared order: ' + (err.message || err));
+            hideSummaryShowForm();
+        }
+    }
 
     // ============ SD CARD DROPDOWN ============
     function populateSdCardOptions() {
@@ -1572,13 +2037,12 @@
     }
 
     // ============ RESET / EDIT MODE ============
-    // Note: phone input is intentionally NOT cleared here. The phone
-    // identifies the new order's owner, so it persists across resets.
     function resetFormForNewOrder() {
         state.currentEditingOrderId = null;
         state.currentLoadedPhone = null;
         state.selectedGames.clear();
         state.savedRemarksText = '';
+        state.loadedOrderForSummary = null;
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
         ['serviceTypeSelect', 'consoleModelSelect', 'sdSourceSelect', 'userFreeStorageInput', 'searchInput'].forEach(id => $(id).value = '');
         window.history.replaceState({}, '', window.location.pathname);
@@ -1588,6 +2052,11 @@
         filterGames();
         hideEditModeBanner();
         closePostSavePanel();
+        // Restore header track link to generic
+        const trackLink = $('headerTrackLink');
+        if (trackLink) trackLink.href = 'track.html';
+        // Ensure form view visible
+        hideSummaryShowForm();
     }
 
     function clearAllSelections() {
@@ -1953,25 +2422,6 @@
         }
     }
 
-    async function loadSpecificOrderById(orderId) {
-        setStatusMessage('Loading shared order...', '#7dd3fc', 0);
-        try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
-            if (error) throw error;
-            if (!data) { alert('This shared order link is no longer valid.'); return; }
-            state.currentEditingOrderId = data.id;
-            state.currentLoadedPhone = data.phone_ending || null;
-            if (data.phone_ending) {
-                $('phoneInput').value = data.phone_ending;
-            }
-            applyLoadedOrder(data);
-            setStatusMessage(`Loaded shared order. (${state.selectedGames.size} games)`, '#e8dcc0', 6000);
-        } catch (err) {
-            console.error(err);
-            setStatusMessage('Failed to load shared order.', '#e57373', 5000);
-        }
-    }
-
     function showLoadChoiceModal(order) {
         const info = $('loadChoiceInfo');
         const dateOpts = { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
@@ -1985,8 +2435,6 @@
         BodyLock.lock();
     }
 
-    // Cancel / X / tap backdrop → dismiss without touching the form.
-    // The dialog never creates an order — only Save Changes does.
     function dismissLoadChoiceModal() {
         $('loadChoiceModal').style.display = 'none';
         BodyLock.unlock();
@@ -1999,22 +2447,19 @@
         const order = state.pendingLoadedOrder;
         state.currentEditingOrderId = order.id;
         state.currentLoadedPhone = order.phone_ending || null;
-        applyLoadedOrder(order);
         $('loadChoiceModal').style.display = 'none';
         BodyLock.unlock();
         state.pendingLoadedOrder = null;
-        setStatusMessage(`Loaded your order for editing (${state.selectedGames.size} games)`, '#e8dcc0', 6000);
+        setStatusMessage('');
+        showSummaryView(order);
     }
 
     function chooseNewOrder() {
-        // Warn before wiping any unsaved games
         if (state.selectedGames.size > 0) {
             const count = state.selectedGames.size;
             const word = count === 1 ? 'game' : 'games';
             const msg = 'You have ' + count + ' ' + word + ' selected. Starting a new order will clear them.\n\nContinue?';
-            if (!confirm(msg)) {
-                return; // User cancelled — leave dialog open, do nothing
-            }
+            if (!confirm(msg)) return;
         }
         resetFormForNewOrder();
         $('loadChoiceModal').style.display = 'none';
@@ -2352,6 +2797,10 @@
         $('postSaveEditInput').value = editUrl;
         $('postSaveTrackInput').value = trackUrl;
         $('postSaveTrackBtn').href = trackUrl;
+
+        // Update header track link too
+        const trackLink = $('headerTrackLink');
+        if (trackLink) trackLink.href = trackUrl;
 
         panel.style.display = 'block';
     }
