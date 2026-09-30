@@ -401,6 +401,64 @@
         }
         .locked-notice strong { color: #ffb74d; }
 
+        /* Cancelled banner (summary view) */
+        .cancelled-banner {
+            background: #3a1212;
+            border: 1px solid #7a3030;
+            border-left: 4px solid #e57373;
+            border-radius: 6px;
+            padding: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .cancelled-banner .icon {
+            flex-shrink: 0;
+            color: #e57373;
+            line-height: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+        .cancelled-banner .msg {
+            font-size: 13.5px;
+            color: #f5cdcd;
+            line-height: 1.55;
+            flex: 1;
+            min-width: 0;
+        }
+        .cancelled-banner .msg strong { color: #e57373; }
+
+        /* Completed banner (summary view) */
+        .completed-banner {
+            background: #1a2a1a;
+            border: 1px solid #2a4530;
+            border-left: 4px solid #00e676;
+            border-radius: 6px;
+            padding: 14px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .completed-banner .icon {
+            flex-shrink: 0;
+            color: #00e676;
+            line-height: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1px;
+        }
+        .completed-banner .msg {
+            font-size: 13.5px;
+            color: #c3ffdb;
+            line-height: 1.55;
+            flex: 1;
+            min-width: 0;
+        }
+        .completed-banner .msg strong { color: #00e676; }
+
         /* ===== MISSING ORDER NOTICE ===== */
         .missing-order-notice {
             position: fixed;
@@ -784,6 +842,10 @@
         }
         .checkout-bar.hidden { display: none; }
         .checkout-info { font-size: 13.5px; cursor: pointer; line-height: 1.45; text-align: center; color: #f0e9d8; }
+        .checkout-nudge-action {
+            color: #ffb74d;
+            font-weight: bold;
+        }
         .submit-btn {
             background-color: #ffc000; color: #14110a; border: none;
             padding: 14px 20px; font-size: 16px; font-weight: bold;
@@ -1454,7 +1516,7 @@
 
             <div id="tierWarningBanner" class="tier-warning-banner">
                 <span>&#9432;</span>
-                <span id="tierWarningText">You can add more games to reach your package limit at no extra cost.</span>
+                <span id="tierWarningText"></span>
             </div>
 
             <div id="jailbreakNoticeCard" class="jailbreak-notice-card" style="display:none;">
@@ -1593,7 +1655,6 @@
         </div>
     </div>
 
-    <!-- Order pick list modal (when phone has 2+ orders) -->
     <div id="orderPickModal" class="modal">
         <div class="modal-content load-choice-content">
             <div class="modal-header">
@@ -1675,8 +1736,6 @@
 
     function scrollToTop(e) {
         if (e) e.preventDefault();
-        // If the summary view is active, tapping the logo should take the
-        // customer back to a fresh order form (true "home").
         const summaryView = $('summaryView');
         if (summaryView && summaryView.classList.contains('active')) {
             resetFormForNewOrder();
@@ -1706,9 +1765,23 @@
     }
 
     function isOrderCancellable(order) {
-        // Customer can cancel only while we haven't confirmed the order yet.
         const stage = (order && order.progress_stage) || 'Order Received';
         return stage === 'Order Received' && order.status !== 'Cancelled';
+    }
+
+    // SVG icon helpers (used inside summary banners)
+    function svgXIcon(size) {
+        size = size || 22;
+        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+             + '<line x1="6" y1="6" x2="18" y2="18"></line>'
+             + '<line x1="18" y1="6" x2="6" y2="18"></line>'
+             + '</svg>';
+    }
+    function svgCheckIcon(size) {
+        size = size || 22;
+        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+             + '<polyline points="4 12 10 18 20 6"></polyline>'
+             + '</svg>';
     }
 
     function showSummaryView(order) {
@@ -1731,10 +1804,11 @@
         const cancellable = isOrderCancellable(order);
         const stage = order.progress_stage || 'Order Received';
         const isCancelled = order.status === 'Cancelled';
+        const isCompleted = !isCancelled && stage === 'Completed';
 
         let pillClass = '';
         if (isCancelled) pillClass = 'cancelled';
-        else if (stage === 'Completed') pillClass = 'done';
+        else if (isCompleted) pillClass = 'done';
         else if (locked) pillClass = 'locked';
 
         const gameList = gameListOf(order);
@@ -1781,7 +1855,6 @@
         html += '<div class="summary-section"><div class="summary-label">Storage</div><div class="summary-value">' + storageLabel + '</div></div>';
         html += '</div>';
 
-        // Add-ons (Android / Linux mode) — only if any were selected
         const addons = [];
         if (order.android_mode) addons.push('Android Mode (+RM30)');
         if (order.linux_mode) addons.push('Linux Mode (+RM30)');
@@ -1832,18 +1905,32 @@
         html += '<div class="summary-card">';
 
         if (isCancelled) {
-            // Cancelled order — show cancelled notice, only "Start New Order" action
+            // Cancelled — message WhatsApp is the primary action
+            const cancelPrefill = 'Hi, I cancelled order #' + (order.phone_ending || '') + ' and I\'d like to ask about it.';
+            const waNumberC = APP_CONFIG.whatsappNumber || '';
+            const waUrlC = 'https://wa.me/' + waNumberC + '?text=' + encodeURIComponent(cancelPrefill);
             html += '<div class="cancelled-banner" style="margin-top:0;">'
-                  +   '<span class="icon">&#10007;</span>'
+                  +   '<span class="icon">' + svgXIcon(22) + '</span>'
                   +   '<div class="msg"><strong>Order Cancelled.</strong><br>'
                   +   'This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div>'
                   + '</div>';
             html += '<div class="summary-actions">';
-            const cancelPrefill = 'Hi, I cancelled my order (#' + (order.phone_ending || '') + ') and would like to ask something.';
-            const waNumberC = APP_CONFIG.whatsappNumber || '';
-            const waUrlC = 'https://wa.me/' + waNumberC + '?text=' + encodeURIComponent(cancelPrefill);
             html += '<a class="summary-btn whatsapp" href="' + waUrlC + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '</div>';
+        } else if (isCompleted) {
+            // Completed — Start New Order is the primary action
+            const waNumberDone = APP_CONFIG.whatsappNumber || '';
+            const prefillDone = 'Hi, I would like to ask about my completed order #' + (order.phone_ending || '') + '.';
+            const waUrlDone = 'https://wa.me/' + waNumberDone + '?text=' + encodeURIComponent(prefillDone);
+            html += '<div class="completed-banner" style="margin-top:0;">'
+                  +   '<span class="icon">' + svgCheckIcon(22) + '</span>'
+                  +   '<div class="msg"><strong>Order complete.</strong><br>'
+                  +   'Thanks for your business. If you need anything else, message us or start a new order below.</div>'
+                  + '</div>';
+            html += '<div class="summary-actions">';
+            html += '<button class="summary-btn primary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '<a class="summary-btn secondary" href="' + waUrlDone + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '</div>';
         } else if (locked) {
             html += '<div class="locked-notice">';
@@ -1939,7 +2026,6 @@
 
             if (error) throw error;
 
-            // Update local state and re-render
             order.status = 'Cancelled';
             order.progress_stage = 'Cancelled';
             order.progress_updated_at = nowIso;
@@ -2685,9 +2771,12 @@
         };
     }
 
+    // Returns { hasWarning, targetCount, remaining, msg, nudge }
+    // Only fires when a real price break is coming up. Silent at tier boundaries.
     function checkTierRecommendation(count, serviceType) {
-        if (!serviceType) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
-        if (count === 0) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        const empty = { hasWarning: false, targetCount: 0, remaining: 0, msg: '', nudge: '' };
+        if (!serviceType) return empty;
+        if (count === 0) return empty;
 
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
@@ -2697,55 +2786,64 @@
                     hasWarning: true,
                     targetCount: 3,
                     remaining: 3 - count,
-                    msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`
+                    msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`,
+                    nudge: ''
                 };
             }
-            if (count === 3) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+            if (count === 3) return empty;
 
             if (count > 13 && count < 23) {
+                const rem = 23 - count;
                 return {
                     hasWarning: true,
                     targetCount: 23,
-                    remaining: 23 - count,
-                    msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>23 games</strong> drops the per-game rate to RM2.50 — add <strong>${23 - count} more</strong> and every game you've picked gets cheaper.`
+                    remaining: rem,
+                    msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`,
+                    nudge: { remaining: rem, rate: 'RM2.50' }
                 };
             }
-            if (count === 23) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+            if (count === 23) return empty;
 
             if (count > 23 && count < 43) {
+                const rem = 43 - count;
                 return {
                     hasWarning: true,
                     targetCount: 43,
-                    remaining: 43 - count,
-                    msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>43 games</strong> drops the per-game rate to RM2 — add <strong>${43 - count} more</strong> and every game you've picked gets cheaper.`
+                    remaining: rem,
+                    msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`,
+                    nudge: { remaining: rem, rate: 'RM2' }
                 };
             }
-            if (count === 43) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+            if (count === 43) return empty;
 
-            return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+            return empty;
         }
 
         if (count > 10 && count < 20) {
+            const rem = 20 - count;
             return {
                 hasWarning: true,
                 targetCount: 20,
-                remaining: 20 - count,
-                msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>20 games</strong> drops the per-game rate to RM2.50 — add <strong>${20 - count} more</strong> and every game you've picked gets cheaper.`
+                remaining: rem,
+                msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`,
+                nudge: { remaining: rem, rate: 'RM2.50' }
             };
         }
-        if (count === 20) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        if (count === 20) return empty;
 
         if (count > 20 && count < 40) {
+            const rem = 40 - count;
             return {
                 hasWarning: true,
                 targetCount: 40,
-                remaining: 40 - count,
-                msg: `<strong>Price Break Coming:</strong> You selected <strong>${count} games</strong>. Reaching <strong>40 games</strong> drops the per-game rate to RM2 — add <strong>${40 - count} more</strong> and every game you've picked gets cheaper.`
+                remaining: rem,
+                msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`,
+                nudge: { remaining: rem, rate: 'RM2' }
             };
         }
-        if (count === 40) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        if (count === 40) return empty;
 
-        return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
+        return empty;
     }
 
     function updateCartSummary() {
@@ -2764,28 +2862,36 @@
 
         const tierRec = checkTierRecommendation(count, serviceType);
         const banner = $('tierWarningBanner');
-        if (tierRec.hasWarning) {
+        if (tierRec.hasWarning && tierRec.msg) {
             banner.style.display = 'flex';
             $('tierWarningText').innerHTML = tierRec.msg;
         } else {
             banner.style.display = 'none';
         }
 
+        // Build the checkout-bar subtext
         const sub = $('checkoutSubtext');
-        if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
+        let subHtml = '';
+
+        if (tierRec.hasWarning && tierRec.nudge) {
+            // Price break is coming — nudge with two-tone coloring
+            subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> — ' + tierRec.nudge.rate + '/game rate · Tap to review';
+        } else if (tierRec.hasWarning && tierRec.remaining > 0 && (serviceType === 'jailbreak' || serviceType === 'system_setup') && count < 3) {
+            // Free games still available
+            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) · Tap to review`;
+        } else if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             if (count === 0) {
-                sub.innerHTML = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
+                subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
             } else if (count <= 3) {
-                sub.innerHTML = `(${count} free games selected, ${3 - count} more available) | Tap to review`;
+                subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
             } else {
                 const c = count - 3;
-                const extra = tierRec.hasWarning ? ' · price break at ' + tierRec.targetCount : '';
-                sub.innerHTML = `(3 included + ${c} addon${c !== 1 ? 's' : ''}${extra}) | Tap to review`;
+                subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`;
             }
         } else {
-            const extra = tierRec.hasWarning ? 'Price break at ' + tierRec.targetCount + ' games | ' : '';
-            sub.innerHTML = `${extra}Tap here to review & add remarks`;
+            subHtml = 'Tap here to review & add remarks';
         }
+        sub.innerHTML = subHtml;
     }
 
     async function fetchExistingOrder() {
@@ -2827,14 +2933,12 @@
             }
 
             if (orders.length === 1) {
-                // Single order — keep the existing single-order dialog
                 state.pendingLoadedOrder = orders[0];
                 showLoadChoiceModal(orders[0]);
                 setStatusMessage('Choose an option in the popup to continue.', '#e8dcc0', 0);
                 return;
             }
 
-            // 2+ orders — show the pick list
             state.pendingOrderList = orders;
             showOrderPickModal(orders);
             setStatusMessage('Pick an order from the popup to continue.', '#e8dcc0', 0);
@@ -2880,7 +2984,6 @@
         setStatusMessage('');
         showSummaryView(order);
         updateSaveButtonLabel();
-        // Reflect the picked order in the URL so refresh keeps context
         const url = window.location.pathname + '?order=' + encodeURIComponent(order.id);
         window.history.replaceState({}, '', url);
     }
@@ -2899,12 +3002,11 @@
         setStatusMessage('New order started. Pick your selection below.', '#00e676', 5000);
     }
 
-    // ===== Multi-order pick list =====
     function showOrderPickModal(orders) {
         const list = $('orderPickList');
         const subtitle = $('orderPickSubtitle');
         list.innerHTML = '';
-        subtitle.textContent = 'We found ' + orders.length + ' orders for ' + (state.pendingOrderList[0].phone_ending || '') + '. Tap one to view or edit it.';
+        subtitle.textContent = 'We found ' + orders.length + ' orders for ' + (orders[0].phone_ending || '') + '. Tap one to view or edit it.';
 
         orders.forEach(order => {
             const item = document.createElement('div');
@@ -3142,7 +3244,7 @@
         body.appendChild(h2);
 
         const tierRec = checkTierRecommendation(count, serviceType);
-        if (tierRec.hasWarning) {
+        if (tierRec.hasWarning && tierRec.msg) {
             const banner = document.createElement('div');
             banner.className = 'modal-alert warning';
             banner.style.display = 'block';
@@ -3368,14 +3470,14 @@
         const submitLabel = (serviceType === 'jailbreak') ? 'Jailbreak' : 'System Setup';
 
         const tierRec = checkTierRecommendation(count, serviceType);
-        if (tierRec.hasWarning) {
+        if (tierRec.hasWarning && tierRec.msg) {
             let msg;
             if (isJbOrSetup && count < 3) {
                 msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\n` +
                       `Pick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
             } else {
                 msg = `You've selected ${count} games.\n\n` +
-                      `If you add ${tierRec.remaining} more (reaching ${tierRec.targetCount} games total), the per-game rate drops — every game you've picked gets cheaper.\n\n` +
+                      `Add ${tierRec.remaining} more to unlock the lower rate — every game you've picked gets cheaper.\n\n` +
                       `Save now with ${count} games, or go back and add more?`;
             }
             if (!confirm(msg)) return;
