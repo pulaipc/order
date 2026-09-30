@@ -139,7 +139,6 @@
         }
         .order-body > div { min-width: 0; word-break: break-word; }
 
-        /* Progress controls row */
         .progress-controls {
             display: grid; grid-template-columns: 1fr; gap: 10px;
             background: #191309; border: 1px solid #2e2716;
@@ -161,7 +160,6 @@
         .progress-select:focus { border-color: #ffc000; }
         .progress-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        /* Shared small buttons */
         .notify-btn,
         .copy-track-btn {
             border: none;
@@ -376,6 +374,24 @@
         .btn-primary:hover { background: #e6ac00; }
         .btn-primary:disabled { background: #4a4020; color: #888; cursor: not-allowed; }
 
+        /* ===== TRUST FOOTER ===== */
+        .trust-footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #2e2716;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.7;
+        }
+        .trust-footer .brand {
+            color: #ffc000; font-weight: bold; margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .trust-footer .note {
+            margin-top: 4px; color: #666; font-size: 11px;
+        }
+
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
@@ -433,12 +449,12 @@
         <div class="header-bar">
             <div class="header-left">
                 <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
-                <h1>⚙️ Admin Dashboard</h1>
+                <h1>Admin Dashboard</h1>
             </div>
             <div class="header-actions">
-                <a href="index.html" target="_blank" class="btn-action">🏠 Main Page</a>
-                <a href="track.html" target="_blank" class="btn-action">📦 Tracker</a>
-                <button class="btn-action" onclick="loadOrders()">🔄 Refresh</button>
+                <a href="index.html" target="_blank" class="btn-action">Main Page</a>
+                <a href="track.html" target="_blank" class="btn-action">Tracker</a>
+                <button class="btn-action" onclick="loadOrders()">Refresh</button>
                 <button class="btn-action btn-logout" onclick="logout()">Logout</button>
             </div>
         </div>
@@ -451,7 +467,7 @@
         </div>
 
         <div class="controls-row">
-            <input type="text" id="adminSearchInput" class="search-box" placeholder="🔍 Search Customer ID, WhatsApp, game, remarks, or stage..." onkeyup="filterAndRenderOrders()">
+            <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, remarks, or stage..." onkeyup="filterAndRenderOrders()">
             <div class="filter-buttons-wrapper">
                 <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                 <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
@@ -462,17 +478,22 @@
         </div>
 
         <div id="ordersContainer" class="orders-grid"></div>
+
+        <footer class="trust-footer">
+            <div class="brand">Pulai PC — Admin</div>
+            <div class="note">Internal dashboard. Not for customer use.</div>
+        </footer>
     </div>
 
     <div id="orderModalOverlay" onclick="closeModalOnBackdrop(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 id="modalTitle">🆔 Order Details</h2>
-                <button class="close-modal-btn" onclick="closeOrderModal()">✕</button>
+                <h2 id="modalTitle">Order Details</h2>
+                <button class="close-modal-btn" onclick="closeOrderModal()">&#10005;</button>
             </div>
             <div class="modal-body">
                 <div class="modal-info-grid">
-                    <div class="modal-info-item"><div class="lbl">Customer ID</div><div class="val" id="modalPhoneVal">-</div></div>
+                    <div class="modal-info-item"><div class="lbl">Order ID</div><div class="val" id="modalPhoneVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">WhatsApp Username</div><div class="val" id="modalWaVal" style="color:#25D366;">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Service Type</div><div class="val" id="modalServiceVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Storage Size</div><div class="val" id="modalStorageVal">-</div></div>
@@ -484,7 +505,7 @@
                     <div class="modal-info-item" style="grid-column: 1 / -1;">
                         <div class="remarks-header-row">
                             <span class="lbl">Remarks</span>
-                            <button class="edit-remarks-btn" id="modalEditRemarksBtn">✏️ Edit Remarks</button>
+                            <button class="edit-remarks-btn" id="modalEditRemarksBtn">Edit Remarks</button>
                         </div>
                         <div class="val" id="modalRemarksVal" style="margin-top:6px;">-</div>
                     </div>
@@ -495,7 +516,7 @@
                         <h3>Selected Games</h3>
                         <div class="game-list-header-actions">
                             <span id="modalGameCount" style="font-size:12px; color:#aaa;">0 Games</span>
-                            <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">📋 Copy Game List</button>
+                            <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">Copy Game List</button>
                         </div>
                     </div>
                     <div id="modalGameGrid" class="modal-game-list"></div>
@@ -507,8 +528,8 @@
     <div id="remarksModalOverlay" onclick="closeRemarksModalOnBackdrop(event)">
         <div class="remarks-modal-card">
             <div class="remarks-modal-header">
-                <h2>✏️ Edit Remarks</h2>
-                <button class="close-modal-btn" onclick="closeRemarksModal()">✕</button>
+                <h2>Edit Remarks</h2>
+                <button class="close-modal-btn" onclick="closeRemarksModal()">&#10005;</button>
             </div>
             <div class="remarks-modal-body">
                 <label for="remarksEditTextarea">Remarks / Notes for this order:</label>
@@ -516,7 +537,7 @@
             </div>
             <div class="remarks-modal-footer">
                 <button class="btn-secondary" onclick="closeRemarksModal()">Cancel</button>
-                <button class="btn-primary" id="saveRemarksBtn" onclick="saveRemarksEdit()">💾 Save Remarks</button>
+                <button class="btn-primary" id="saveRemarksBtn" onclick="saveRemarksEdit()">Save Remarks</button>
             </div>
         </div>
     </div>
@@ -530,7 +551,6 @@
         let currentRemarksOrderId = null;
         let orderCountByPhone = {};
 
-        // ===== PROGRESS STAGE CONFIG =====
         const PROGRESS_STAGES = (APP_CONFIG.progressStages) || [
             'Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'
         ];
@@ -540,11 +560,11 @@
             'games_only':   ['Game Installation']
         };
         const STAGE_ICONS = {
-            'Order Received':   '📥',
-            'Confirmed':        '✅',
-            'In Progress':      '🔧',
-            'Ready for Pickup': '📦',
-            'Completed':        '🎉'
+            'Order Received':   '\u2022', // •
+            'Confirmed':        '\u2713', // ✓
+            'In Progress':      '\u25D0', // ◐
+            'Ready for Pickup': '\u25D1', // ◑
+            'Completed':        '\u2713'  // ✓
         };
 
         window.onload = async function() {
@@ -638,7 +658,6 @@
             filterAndRenderOrders();
         }
 
-        // ===== PROGRESS UPDATE =====
         async function updateProgress(orderId, newStage) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) return;
@@ -716,35 +735,33 @@
             const stage = order.progress_stage || 'Order Received';
             const sub = order.progress_substage;
             let msg = `Hi! Quick update on your order (#${order.phone_ending || ''}).\n\n`;
-            msg += `📍 Current stage: ${stage}`;
+            msg += `Current stage: ${stage}`;
             if (sub) msg += ` — ${sub}`;
             msg += `\n\nTrack live here: ${buildTrackingUrl(order.phone_ending)}`;
 
             navigator.clipboard.writeText(msg).then(() => {
-                alert('✅ Message copied to clipboard.\n\nPaste it into WhatsApp for the customer.');
+                alert('Message copied to clipboard.\n\nPaste it into WhatsApp for the customer.');
                 window.open('https://web.whatsapp.com/', '_blank');
             }).catch(err => alert('Failed to copy: ' + err));
         }
 
-        // Build the customer's personal tracking URL
         function buildTrackingUrl(phoneEnding) {
             if (!phoneEnding) return '';
             const base = window.location.origin + window.location.pathname.replace('admin.html', 'track.html');
             return `${base}?phone=${encodeURIComponent(phoneEnding)}`;
         }
 
-        // Copy tracking URL to clipboard
         function copyTrackingLink(orderId, btnElement) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) return;
             const url = buildTrackingUrl(order.phone_ending);
             if (!url) {
-                alert('This order has no Customer ID to track.');
+                alert('This order has no Order ID to track.');
                 return;
             }
             navigator.clipboard.writeText(url).then(() => {
                 const originalText = btnElement.innerHTML;
-                btnElement.innerHTML = '✅ Copied!';
+                btnElement.innerHTML = 'Copied';
                 btnElement.style.background = '#ffc000';
                 btnElement.style.color = '#14110a';
                 btnElement.style.borderColor = '#ffc000';
@@ -809,12 +826,12 @@
                 alert('Failed to save remarks: ' + error.message);
                 order.remarks = oldRemarks;
                 saveBtn.disabled = false;
-                saveBtn.innerText = '💾 Save Remarks';
+                saveBtn.innerText = 'Save Remarks';
                 return;
             }
             order.remarks = newRemarks;
             saveBtn.disabled = false;
-            saveBtn.innerText = '💾 Save Remarks';
+            saveBtn.innerText = 'Save Remarks';
             closeRemarksModal();
             filterAndRenderOrders();
         }
@@ -851,7 +868,6 @@
                     const phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().includes(query);
                     const waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().includes(query);
                     const remarksMatch = order.remarks && order.remarks.toLowerCase().includes(query);
-                    // NEW: match progress stage & substage (e.g. "In Progress", "Game Installation")
                     const stageMatch = order.progress_stage && order.progress_stage.toLowerCase().includes(query);
                     const substageMatch = order.progress_substage && order.progress_substage.toLowerCase().includes(query);
                     let gameList = [];
@@ -893,8 +909,8 @@
                     : '<em>No games selected</em>';
 
                 const waDisplay = order.whatsapp_username
-                    ? `<span style="color:#25D366; word-break:break-word;">💬 WA: ${order.whatsapp_username}</span>`
-                    : `<span style="color:#777; font-style:italic;">💬 WA: Not assigned</span>`;
+                    ? `<span style="color:#25D366; word-break:break-word;">WA: ${order.whatsapp_username}</span>`
+                    : `<span style="color:#777; font-style:italic;">WA: Not assigned</span>`;
 
                 const remarksDisplay = order.remarks && order.remarks.trim() !== ''
                     ? order.remarks
@@ -902,10 +918,9 @@
 
                 const phoneCount = orderCountByPhone[order.phone_ending] || 1;
                 const multiBadge = phoneCount > 1
-                    ? `<span class="order-number-badge multi">📚 ${phoneCount} orders from this customer</span>`
-                    : `<span class="order-number-badge">🆕 1st order</span>`;
+                    ? `<span class="order-number-badge multi">${phoneCount} orders from this customer</span>`
+                    : `<span class="order-number-badge">1st order</span>`;
 
-                // Progress controls
                 const currentProgress = order.progress_stage || 'Order Received';
                 const currentSub = order.progress_substage || '';
 
@@ -924,10 +939,10 @@
                 card.innerHTML = `
                     <div class="order-header">
                         <div class="customer-info">
-                            <div>🆔 Customer ID: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
+                            <div>Order ID: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
                             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                                 ${waDisplay}
-                                <button class="edit-wa-btn" data-order-id="${orderId}">✏️ Edit WA</button>
+                                <button class="edit-wa-btn" data-order-id="${orderId}">Edit WA</button>
                             </div>
                         </div>
                         <div class="order-date">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
@@ -942,13 +957,13 @@
                                     <strong>Remarks:</strong>
                                     <div style="font-size:12px; color:#ccc; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
                                 </div>
-                                <button class="edit-remarks-btn" data-order-id="${orderId}" style="flex-shrink:0;">✏️ Edit</button>
+                                <button class="edit-remarks-btn" data-order-id="${orderId}" style="flex-shrink:0;">Edit</button>
                             </div>
                         </div>
                         <div>
                             <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
                                 <strong>Games (${gameList.length}):</strong>
-                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">📋 Copy Game List</button>
+                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">Copy Game List</button>
                             </div>
                             <div style="max-height:90px; overflow-y:auto; font-size:12px;">${gamesPreview}</div>
                         </div>
@@ -968,8 +983,8 @@
                             </select>
                         </div>
                         <div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">
-                            <button class="copy-track-btn" data-order-id="${orderId}" title="Copy tracking link for this customer">🔗 Copy Tracking Link</button>
-                            <button class="notify-btn${notifyVisible}" data-order-id="${orderId}">📱 Notify Customer</button>
+                            <button class="copy-track-btn" data-order-id="${orderId}" title="Copy tracking link for this customer">Copy Tracking Link</button>
+                            <button class="notify-btn${notifyVisible}" data-order-id="${orderId}">Notify Customer</button>
                         </div>
                     </div>
 
@@ -977,14 +992,14 @@
                         <div>
                             <span style="font-size:12px; color:#aaa; align-self:center;">Status: </span>
                             <select class="status-select" onchange="updateStatus('${orderId}', this.value)">
-                                <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>⏳ Pending</option>
-                                <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>🔧 In Progress</option>
-                                <option value="Completed" ${currentStatus === 'Completed' ? 'selected' : ''}>✅ Completed</option>
-                                <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>❌ Cancelled</option>
+                                <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
+                                <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                                <option value="Completed" ${currentStatus === 'Completed' ? 'selected' : ''}>Completed</option>
+                                <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
                             </select>
                         </div>
                         <div>
-                            <button class="view-btn" data-order-id="${orderId}">🔍 View Full Order</button>
+                            <button class="view-btn" data-order-id="${orderId}">View Full Order</button>
                             <button class="delete-btn" data-order-id="${orderId}">Delete</button>
                         </div>
                     </div>
@@ -994,8 +1009,6 @@
         }
 
         async function openOrderModal(orderId) {
-            // Robust ID matching: use local cache first (avoids guessing column name),
-            // then fall back to a DB fetch trying both possible column names.
             let order = allOrders.find(o =>
                 String(o.id) === String(orderId) || String(o.order_id) === String(orderId)
             );
@@ -1012,7 +1025,7 @@
             if (!order) { alert("Could not load order details."); return; }
 
             currentRemarksOrderId = order.id || order.order_id;
-            document.getElementById('modalTitle').innerText = `🆔 Order Details · Customer ${order.phone_ending || 'N/A'}`;
+            document.getElementById('modalTitle').innerText = `Order Details — Customer ${order.phone_ending || 'N/A'}`;
             document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
             document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
             document.getElementById('modalServiceVal').innerText = order.service_type || 'N/A';
@@ -1064,7 +1077,7 @@
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const btn = document.querySelector('.modal-copy-btn');
                 const originalText = btn.innerText;
-                btn.innerText = '✅ Copied!';
+                btn.innerText = 'Copied';
                 btn.style.background = '#ffc000';
                 btn.style.color = '#14110a';
                 setTimeout(() => {
@@ -1088,7 +1101,7 @@
             const textToCopy = gameList.join('\n');
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const originalText = btnElement.innerText;
-                btnElement.innerText = '✅ Copied!';
+                btnElement.innerText = 'Copied';
                 btnElement.style.background = '#ffc000';
                 btnElement.style.color = '#14110a';
                 setTimeout(() => {
