@@ -7,15 +7,18 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
-        html { -webkit-text-size-adjust: 100%; }
+        html {
+            -webkit-text-size-adjust: 100%;
+            scroll-padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
+        }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
             color: #f0e9d8;
             margin: 0;
-            padding: 14px 14px 140px;
+            padding: 14px 14px 24px;
             box-sizing: border-box;
-            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
         }
         body.modal-open {
             overflow: hidden;
@@ -143,7 +146,7 @@
             margin-top: 2px;
         }
 
-        /* ===== SUMMARY VIEW (Batch B) ===== */
+        /* ===== SUMMARY VIEW ===== */
         .summary-view {
             display: none;
             flex-direction: column;
@@ -229,9 +232,17 @@
             color: #f0e9d8;
             line-height: 1.5;
         }
-        .summary-value.muted {
-            color: #b8b0a0;
-            font-size: 13px;
+        .summary-remarks {
+            background: #17120a;
+            border: 1px solid #241e12;
+            border-left: 3px solid #7dd3fc;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 12.5px;
+            color: #d8d2c0;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
         .summary-grid {
             display: grid;
@@ -1007,7 +1018,7 @@
 
         /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
-            body { padding: 20px 20px 120px; }
+            body { padding: 20px 20px 24px; }
             .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
             .how-it-works { padding: 16px 18px; }
@@ -1032,7 +1043,7 @@
         }
         @media (min-width: 900px) { .field-group { flex: 1; } }
         @media (max-width: 380px) {
-            body { padding: 10px 10px 150px; }
+            body { padding: 10px 10px 24px; }
             .site-logo { width: 40px; height: 40px; }
             h1 { font-size: 15px; }
             .how-it-works { padding: 12px 14px; }
@@ -1064,12 +1075,11 @@
             </div>
         </div>
 
-        <!-- SUMMARY VIEW (shown for ?order= loads) -->
+        <!-- SUMMARY VIEW -->
         <div id="summaryView" class="summary-view"></div>
 
-        <!-- FORM VIEW (default) -->
+        <!-- FORM VIEW -->
         <div id="formView" class="form-view">
-            <!-- What happens next -->
             <div class="how-it-works" id="howItWorks">
                 <div class="how-it-works-title">What happens next</div>
                 <div class="how-steps">
@@ -1317,7 +1327,6 @@
         </div>
     </div>
 
-    <!-- CART MODAL -->
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1358,7 +1367,6 @@
         </div>
     </div>
 
-    <!-- LOAD ORDER CHOICE MODAL -->
     <div id="loadChoiceModal" class="modal">
         <div class="modal-content load-choice-content">
             <div class="modal-header">
@@ -1463,7 +1471,7 @@
         }
     }
 
-    // ============ SUMMARY VIEW (Batch B) ============
+    // ============ SUMMARY VIEW ============
     function isOrderLocked(order) {
         const stage = (order && order.progress_stage) || 'Order Received';
         return stage !== 'Order Received';
@@ -1479,7 +1487,6 @@
         checkoutBar.classList.add('hidden');
         summaryEl.classList.add('active');
 
-        // Header Track link points to this specific order
         const trackLink = $('headerTrackLink');
         if (trackLink && order.phone_ending) {
             trackLink.href = 'track.html?phone=' + encodeURIComponent(order.phone_ending);
@@ -1488,7 +1495,6 @@
         const locked = isOrderLocked(order);
         const stage = order.progress_stage || 'Order Received';
 
-        // Stage pill class
         let pillClass = '';
         if (order.status === 'Cancelled') pillClass = 'cancelled';
         else if (stage === 'Completed') pillClass = 'done';
@@ -1524,7 +1530,6 @@
 
         let html = '';
 
-        // Card 1: Header
         html += '<div class="summary-card">';
         html += '<div class="summary-header">';
         html += '<div class="summary-header-left">';
@@ -1534,13 +1539,11 @@
         html += '<span class="summary-stage-pill ' + pillClass + '">' + stage + '</span>';
         html += '</div>';
 
-        // Service + storage
         html += '<div class="summary-grid">';
         html += '<div class="summary-section"><div class="summary-label">Service</div><div class="summary-value">' + serviceLabel + '</div></div>';
         html += '<div class="summary-section"><div class="summary-label">Storage</div><div class="summary-value">' + storageLabel + '</div></div>';
         html += '</div>';
 
-        // Games expandable
         html += '<div>';
         html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
         html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
@@ -1560,23 +1563,27 @@
         html += '</div>';
         html += '</div>';
 
-        // Total
+        // Remarks (only if present)
+        if (order.remarks && String(order.remarks).trim() !== '') {
+            html += '<div class="summary-section">';
+            html += '<div class="summary-label">Your remarks</div>';
+            html += '<div class="summary-remarks">' + escapeHtml(order.remarks) + '</div>';
+            html += '</div>';
+        }
+
         html += '<div class="summary-total">';
         html += '<span class="summary-total-label">Total estimated</span>';
         html += '<span class="summary-total-value">RM' + Math.round(order.estimated_price || 0) + '</span>';
         html += '</div>';
 
-        // Last updated
         if (updated) {
             html += '<div style="font-size:11.5px; color:#8a8272;">Last updated: ' + updatedStr + '</div>';
         }
 
-        html += '</div>'; // end summary-card
+        html += '</div>';
 
-        // Card 2: Actions / locked notice
         html += '<div class="summary-card">';
         if (locked) {
-            // Locked view
             html += '<div class="locked-notice">';
             html += '<span class="locked-notice-icon">&#128274;</span>';
             html += '<div><strong>This order is locked for changes.</strong><br>';
@@ -1590,13 +1597,12 @@
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
             html += '</div>';
         } else {
-            // Editable view
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
             html += '</div>';
         }
-        html += '</div>'; // end summary-card
+        html += '</div>';
 
         summaryEl.innerHTML = html;
     }
@@ -1611,13 +1617,10 @@
     function switchToEditForm() {
         const order = state.loadedOrderForSummary;
         if (!order) return;
-        // Pre-fill the form with the loaded order
         applyLoadedOrder(order);
-        // Switch views
         $('summaryView').classList.remove('active');
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
-        // Scroll to top of form
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1761,14 +1764,11 @@
         const urlOrderId = params.get('order');
 
         if (urlOrderId) {
-            // Summary screen path — load order, show summary
             setTimeout(() => loadOrderAndShowSummary(urlOrderId), 400);
         } else if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
-            // Lookup path — try to find order, show choice dialog
             $('phoneInput').value = urlPhone;
             setTimeout(() => fetchExistingOrder(), 400);
         } else {
-            // Fresh visit — clear any stale phone and show form
             $('phoneInput').value = '';
             try { localStorage.removeItem('userPhone4'); } catch (e) {}
         }
@@ -2052,10 +2052,8 @@
         filterGames();
         hideEditModeBanner();
         closePostSavePanel();
-        // Restore header track link to generic
         const trackLink = $('headerTrackLink');
         if (trackLink) trackLink.href = 'track.html';
-        // Ensure form view visible
         hideSummaryShowForm();
     }
 
@@ -2798,7 +2796,6 @@
         $('postSaveTrackInput').value = trackUrl;
         $('postSaveTrackBtn').href = trackUrl;
 
-        // Update header track link too
         const trackLink = $('headerTrackLink');
         if (trackLink) trackLink.href = trackUrl;
 
