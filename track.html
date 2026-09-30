@@ -84,6 +84,169 @@
         }
         .status-msg.fading { opacity: 0; }
 
+        /* ===== ORDER LIST (shown when 2+ active orders) ===== */
+        .order-list-card {
+            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
+            padding: 18px; margin-bottom: 20px;
+            display: none;
+        }
+        .order-list-card.show { display: block; }
+        .order-list-title {
+            font-size: 13.5px;
+            color: #e8dcc0;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .order-list-subtitle {
+            font-size: 12.5px;
+            color: #8a8272;
+            margin-bottom: 14px;
+            line-height: 1.5;
+        }
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .order-list-item {
+            background: #221c10;
+            border: 1px solid #2e2716;
+            border-radius: 8px;
+            padding: 14px;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .order-list-item:hover { border-color: #5a4a20; }
+        .order-list-item:active { background: #2a2108; }
+        .order-list-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .order-list-id {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffc000;
+            line-height: 1.25;
+        }
+        .order-list-stage-pill {
+            font-size: 10.5px;
+            font-weight: bold;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: #2a2108;
+            color: #e8dcc0;
+            border: 1px solid #7a6820;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .order-list-stage-pill.in-progress {
+            background: #16202a;
+            color: #7dd3fc;
+            border-color: #3a5a72;
+        }
+        .order-list-stage-pill.confirmed {
+            background: #2a1e0a;
+            color: #ffb74d;
+            border-color: #7a5420;
+        }
+        .order-list-detail {
+            font-size: 12.5px;
+            color: #b8b0a0;
+            line-height: 1.5;
+        }
+        .order-list-detail strong { color: #e8dcc0; }
+        .order-list-date {
+            font-size: 11px;
+            color: #8a8272;
+        }
+
+        /* ===== NO ACTIVE ORDERS CARD ===== */
+        .no-active-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-left: 4px solid #7dd3fc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .no-active-card.show { display: flex; }
+        .no-active-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #e8dcc0;
+        }
+        .no-active-body {
+            font-size: 13.5px;
+            color: #b8b0a0;
+            line-height: 1.55;
+        }
+        .no-active-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+        }
+        .no-active-btn {
+            flex: 1 1 auto;
+            min-width: 140px;
+            min-height: 44px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 13.5px;
+            cursor: pointer;
+            padding: 11px 16px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            border: none;
+        }
+        .no-active-btn.whatsapp {
+            background: #25D366;
+            color: #fff;
+        }
+        .no-active-btn.whatsapp:hover { background: #1eaa52; }
+
+        /* ===== BACK TO ORDERS BAR ===== */
+        .back-to-orders-bar {
+            display: none;
+            margin-bottom: 16px;
+        }
+        .back-to-orders-bar.show { display: block; }
+        .back-to-orders-btn {
+            background: transparent;
+            color: #7dd3fc;
+            border: 1px solid #3a3018;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .back-to-orders-btn:hover {
+            background: #7dd3fc;
+            color: #14110a;
+            border-color: #7dd3fc;
+        }
+
+        /* ===== RESULT CARD ===== */
         .result-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 20px; display: none;
@@ -461,6 +624,30 @@
 
         <div id="statusMsg" class="status-msg"></div>
 
+        <!-- Back to orders bar (shown only when a customer picked one from a list) -->
+        <div id="backToOrdersBar" class="back-to-orders-bar">
+            <button class="back-to-orders-btn" onclick="showOrderListAgain()">
+                &#8592; Back to orders
+            </button>
+        </div>
+
+        <!-- Order list (shown when 2+ active orders) -->
+        <div id="orderListCard" class="order-list-card">
+            <div class="order-list-title" id="orderListTitle">You have multiple active orders</div>
+            <div class="order-list-subtitle" id="orderListSubtitle"></div>
+            <div id="orderList" class="order-list"></div>
+        </div>
+
+        <!-- No active orders card -->
+        <div id="noActiveCard" class="no-active-card">
+            <div class="no-active-title">No active orders found</div>
+            <div class="no-active-body" id="noActiveBody"></div>
+            <div class="no-active-actions">
+                <a class="no-active-btn whatsapp" id="noActiveWaBtn" href="#" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>
+            </div>
+        </div>
+
+        <!-- Result card (single order tracker) -->
         <div id="resultCard" class="result-card">
             <div class="result-header">
                 <div class="order-summary-left">
@@ -520,9 +707,14 @@
     const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
     const $ = id => document.getElementById(id);
-    let currentOrder = null;
     let currentPhone = null;
+    let currentOrders = [];        // all active orders for the phone
+    let currentOrder = null;       // the currently displayed order
+    let currentOrderId = null;     // the currently displayed order id
 
+    // =========================================================
+    // RATE-LIMITING (brute-force protection)
+    // =========================================================
     const RATE_LIMIT = {
         maxAttempts: 5,
         windowMs: 10 * 60 * 1000,
@@ -624,29 +816,41 @@
         'Cancelled':        '\u2717'
     };
 
+    // Orders in these states are considered "active" for the tracker.
+    const INACTIVE_STATUSES = ['Completed', 'Cancelled'];
+
+    function isActiveOrder(order) {
+        const status = order.status || 'Pending';
+        return INACTIVE_STATUSES.indexOf(status) === -1;
+    }
+
     window.onload = function() {
         applyRateLimitUI();
 
         const params = new URLSearchParams(window.location.search);
         const urlPhone = params.get('phone');
+        const urlId = params.get('id');
+
         if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
             $('trackPhoneInput').value = urlPhone;
             if (!checkRateLimit().allowed) {
                 applyRateLimitUI();
             } else {
-                trackOrder();
+                // If ?id= is present, we still fetch by phone (to apply the
+                // active filter and build the list if needed), then jump
+                // straight to the matching order.
+                trackOrder(urlId || null);
             }
         }
         $('trackPhoneInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') trackOrder();
+            if (e.key === 'Enter') trackOrder(null);
         });
     };
 
-    async function trackOrder() {
+    async function trackOrder(preferredOrderId) {
         const input = $('trackPhoneInput');
         const phone = input.value.trim();
         const btn = $('trackBtn');
-        const statusMsg = $('statusMsg');
 
         const rl = checkRateLimit();
         if (!rl.allowed) {
@@ -663,29 +867,69 @@
         btn.disabled = true;
         btn.innerHTML = '<span>Loading...</span>';
         setStatus('Looking up your order...', '#7dd3fc', 0);
-        $('resultCard').classList.remove('show');
+        clearAllViews();
 
         try {
             const { data, error } = await supabaseClient
                 .from('orders')
                 .select('*')
                 .eq('phone_ending', phone)
-                .order('created_at', { ascending: false })
-                .limit(1);
+                .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            if (!data || data.length === 0) {
-                recordFailure();
-                setStatus(`No order found for ID "${phone}". If you just placed one, please wait a moment and try again.`, '#ffb74d', 6000);
-                $('resultCard').classList.remove('show');
+            // Filter to active only (matches what the customer needs to see)
+            const activeOrders = (data || []).filter(isActiveOrder);
+
+            if (activeOrders.length === 0) {
+                // No active orders. Check if they have any orders at all —
+                // if so, they might be looking for a completed one.
+                const hadAnyOrders = (data || []).length > 0;
+                recordSuccess();
+                currentPhone = phone;
+                currentOrders = [];
+                currentOrder = null;
+                currentOrderId = null;
+                setStatus('');
+                showNoActiveOrders(phone, hadAnyOrders);
                 return;
             }
 
             recordSuccess();
             currentPhone = phone;
-            currentOrder = data[0];
-            renderTracker(data[0]);
+            currentOrders = activeOrders;
+
+            if (activeOrders.length === 1) {
+                // Single active order — straight to tracker (no list, no bar)
+                currentOrder = activeOrders[0];
+                currentOrderId = String(activeOrders[0].id || activeOrders[0].order_id);
+                renderTracker(activeOrders[0]);
+                setStatus('');
+                // Update URL so refresh keeps them on this order
+                const newUrl = window.location.pathname + '?phone=' + encodeURIComponent(phone) + '&id=' + encodeURIComponent(currentOrderId);
+                window.history.replaceState({}, '', newUrl);
+                return;
+            }
+
+            // 2+ active orders
+            if (preferredOrderId) {
+                // Came in with ?id= — jump straight to that order if it's
+                // in the active list, otherwise fall back to the list.
+                const preferred = activeOrders.find(o =>
+                    String(o.id || o.order_id) === String(preferredOrderId)
+                );
+                if (preferred) {
+                    currentOrder = preferred;
+                    currentOrderId = String(preferred.id || preferred.order_id);
+                    renderTracker(preferred);
+                    setStatus('');
+                    $('backToOrdersBar').classList.add('show');
+                    return;
+                }
+            }
+
+            // Show the list
+            renderOrderList(activeOrders);
             setStatus('');
 
         } catch (err) {
@@ -703,8 +947,129 @@
         }
     }
 
+    function clearAllViews() {
+        $('resultCard').classList.remove('show');
+        $('orderListCard').classList.remove('show');
+        $('noActiveCard').classList.remove('show');
+        $('backToOrdersBar').classList.remove('show');
+    }
+
+    function showNoActiveOrders(phone, hadAnyOrders) {
+        clearAllViews();
+        const card = $('noActiveCard');
+        const body = $('noActiveBody');
+        const wa = APP_CONFIG.whatsappNumber || '';
+
+        if (hadAnyOrders) {
+            body.innerHTML = 'We found past orders for <strong>' + escapeHtml(phone) + '</strong>, but none are currently active — they\'ve either been completed or cancelled.<br><br>If you need to check a completed order, message us and we\'ll look it up.';
+        } else {
+            body.innerHTML = 'We couldn\'t find any orders for <strong>' + escapeHtml(phone) + '</strong>. If you just placed one, please wait a moment and try again.<br><br>Otherwise, message us on WhatsApp and we\'ll check.';
+        }
+
+        const prefill = 'Hi, I\'m checking on my order (phone ending ' + phone + ').';
+        $('noActiveWaBtn').href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(prefill);
+        card.classList.add('show');
+    }
+
+    function renderOrderList(orders) {
+        clearAllViews();
+        const card = $('orderListCard');
+        const list = $('orderList');
+        const subtitle = $('orderListSubtitle');
+
+        list.innerHTML = '';
+        subtitle.textContent = 'We found ' + orders.length + ' active orders for ' + currentPhone + '. Tap one to see its progress.';
+
+        orders.forEach(order => {
+            const item = document.createElement('div');
+            item.className = 'order-list-item';
+            const orderId = String(order.id || order.order_id);
+
+            const stage = order.progress_stage || 'Order Received';
+            let pillClass = '';
+            if (stage === 'In Progress') pillClass = 'in-progress';
+            else if (stage === 'Confirmed') pillClass = 'confirmed';
+
+            const serviceLabels = {
+                'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
+                'system_setup': 'System Setup',
+                'games_only': 'Games Only'
+            };
+            const serviceLabel = serviceLabels[order.service_type] || 'Order';
+
+            const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+            const total = order.estimated_price ? 'RM' + Math.round(order.estimated_price) : '';
+            const created = order.created_at
+                ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
+                : '';
+
+            item.innerHTML = ''
+                + '<div class="order-list-item-header">'
+                + '  <div class="order-list-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
+                + '  <span class="order-list-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
+                + '</div>'
+                + '<div class="order-list-detail">'
+                +   escapeHtml(serviceLabel) + ' &nbsp;·&nbsp; <strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : '')
+                +   (total ? ' &nbsp;·&nbsp; <strong>' + total + '</strong>' : '')
+                + '</div>'
+                + '<div class="order-list-date">Placed ' + escapeHtml(created) + '</div>';
+
+            item.onclick = () => selectOrderFromList(orderId);
+            list.appendChild(item);
+        });
+
+        card.classList.add('show');
+    }
+
+    function selectOrderFromList(orderId) {
+        const order = currentOrders.find(o => String(o.id || o.order_id) === String(orderId));
+        if (!order) return;
+        currentOrder = order;
+        currentOrderId = String(order.id || order.order_id);
+        renderTracker(order);
+        $('orderListCard').classList.remove('show');
+        $('noActiveCard').classList.remove('show');
+        $('backToOrdersBar').classList.add('show');
+        // Push state so browser Back returns to the list
+        const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone) + '&id=' + encodeURIComponent(currentOrderId);
+        window.history.pushState({ orderId: currentOrderId }, '', url);
+    }
+
+    function showOrderListAgain() {
+        if (!currentOrders || currentOrders.length < 2) return;
+        $('resultCard').classList.remove('show');
+        $('backToOrdersBar').classList.remove('show');
+        renderOrderList(currentOrders);
+        // Reset URL to phone only
+        const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
+        window.history.pushState({}, '', url);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Handle browser back/forward
+    window.addEventListener('popstate', function(e) {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        if (!currentPhone || !currentOrders) return;
+        if (id) {
+            const order = currentOrders.find(o => String(o.id || o.order_id) === String(id));
+            if (order) {
+                currentOrder = order;
+                currentOrderId = String(id);
+                renderTracker(order);
+                $('orderListCard').classList.remove('show');
+                $('backToOrdersBar').classList.add('show');
+                return;
+            }
+        }
+        // No id → show list
+        $('resultCard').classList.remove('show');
+        $('backToOrdersBar').classList.remove('show');
+        if (currentOrders.length >= 2) renderOrderList(currentOrders);
+    });
+
     async function refreshOrder() {
-        if (!currentPhone) return;
+        if (!currentPhone || !currentOrderId) return;
         const btn = $('refreshBtn');
         btn.disabled = true;
         btn.classList.add('loading');
@@ -712,14 +1077,16 @@
             const { data, error } = await supabaseClient
                 .from('orders')
                 .select('*')
-                .eq('phone_ending', currentPhone)
-                .order('created_at', { ascending: false })
+                .eq('id', currentOrderId)
                 .limit(1);
             if (error) throw error;
             if (data && data.length > 0) {
                 currentOrder = data[0];
                 renderTracker(data[0]);
                 setStatus('Status updated.', '#00e676', 3000);
+            } else {
+                // The order was deleted while the customer was viewing it.
+                setStatus('This order is no longer available.', '#e57373', 5000);
             }
         } catch (err) {
             console.error(err);
@@ -735,7 +1102,10 @@
             alert('No active order to copy.');
             return;
         }
-        const url = window.location.origin + window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
+        let url = window.location.origin + window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
+        if (currentOrderId) {
+            url += '&id=' + encodeURIComponent(currentOrderId);
+        }
         navigator.clipboard.writeText(url).then(() => {
             const originalText = btnElement.innerHTML;
             btnElement.innerHTML = 'Copied';
@@ -764,6 +1134,16 @@
                 setTimeout(() => { if (el.classList.contains('fading')) { el.innerText = ''; el.classList.remove('fading'); } }, 400);
             }, autoDismissMs);
         }
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function renderTracker(order) {
