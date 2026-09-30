@@ -103,7 +103,6 @@
         .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-        /* Selection toolbar above order list */
         .selection-toolbar {
             display: flex; justify-content: space-between; align-items: center;
             gap: 10px; flex-wrap: wrap;
@@ -139,7 +138,6 @@
             border-color: #00e676;
         }
 
-        /* Bulk select checkbox on card */
         .card-select-wrap {
             position: absolute;
             top: 12px; right: 12px;
@@ -161,7 +159,7 @@
         .order-header {
             display: flex; justify-content: space-between; align-items: flex-start;
             flex-wrap: wrap; gap: 8px;
-            padding-right: 44px; /* leave room for the bulk checkbox */
+            padding-right: 44px;
         }
         .customer-info {
             font-size: 14px; font-weight: bold; display: flex; flex-direction: column;
@@ -278,7 +276,6 @@
         }
         .order-actions-row > div { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        /* ===== BULK ACTION BAR (floating at bottom) ===== */
         .bulk-bar {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -346,7 +343,6 @@
         }
         .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
 
-        /* MODALS */
         #orderModalOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(0, 0, 0, 0.85); display: none;
@@ -557,7 +553,7 @@
             <p>Enter your admin email and password</p>
             <input type="email" id="adminEmail" placeholder="Email" autocomplete="email">
             <input type="password" id="adminPassword" placeholder="Password" autocomplete="current-password">
-            <button onclick="login()">Log In</button>
+            <button type="button" id="loginBtn">Log In</button>
         </div>
     </div>
 
@@ -593,7 +589,6 @@
             </div>
         </div>
 
-        <!-- Selection toolbar -->
         <div class="selection-toolbar" id="selectionToolbar">
             <div class="selection-toolbar-left">
                 <label class="select-all-label">
@@ -612,7 +607,6 @@
         </footer>
     </div>
 
-    <!-- Bulk action bar (floating) -->
     <div id="bulkBar" class="bulk-bar" style="display:none;">
         <div class="bulk-bar-inner">
             <div class="bulk-bar-info">
@@ -685,80 +679,130 @@
 
     <script src="config.js"></script>
     <script>
+    // =========================================================
+    // SAFETY: catch any runtime error and surface it
+    // =========================================================
     window.addEventListener('error', function(e) {
-    alert('CRASH DETECTED\n\nMessage: ' + e.message + '\n\nLine: ' + e.lineno + ', Column: ' + e.colno);
-});
-    
-        const supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
-        let allOrders = [];
-        let currentStatusFilter = 'ALL';
-        let currentModalGames = [];
-        let currentRemarksOrderId = null;
-        let orderCountByPhone = {};
-        let bulkSelectedIds = new Set();  // Stores order IDs currently checked
+        if (e && e.message && e.message.indexOf('ResizeObserver') === -1) {
+            // Uncomment to debug: alert('JS ERROR: ' + e.message + ' (line ' + e.lineno + ')');
+            console.error('JS ERROR:', e.message, 'line', e.lineno);
+        }
+    });
 
-        const PROGRESS_STAGES = (APP_CONFIG.progressStages) || [
-            'Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'
-        ];
-        const SUBSTAGES_BY_SERVICE = (APP_CONFIG.subStagesByService) || {
-            'jailbreak':    ['Modchip Installation', 'System Setup', 'Game Installation'],
-            'system_setup': ['System Setup', 'Game Installation'],
-            'games_only':   ['Game Installation']
-        };
-        const STAGE_ICONS = {
-            'Order Received':   '\u2022',
-            'Confirmed':        '\u2713',
-            'In Progress':      '\u25D0',
-            'Ready for Pickup': '\u25D1',
-            'Completed':        '\u2713'
-        };
+    // =========================================================
+    // BOOTSTRAP
+    // =========================================================
+    var supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
-        // ====== Mapping Progress Stage → Status ======
-        // When the admin changes the progress stage, we auto-set the
-        // status to match, unless they've overridden it manually.
-        const STAGE_TO_STATUS = {
-            'Order Received':   'Pending',
-            'Confirmed':        'Pending',
-            'In Progress':      'In Progress',
-            'Ready for Pickup': 'In Progress',
-            'Completed':        'Completed'
-        };
+    var allOrders = [];
+    var currentStatusFilter = 'ALL';
+    var currentModalGames = [];
+    var currentRemarksOrderId = null;
+    var orderCountByPhone = {};
+    var bulkSelectedIds = {};
 
-        window.onload = async function() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                document.getElementById('loginOverlay').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
-                loadOrders();
-            }
-        };
+    var PROGRESS_STAGES = (APP_CONFIG.progressStages) || [
+        'Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'
+    ];
+    var SUBSTAGES_BY_SERVICE = (APP_CONFIG.subStagesByService) || {
+        'jailbreak':    ['Modchip Installation', 'System Setup', 'Game Installation'],
+        'system_setup': ['System Setup', 'Game Installation'],
+        'games_only':   ['Game Installation']
+    };
+    var STAGE_ICONS = {
+        'Order Received':   '\u2022',
+        'Confirmed':        '\u2713',
+        'In Progress':      '\u25D0',
+        'Ready for Pickup': '\u25D1',
+        'Completed':        '\u2713'
+    };
+    var STAGE_TO_STATUS = {
+        'Order Received':   'Pending',
+        'Confirmed':        'Pending',
+        'In Progress':      'In Progress',
+        'Ready for Pickup': 'In Progress',
+        'Completed':        'Completed'
+    };
 
-        // ============ EVENT DELEGATION ============
+    // =========================================================
+    // LOGIN
+    // =========================================================
+    function login() {
+        var emailEl = document.getElementById('adminEmail');
+        var passEl = document.getElementById('adminPassword');
+        var email = emailEl ? emailEl.value.trim() : '';
+        var password = passEl ? passEl.value : '';
+
+        if (!email || !password) {
+            alert('Please enter both email and password.');
+            return;
+        }
+
+        supabaseClient.auth.signInWithPassword({ email: email, password: password })
+            .then(function(result) {
+                if (result.error) {
+                    alert('Login failed: ' + result.error.message);
+                    return;
+                }
+                if (!result.data || !result.data.session) {
+                    alert('Login returned no session.');
+                    return;
+                }
+                location.reload();
+            })
+            .catch(function(err) {
+                alert('Login exception: ' + (err && err.message ? err.message : String(err)));
+            });
+    }
+
+    function logout() {
+        supabaseClient.auth.signOut().then(function() { location.reload(); });
+    }
+
+    // =========================================================
+    // WIRE UP UI ON DOM READY
+    // =========================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        var loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                login();
+            });
+        }
+        var passEl = document.getElementById('adminPassword');
+        if (passEl) {
+            passEl.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') { e.preventDefault(); login(); }
+            });
+        }
+
+        // Global click handler for order card buttons
         document.addEventListener('click', function(e) {
-            if (!e.target) return;
-            const t = e.target;
-            if (t.classList.contains('view-btn')) openOrderModal(t.getAttribute('data-order-id'));
-            else if (t.classList.contains('delete-btn')) deleteOrder(t.getAttribute('data-order-id'));
-            else if (t.classList.contains('edit-wa-btn')) editWhatsappUsername(t.getAttribute('data-order-id'));
+            if (!e.target || !e.target.classList) return;
+            var t = e.target;
+            var id = t.getAttribute ? t.getAttribute('data-order-id') : null;
+
+            if (t.classList.contains('view-btn')) openOrderModal(id);
+            else if (t.classList.contains('delete-btn')) deleteOrder(id);
+            else if (t.classList.contains('edit-wa-btn')) editWhatsappUsername(id);
             else if (t.classList.contains('edit-remarks-btn')) {
-                const id = t.getAttribute('data-order-id');
                 if (id) openRemarksModal(id);
                 else if (currentRemarksOrderId) openRemarksModal(currentRemarksOrderId);
             }
-            else if (t.classList.contains('copy-main-btn')) copyGamesForScriptMain(t.getAttribute('data-order-id'), t);
-            else if (t.classList.contains('more-games-link')) openOrderModal(t.getAttribute('data-order-id'));
-            else if (t.classList.contains('notify-btn')) notifyCustomer(t.getAttribute('data-order-id'));
-            else if (t.classList.contains('copy-track-btn')) copyTrackingLink(t.getAttribute('data-order-id'), t);
+            else if (t.classList.contains('copy-main-btn')) copyGamesForScriptMain(id, t);
+            else if (t.classList.contains('more-games-link')) openOrderModal(id);
+            else if (t.classList.contains('notify-btn')) notifyCustomer(id);
+            else if (t.classList.contains('copy-track-btn')) copyTrackingLink(id, t);
         });
 
-        // Handle bulk checkbox changes separately (change event, not click)
         document.addEventListener('change', function(e) {
-            if (!e.target) return;
-            if (e.target.classList && e.target.classList.contains('bulk-checkbox')) {
-                const id = e.target.getAttribute('data-order-id');
-                if (e.target.checked) bulkSelectedIds.add(String(id));
-                else bulkSelectedIds.delete(String(id));
-                const card = e.target.closest('.order-card');
+            if (!e.target || !e.target.classList) return;
+            if (e.target.classList.contains('bulk-checkbox')) {
+                var id = e.target.getAttribute('data-order-id');
+                if (e.target.checked) bulkSelectedIds[String(id)] = true;
+                else delete bulkSelectedIds[String(id)];
+                var card = e.target.closest ? e.target.closest('.order-card') : null;
                 if (card) {
                     if (e.target.checked) card.classList.add('selected-for-bulk');
                     else card.classList.remove('selected-for-bulk');
@@ -767,464 +811,436 @@
             }
         });
 
-        async function login() {
-            const email = document.getElementById('adminEmail').value;
-            const password = document.getElementById('adminPassword').value;
-            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-            if (error) alert('Login failed: ' + error.message);
-            else location.reload();
-        }
+        // Check for existing session and load dashboard if logged in
+        supabaseClient.auth.getSession().then(function(res) {
+            if (res && res.data && res.data.session) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                loadOrders();
+            }
+        });
+    });
 
-        async function logout() {
-            await supabaseClient.auth.signOut();
-            location.reload();
-        }
-
-        async function loadOrders() {
-            const container = document.getElementById('ordersContainer');
-            container.innerHTML = '<div class="no-orders">Loading orders...</div>';
-            try {
-                const { data, error } = await supabaseClient
-                    .from('orders').select('*')
-                    .order('created_at', { ascending: false });
-                if (error) throw error;
-                allOrders = data || [];
+    // =========================================================
+    // DATA LOADING
+    // =========================================================
+    function loadOrders() {
+        var container = document.getElementById('ordersContainer');
+        container.innerHTML = '<div class="no-orders">Loading orders...</div>';
+        supabaseClient
+            .from('orders')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .then(function(res) {
+                if (res.error) {
+                    alert('Error loading orders: ' + res.error.message);
+                    return;
+                }
+                allOrders = res.data || [];
                 orderCountByPhone = {};
-                allOrders.forEach(o => {
-                    const p = o.phone_ending || '';
+                allOrders.forEach(function(o) {
+                    var p = o.phone_ending || '';
                     orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
                 });
-                // Clear bulk selection on reload
-                bulkSelectedIds.clear();
+                bulkSelectedIds = {};
                 updateStats();
                 filterAndRenderOrders();
-            } catch (err) {
-                alert('Error loading orders: ' + err.message);
-            }
-        }
+            });
+    }
 
-        function updateStats() {
-            document.getElementById('statTotal').innerText = allOrders.length;
-            document.getElementById('statPending').innerText = allOrders.filter(o => (o.status || 'Pending') === 'Pending').length;
-            document.getElementById('statInProgress').innerText = allOrders.filter(o => o.status === 'In Progress').length;
-            const totalRev = allOrders
-                .filter(o => o.status !== 'Cancelled')
-                .reduce((sum, o) => sum + (Number(o.estimated_price) || 0), 0);
-            document.getElementById('statRevenue').innerText = `RM${Math.round(totalRev)}`;
-        }
+    function updateStats() {
+        document.getElementById('statTotal').innerText = allOrders.length;
+        var pending = 0, inProg = 0, revenue = 0;
+        allOrders.forEach(function(o) {
+            var s = o.status || 'Pending';
+            if (s === 'Pending') pending++;
+            if (s === 'In Progress') inProg++;
+            if (s !== 'Cancelled') revenue += (Number(o.estimated_price) || 0);
+        });
+        document.getElementById('statPending').innerText = pending;
+        document.getElementById('statInProgress').innerText = inProg;
+        document.getElementById('statRevenue').innerText = 'RM' + Math.round(revenue);
+    }
 
-        function setStatusFilter(status, btn) {
-            currentStatusFilter = status;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            filterAndRenderOrders();
-        }
+    function setStatusFilter(status, btn) {
+        currentStatusFilter = status;
+        var btns = document.querySelectorAll('.filter-btn');
+        for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+        if (btn) btn.classList.add('active');
+        filterAndRenderOrders();
+    }
 
-        // ============ SINGLE-ORDER UPDATES ============
-
-        async function updateStatus(orderId, newStatus) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
-            const oldStatus = order.status;
-            order.status = newStatus;
-            const idField = order.id ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').update({ status: newStatus }).eq(idField, orderId);
-            if (error) {
-                alert('Failed to update status: ' + error.message);
+    // =========================================================
+    // SINGLE ORDER UPDATES
+    // =========================================================
+    function updateStatus(orderId, newStatus) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var oldStatus = order.status;
+        order.status = newStatus;
+        var idField = order.id ? 'id' : 'order_id';
+        supabaseClient.from('orders').update({ status: newStatus }).eq(idField, orderId).then(function(res) {
+            if (res.error) {
+                alert('Failed to update status: ' + res.error.message);
                 order.status = oldStatus;
             }
             updateStats();
             filterAndRenderOrders();
+        });
+    }
+
+    function updateProgress(orderId, newStage) {
+        var order = findOrder(orderId);
+        if (!order) return;
+
+        var oldStage = order.progress_stage;
+        var oldSub = order.progress_substage;
+        var oldStatus = order.status;
+
+        order.progress_stage = newStage;
+
+        var newSub = null;
+        if (newStage === 'In Progress') {
+            var list = SUBSTAGES_BY_SERVICE[order.service_type] || [];
+            newSub = list[0] || null;
         }
+        order.progress_substage = newSub;
+        order.progress_updated_at = new Date().toISOString();
 
-        async function updateProgress(orderId, newStage) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
+        var derivedStatus = STAGE_TO_STATUS[newStage];
+        var statusChanged = derivedStatus && derivedStatus !== order.status;
+        if (statusChanged) order.status = derivedStatus;
 
-            const oldStage = order.progress_stage;
-            const oldSub = order.progress_substage;
-            const oldStatus = order.status;
+        var idField = order.id ? 'id' : 'order_id';
+        var payload = {
+            progress_stage: newStage,
+            progress_substage: newSub,
+            progress_updated_at: order.progress_updated_at
+        };
+        if (statusChanged) payload.status = derivedStatus;
 
-            order.progress_stage = newStage;
-
-            // Auto-set substage when entering "In Progress"
-            let newSub = null;
-            if (newStage === 'In Progress') {
-                const list = SUBSTAGES_BY_SERVICE[order.service_type] || [];
-                newSub = list[0] || null;
-            }
-            order.progress_substage = newSub;
-            order.progress_updated_at = new Date().toISOString();
-
-            // Auto-sync status to match progress stage
-            const derivedStatus = STAGE_TO_STATUS[newStage];
-            const statusChanged = derivedStatus && derivedStatus !== order.status;
-            if (statusChanged) {
-                order.status = derivedStatus;
-            }
-
-            const idField = order.id ? 'id' : 'order_id';
-            const updatePayload = {
-                progress_stage: newStage,
-                progress_substage: newSub,
-                progress_updated_at: order.progress_updated_at
-            };
-            if (statusChanged) updatePayload.status = derivedStatus;
-
-            const { error } = await supabaseClient.from('orders').update(updatePayload).eq(idField, orderId);
-
-            if (error) {
-                alert('Failed to update progress: ' + error.message);
+        supabaseClient.from('orders').update(payload).eq(idField, orderId).then(function(res) {
+            if (res.error) {
+                alert('Failed to update progress: ' + res.error.message);
                 order.progress_stage = oldStage;
                 order.progress_substage = oldSub;
                 order.status = oldStatus;
                 return;
             }
-
             updateStats();
             filterAndRenderOrders();
+        });
+    }
 
-            const card = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
-            if (card) {
-                const notifyBtn = card.querySelector('.notify-btn');
-                if (notifyBtn && order.whatsapp_username) notifyBtn.classList.add('visible');
-            }
-        }
-
-        async function updateSubstage(orderId, newSub) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
-
-            const oldSub = order.progress_substage;
-            order.progress_substage = newSub;
-            order.progress_updated_at = new Date().toISOString();
-
-            const idField = order.id ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').update({
-                progress_substage: newSub,
-                progress_updated_at: order.progress_updated_at
-            }).eq(idField, orderId);
-
-            if (error) {
-                alert('Failed to update substage: ' + error.message);
+    function updateSubstage(orderId, newSub) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var oldSub = order.progress_substage;
+        order.progress_substage = newSub;
+        order.progress_updated_at = new Date().toISOString();
+        var idField = order.id ? 'id' : 'order_id';
+        supabaseClient.from('orders').update({
+            progress_substage: newSub,
+            progress_updated_at: order.progress_updated_at
+        }).eq(idField, orderId).then(function(res) {
+            if (res.error) {
+                alert('Failed to update substage: ' + res.error.message);
                 order.progress_substage = oldSub;
                 return;
             }
-
             filterAndRenderOrders();
+        });
+    }
 
-            const card = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
-            if (card) {
-                const notifyBtn = card.querySelector('.notify-btn');
-                if (notifyBtn && order.whatsapp_username) notifyBtn.classList.add('visible');
-            }
+    function findOrder(orderId) {
+        var target = String(orderId);
+        for (var i = 0; i < allOrders.length; i++) {
+            var o = allOrders[i];
+            if (String(o.id) === target || String(o.order_id) === target) return o;
+        }
+        return null;
+    }
+
+    // =========================================================
+    // NOTIFY CUSTOMER — opens WhatsApp app
+    // =========================================================
+    function notifyCustomer(orderId) {
+        var order = findOrder(orderId);
+        if (!order) return;
+
+        var waUsername = (order.whatsapp_username || '').trim();
+        if (!waUsername) {
+            alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.');
+            return;
         }
 
-        // ============ NOTIFY CUSTOMER (opens WhatsApp app) ============
-        function notifyCustomer(orderId) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
+        var stage = order.progress_stage || 'Order Received';
+        var sub = order.progress_substage;
+        var msg = 'Hi! Quick update on your order (#' + (order.phone_ending || '') + ').\n\n';
+        msg += 'Current stage: ' + stage;
+        if (sub) msg += ' - ' + sub;
+        msg += '\n\nTrack live here: ' + buildTrackingUrl(order.phone_ending);
 
-            // No WhatsApp username on file → fall back to clipboard + warning
-            const waUsername = (order.whatsapp_username || '').trim();
-            if (!waUsername) {
-                alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.');
-                return;
+        var encoded = encodeURIComponent(msg);
+        var digitsOnly = waUsername.replace(/[^\d]/g, '');
+
+        var waUrl;
+        if (digitsOnly.length >= 8) {
+            var intl = digitsOnly;
+            if (intl.charAt(0) === '0') {
+                intl = '60' + intl.slice(1);
             }
-
-            const stage = order.progress_stage || 'Order Received';
-            const sub = order.progress_substage;
-            let msg = `Hi! Quick update on your order (#${order.phone_ending || ''}).\n\n`;
-            msg += `Current stage: ${stage}`;
-            if (sub) msg += ` — ${sub}`;
-            msg += `\n\nTrack live here: ${buildTrackingUrl(order.phone_ending)}`;
-
-            const encoded = encodeURIComponent(msg);
-
-            // Decide target:
-            // - If the WA username looks like a phone number (digits, +, spaces, dashes),
-            //   use the wa.me deep link for that specific contact.
-            // - Otherwise fall back to a generic "share to WhatsApp" link where
-            //   the admin picks the contact from their address book.
-            const digitsOnly = waUsername.replace(/[^\d]/g, '');
-            let waUrl;
-            if (digitsOnly.length >= 8) {
-                // Convert to international format if it looks local (starts with 0)
-                let intl = digitsOnly;
-                if (intl.startsWith('0')) {
-                    // Assume Malaysia (+60) — adjust this if your customers are elsewhere
-                    intl = '60' + intl.slice(1);
-                }
-                waUrl = `https://wa.me/${intl}?text=${encoded}`;
-            } else {
-                // Fallback: generic WhatsApp share — admin picks the chat
-                waUrl = `https://wa.me/?text=${encoded}`;
-            }
-
-            // Open WhatsApp app (falls back to Web on desktop automatically)
-            try {
-                const a = document.createElement('a');
-                a.href = waUrl;
-                a.target = '_blank';
-                a.rel = 'noopener noreferrer';
-                a.style.display = 'none';
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(() => document.body.removeChild(a), 100);
-            } catch (err) {
-                window.open(waUrl, '_blank');
-            }
+            waUrl = 'https://wa.me/' + intl + '?text=' + encoded;
+        } else {
+            waUrl = 'https://wa.me/?text=' + encoded;
         }
 
-        function buildTrackingUrl(phoneEnding) {
-            if (!phoneEnding) return '';
-            const base = window.location.origin + window.location.pathname.replace('admin.html', 'track.html');
-            return `${base}?phone=${encodeURIComponent(phoneEnding)}`;
+        try {
+            var a = document.createElement('a');
+            a.href = waUrl;
+            a.target = '_blank';
+            a.rel = 'noopener noreferrer';
+            a.style.display = 'none';
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(function() { if (a.parentNode) document.body.removeChild(a); }, 100);
+        } catch (err) {
+            window.open(waUrl, '_blank');
         }
+    }
 
-        function copyTrackingLink(orderId, btnElement) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
-            const url = buildTrackingUrl(order.phone_ending);
-            if (!url) {
-                alert('This order has no Order ID to track.');
-                return;
-            }
-            navigator.clipboard.writeText(url).then(() => {
-                const originalText = btnElement.innerHTML;
-                btnElement.innerHTML = 'Copied';
-                btnElement.style.background = '#7dd3fc';
-                btnElement.style.color = '#14110a';
-                btnElement.style.borderColor = '#7dd3fc';
-                setTimeout(() => {
-                    btnElement.innerHTML = originalText;
-                    btnElement.style.background = '#2e2716';
-                    btnElement.style.color = '#7dd3fc';
-                    btnElement.style.borderColor = '#3a3018';
-                }, 2000);
-            }).catch(err => alert('Failed to copy link: ' + err));
+    function buildTrackingUrl(phoneEnding) {
+        if (!phoneEnding) return '';
+        var base = window.location.origin + window.location.pathname.replace('admin.html', 'track.html');
+        return base + '?phone=' + encodeURIComponent(phoneEnding);
+    }
+
+    function copyTrackingLink(orderId, btnElement) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var url = buildTrackingUrl(order.phone_ending);
+        if (!url) {
+            alert('This order has no Order ID to track.');
+            return;
         }
+        navigator.clipboard.writeText(url).then(function() {
+            var originalText = btnElement.innerHTML;
+            btnElement.innerHTML = 'Copied';
+            btnElement.style.background = '#7dd3fc';
+            btnElement.style.color = '#14110a';
+            btnElement.style.borderColor = '#7dd3fc';
+            setTimeout(function() {
+                btnElement.innerHTML = originalText;
+                btnElement.style.background = '#2e2716';
+                btnElement.style.color = '#7dd3fc';
+                btnElement.style.borderColor = '#3a3018';
+            }, 2000);
+        }).catch(function(err) {
+            alert('Failed to copy link: ' + err);
+        });
+    }
 
-        async function editWhatsappUsername(orderId) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
-            const currentWa = order.whatsapp_username || '';
-            const newWa = prompt("Enter WhatsApp contact name OR phone number (e.g. 60123456789):", currentWa);
-            if (newWa === null) return;
-            const trimmedWa = newWa.trim();
-            const oldWa = order.whatsapp_username;
-            order.whatsapp_username = trimmedWa;
-            const idField = order.id ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').update({ whatsapp_username: trimmedWa }).eq(idField, orderId);
-            if (error) {
-                alert('Failed to update WhatsApp username: ' + error.message);
+    function editWhatsappUsername(orderId) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var currentWa = order.whatsapp_username || '';
+        var newWa = prompt('Enter WhatsApp contact name OR phone number (e.g. 60123456789):', currentWa);
+        if (newWa === null) return;
+        var trimmedWa = newWa.trim();
+        var oldWa = order.whatsapp_username;
+        order.whatsapp_username = trimmedWa;
+        var idField = order.id ? 'id' : 'order_id';
+        supabaseClient.from('orders').update({ whatsapp_username: trimmedWa }).eq(idField, orderId).then(function(res) {
+            if (res.error) {
+                alert('Failed to update WhatsApp username: ' + res.error.message);
                 order.whatsapp_username = oldWa;
             }
             filterAndRenderOrders();
+        });
+    }
+
+    // =========================================================
+    // BULK ACTIONS
+    // =========================================================
+    function bulkCount() {
+        var n = 0;
+        for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) n++;
+        return n;
+    }
+
+    function bulkKeys() {
+        var arr = [];
+        for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) arr.push(k);
+        return arr;
+    }
+
+    function toggleSelectAll(checked) {
+        var checkboxes = document.querySelectorAll('.bulk-checkbox');
+        for (var i = 0; i < checkboxes.length; i++) {
+            var cb = checkboxes[i];
+            var id = String(cb.getAttribute('data-order-id'));
+            if (checked) bulkSelectedIds[id] = true;
+            else delete bulkSelectedIds[id];
+            cb.checked = checked;
+            var card = cb.closest ? cb.closest('.order-card') : null;
+            if (card) {
+                if (checked) card.classList.add('selected-for-bulk');
+                else card.classList.remove('selected-for-bulk');
+            }
         }
+        updateBulkBarUI();
+    }
 
-        // ============ BULK ACTIONS ============
-        function toggleSelectAll(checked) {
-            // Only affects currently-rendered (visible) cards
-            const visibleIds = Array.from(document.querySelectorAll('.bulk-checkbox'))
-                .map(cb => cb.getAttribute('data-order-id'));
+    function clearBulkSelection() {
+        bulkSelectedIds = {};
+        var checkboxes = document.querySelectorAll('.bulk-checkbox');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = false;
+            var card = checkboxes[i].closest ? checkboxes[i].closest('.order-card') : null;
+            if (card) card.classList.remove('selected-for-bulk');
+        }
+        var selAll = document.getElementById('selectAllCheckbox');
+        if (selAll) { selAll.checked = false; selAll.indeterminate = false; }
+        updateBulkBarUI();
+    }
 
-            if (checked) {
-                visibleIds.forEach(id => bulkSelectedIds.add(String(id)));
+    function updateBulkBarUI() {
+        var n = bulkCount();
+        var bar = document.getElementById('bulkBar');
+        var counter = document.getElementById('selectionCount');
+        var bulkCountEl = document.getElementById('bulkCount');
+        var bulkCountPlural = document.getElementById('bulkCountPlural');
+        var selAll = document.getElementById('selectAllCheckbox');
+
+        if (counter) counter.innerText = n + ' selected';
+        if (bar) bar.style.display = n > 0 ? 'block' : 'none';
+        if (bulkCountEl) bulkCountEl.innerText = n;
+        if (bulkCountPlural) bulkCountPlural.textContent = n === 1 ? '' : 's';
+
+        if (selAll) {
+            var checkboxes = document.querySelectorAll('.bulk-checkbox');
+            var total = checkboxes.length;
+            var selected = 0;
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (bulkSelectedIds[String(checkboxes[i].getAttribute('data-order-id'))]) selected++;
+            }
+            if (total === 0 || selected === 0) {
+                selAll.checked = false; selAll.indeterminate = false;
+            } else if (selected === total) {
+                selAll.checked = true; selAll.indeterminate = false;
             } else {
-                visibleIds.forEach(id => bulkSelectedIds.delete(String(id)));
+                selAll.checked = false; selAll.indeterminate = true;
             }
+        }
+    }
 
-            // Sync checkboxes on-screen
-            document.querySelectorAll('.bulk-checkbox').forEach(cb => {
-                const id = String(cb.getAttribute('data-order-id'));
-                cb.checked = bulkSelectedIds.has(id);
-                const card = cb.closest('.order-card');
-                if (card) {
-                    if (cb.checked) card.classList.add('selected-for-bulk');
-                    else card.classList.remove('selected-for-bulk');
-                }
-            });
+    function bulkUpdateStatus() {
+        var n = bulkCount();
+        if (n === 0) return;
+        var word = n === 1 ? 'order' : 'orders';
+        var choiceMsg = 'Update ' + n + ' ' + word + ' to which status?\n\n' +
+                        '1 = Pending\n' +
+                        '2 = In Progress\n' +
+                        '3 = Completed\n' +
+                        '4 = Cancelled\n\n' +
+                        'Type the number (1-4):';
+        var choice = prompt(choiceMsg);
+        if (choice === null) return;
 
-            updateBulkBarUI();
+        var statusMap = { '1': 'Pending', '2': 'In Progress', '3': 'Completed', '4': 'Cancelled' };
+        var newStatus = statusMap[String(choice).trim()];
+        if (!newStatus) {
+            alert('Invalid choice. Please enter 1, 2, 3, or 4.');
+            return;
         }
 
-        function clearBulkSelection() {
-            bulkSelectedIds.clear();
-            document.querySelectorAll('.bulk-checkbox').forEach(cb => {
-                cb.checked = false;
-                const card = cb.closest('.order-card');
-                if (card) card.classList.remove('selected-for-bulk');
-            });
-            const selectAllCb = document.getElementById('selectAllCheckbox');
-            if (selectAllCb) selectAllCb.checked = false;
-            updateBulkBarUI();
+        var confirmMsg = 'Set ' + n + ' ' + word + ' to "' + newStatus + '"?';
+        if (!confirm(confirmMsg)) return;
+
+        var ids = bulkKeys();
+        for (var i = 0; i < ids.length; i++) {
+            var o = findOrder(ids[i]);
+            if (o) o.status = newStatus;
         }
 
-        function updateBulkBarUI() {
-            const count = bulkSelectedIds.size;
-            const bar = document.getElementById('bulkBar');
-            const counter = document.getElementById('selectionCount');
-            const bulkCount = document.getElementById('bulkCount');
-            const bulkCountPlural = document.getElementById('bulkCountPlural');
-            const selectAllCb = document.getElementById('selectAllCheckbox');
-
-            // Toolbar count
-            if (counter) counter.innerText = count === 0 ? '0 selected' : `${count} selected`;
-
-            // Floating bulk bar visibility
-            if (bar) {
-                if (count > 0) bar.style.display = 'block';
-                else bar.style.display = 'none';
-            }
-            if (bulkCount) bulkCount.innerText = count;
-            if (bulkCountPlural) bulkCountPlural.textContent = count === 1 ? '' : 's';
-
-            // Select-all tri-state: checked if all visible are selected
-            if (selectAllCb) {
-                const visibleIds = Array.from(document.querySelectorAll('.bulk-checkbox'))
-                    .map(cb => String(cb.getAttribute('data-order-id')));
-                if (visibleIds.length === 0) {
-                    selectAllCb.checked = false;
-                    selectAllCb.indeterminate = false;
-                } else {
-                    const selectedVisible = visibleIds.filter(id => bulkSelectedIds.has(id)).length;
-                    if (selectedVisible === 0) {
-                        selectAllCb.checked = false;
-                        selectAllCb.indeterminate = false;
-                    } else if (selectedVisible === visibleIds.length) {
-                        selectAllCb.checked = true;
-                        selectAllCb.indeterminate = false;
-                    } else {
-                        selectAllCb.checked = false;
-                        selectAllCb.indeterminate = true;
+        supabaseClient.from('orders').update({ status: newStatus }).in('id', ids).then(function(res) {
+            if (res.error) {
+                supabaseClient.from('orders').update({ status: newStatus }).in('order_id', ids).then(function(res2) {
+                    if (res2.error) {
+                        alert('Bulk update failed: ' + res2.error.message);
+                        loadOrders();
+                        return;
                     }
-                }
-            }
-        }
-
-        async function bulkUpdateStatus() {
-            const count = bulkSelectedIds.size;
-            if (count === 0) return;
-
-            // Ask which status to apply
-            const choice = prompt(
-                `Update ${count} order${count === 1 ? '' : 's'} to which status?\n\n` +
-                `1 — Pending\n` +
-                `2 — In Progress\n` +
-                `3 — Completed\n` +
-                `4 — Cancelled\n\n` +
-                `Type the number (1-4):`
-            );
-            if (choice === null) return;
-
-            const statusMap = { '1': 'Pending', '2': 'In Progress', '3': 'Completed', '4': 'Cancelled' };
-            const newStatus = statusMap[String(choice).trim()];
-            if (!newStatus) {
-                alert('Invalid choice. Please enter 1, 2, 3, or 4.');
+                    clearBulkSelection();
+                    loadOrders();
+                });
                 return;
             }
-
-            if (!confirm(`Set ${count} order${count === 1 ? '' : 's'} to "${newStatus}"?`)) return;
-
-            const idsToUpdate = Array.from(bulkSelectedIds);
-
-            // Apply optimistic update locally
-            idsToUpdate.forEach(id => {
-                const order = allOrders.find(o => String(o.id) === String(id) || String(o.order_id) === String(id));
-                if (order) order.status = newStatus;
-            });
-
-            // Supabase: batch update by matching either `id` or `order_id`
-            // We use `.in()` with the raw string IDs.
-            // If your table uses only `id`, this is fine.
-            // If it uses `order_id`, both patterns still match because we collected the raw key strings.
-            const { error } = await supabaseClient
-                .from('orders')
-                .update({ status: newStatus })
-                .in('id', idsToUpdate);
-
-            if (error) {
-                // Try fallback with order_id column
-                const { error: err2 } = await supabaseClient
-                    .from('orders')
-                    .update({ status: newStatus })
-                    .in('order_id', idsToUpdate);
-                if (err2) {
-                    alert('Bulk update failed: ' + err2.message);
-                    // Revert optimistic updates
-                    await loadOrders();
-                    return;
-                }
-            }
-
             clearBulkSelection();
-            await loadOrders();
-        }
+            loadOrders();
+        });
+    }
 
-        async function bulkDeleteOrders() {
-            const count = bulkSelectedIds.size;
-            if (count === 0) return;
+    function bulkDeleteOrders() {
+        var n = bulkCount();
+        if (n === 0) return;
+        var word = n === 1 ? 'order' : 'orders';
+        var confirmMsg = 'Delete ' + n + ' ' + word + '?\n\nThis cannot be undone.';
+        if (!confirm(confirmMsg)) return;
 
-            if (!confirm(`Delete ${count} order${count === 1 ? '' : 's'}?\n\nThis cannot be undone.`)) return;
-
-            const idsToDelete = Array.from(bulkSelectedIds);
-
-            // Supabase batch delete
-            const { error } = await supabaseClient
-                .from('orders')
-                .delete()
-                .in('id', idsToDelete);
-
-            if (error) {
-                // Fallback with order_id
-                const { error: err2 } = await supabaseClient
-                    .from('orders')
-                    .delete()
-                    .in('order_id', idsToDelete);
-                if (err2) {
-                    alert('Bulk delete failed: ' + err2.message);
-                    return;
-                }
+        var ids = bulkKeys();
+        supabaseClient.from('orders').delete().in('id', ids).then(function(res) {
+            if (res.error) {
+                supabaseClient.from('orders').delete().in('order_id', ids).then(function(res2) {
+                    if (res2.error) {
+                        alert('Bulk delete failed: ' + res2.error.message);
+                        return;
+                    }
+                    clearBulkSelection();
+                    loadOrders();
+                });
+                return;
             }
-
             clearBulkSelection();
-            await loadOrders();
-        }
+            loadOrders();
+        });
+    }
 
-        // ============ REMARKS MODAL ============
-        function openRemarksModal(orderId) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) { alert('Order not found.'); return; }
-            currentRemarksOrderId = orderId;
-            const textarea = document.getElementById('remarksEditTextarea');
-            textarea.value = order.remarks || '';
-            document.getElementById('remarksModalOverlay').style.display = 'flex';
-            setTimeout(() => textarea.focus(), 100);
-        }
+    // =========================================================
+    // REMARKS MODAL
+    // =========================================================
+    function openRemarksModal(orderId) {
+        var order = findOrder(orderId);
+        if (!order) { alert('Order not found.'); return; }
+        currentRemarksOrderId = orderId;
+        var ta = document.getElementById('remarksEditTextarea');
+        ta.value = order.remarks || '';
+        document.getElementById('remarksModalOverlay').style.display = 'flex';
+        setTimeout(function() { try { ta.focus(); } catch(e) {} }, 100);
+    }
 
-        function closeRemarksModal() {
-            document.getElementById('remarksModalOverlay').style.display = 'none';
-            currentRemarksOrderId = null;
-        }
+    function closeRemarksModal() {
+        document.getElementById('remarksModalOverlay').style.display = 'none';
+        currentRemarksOrderId = null;
+    }
 
-        function closeRemarksModalOnBackdrop(event) {
-            if (event.target.id === 'remarksModalOverlay') closeRemarksModal();
-        }
+    function closeRemarksModalOnBackdrop(event) {
+        if (event.target.id === 'remarksModalOverlay') closeRemarksModal();
+    }
 
-        async function saveRemarksEdit() {
-            if (!currentRemarksOrderId) return;
-            const order = allOrders.find(o => String(o.id) === String(currentRemarksOrderId) || String(o.order_id) === String(currentRemarksOrderId));
-            if (!order) { alert('Order not found.'); return; }
-            const newRemarks = document.getElementById('remarksEditTextarea').value.trim();
-            const oldRemarks = order.remarks;
-            const saveBtn = document.getElementById('saveRemarksBtn');
-            saveBtn.disabled = true;
-            saveBtn.innerText = 'Saving...';
-            const idField = order.id ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, currentRemarksOrderId);
-            if (error) {
-                alert('Failed to save remarks: ' + error.message);
+    function saveRemarksEdit() {
+        if (!currentRemarksOrderId) return;
+        var order = findOrder(currentRemarksOrderId);
+        if (!order) { alert('Order not found.'); return; }
+        var newRemarks = document.getElementById('remarksEditTextarea').value.trim();
+        var oldRemarks = order.remarks;
+        var saveBtn = document.getElementById('saveRemarksBtn');
+        saveBtn.disabled = true;
+        saveBtn.innerText = 'Saving...';
+        var idField = order.id ? 'id' : 'order_id';
+        supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, currentRemarksOrderId).then(function(res) {
+            if (res.error) {
+                alert('Failed to save remarks: ' + res.error.message);
                 order.remarks = oldRemarks;
                 saveBtn.disabled = false;
                 saveBtn.innerText = 'Save Remarks';
@@ -1235,317 +1251,362 @@
             saveBtn.innerText = 'Save Remarks';
             closeRemarksModal();
             filterAndRenderOrders();
+        });
+    }
+
+    // =========================================================
+    // HELPERS
+    // =========================================================
+    function sortGameList(gameList) {
+        var masterList = [];
+        if (typeof APP_CONFIG !== 'undefined') {
+            masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
         }
-
-        function sortGameList(gameList) {
-            let masterList = [];
-            if (typeof APP_CONFIG !== 'undefined') {
-                masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
-            }
-            const names = masterList.map(g => typeof g === 'string' ? g : g.name);
-            if (names.length > 0) {
-                gameList.sort((a, b) => {
-                    const ia = names.indexOf(a);
-                    const ib = names.indexOf(b);
-                    if (ia !== -1 && ib !== -1) return ia - ib;
-                    if (ia === -1 && ib !== -1) return 1;
-                    if (ia !== -1 && ib === -1) return -1;
-                    return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-                });
-            } else {
-                gameList.sort((a, b) => String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }));
-            }
-            return gameList;
+        var names = [];
+        for (var i = 0; i < masterList.length; i++) {
+            var g = masterList[i];
+            names.push(typeof g === 'string' ? g : g.name);
         }
-
-        function filterAndRenderOrders() {
-            const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
-            const container = document.getElementById('ordersContainer');
-
-            let filtered = allOrders.filter(order => {
-                const orderStatus = order.status || 'Pending';
-                if (currentStatusFilter !== 'ALL' && orderStatus !== currentStatusFilter) return false;
-                if (query) {
-                    const phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().includes(query);
-                    const waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().includes(query);
-                    const remarksMatch = order.remarks && order.remarks.toLowerCase().includes(query);
-                    const stageMatch = order.progress_stage && order.progress_stage.toLowerCase().includes(query);
-                    const substageMatch = order.progress_substage && order.progress_substage.toLowerCase().includes(query);
-                    let gameList = [];
-                    if (Array.isArray(order.games)) gameList = order.games;
-                    else if (typeof order.games === 'string') {
-                        try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(','); }
-                    }
-                    const gameMatch = gameList.some(g => String(g).toLowerCase().includes(query));
-                    return phoneMatch || waMatch || gameMatch || remarksMatch || stageMatch || substageMatch;
-                }
-                return true;
+        if (names.length > 0) {
+            gameList.sort(function(a, b) {
+                var ia = names.indexOf(a);
+                var ib = names.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia === -1 && ib !== -1) return 1;
+                if (ia !== -1 && ib === -1) return -1;
+                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
             });
+        } else {
+            gameList.sort(function(a, b) {
+                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
+            });
+        }
+        return gameList;
+    }
 
-            if (filtered.length === 0) {
-                container.innerHTML = '<div class="no-orders">No matching orders found.</div>';
-                updateBulkBarUI();
-                return;
+    function gameListOf(order) {
+        var list = [];
+        if (Array.isArray(order.games)) list = order.games;
+        else if (typeof order.games === 'string') {
+            try { list = JSON.parse(order.games); }
+            catch (e) { list = order.games.split(','); }
+        }
+        return list;
+    }
+
+    // =========================================================
+    // RENDER ORDERS
+    // =========================================================
+    function filterAndRenderOrders() {
+        var input = document.getElementById('adminSearchInput');
+        var query = input ? input.value.toLowerCase().trim() : '';
+        var container = document.getElementById('ordersContainer');
+
+        var filtered = [];
+        for (var i = 0; i < allOrders.length; i++) {
+            var order = allOrders[i];
+            var orderStatus = order.status || 'Pending';
+            if (currentStatusFilter !== 'ALL' && orderStatus !== currentStatusFilter) continue;
+
+            if (query) {
+                var phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().indexOf(query) !== -1;
+                var waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().indexOf(query) !== -1;
+                var remarksMatch = order.remarks && order.remarks.toLowerCase().indexOf(query) !== -1;
+                var stageMatch = order.progress_stage && order.progress_stage.toLowerCase().indexOf(query) !== -1;
+                var substageMatch = order.progress_substage && order.progress_substage.toLowerCase().indexOf(query) !== -1;
+                var gameList = gameListOf(order);
+                var gameMatch = false;
+                for (var j = 0; j < gameList.length; j++) {
+                    if (String(gameList[j]).toLowerCase().indexOf(query) !== -1) { gameMatch = true; break; }
+                }
+                if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !substageMatch) continue;
             }
 
-            container.innerHTML = '';
-            filtered.forEach(order => {
-                const card = document.createElement('div');
-                const orderId = order.id || order.order_id;
-                card.dataset.orderId = orderId;
+            filtered.push(order);
+        }
 
-                const currentStatus = order.status || 'Pending';
-                const statusClass = currentStatus.replace(/\s+/g, '-');
-                card.className = `order-card status-${statusClass}`;
-                if (bulkSelectedIds.has(String(orderId))) card.classList.add('selected-for-bulk');
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="no-orders">No matching orders found.</div>';
+            updateBulkBarUI();
+            return;
+        }
 
-                let gameList = [];
-                if (Array.isArray(order.games)) gameList = order.games;
-                else if (typeof order.games === 'string') {
-                    try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(','); }
-                }
+        container.innerHTML = '';
+
+        for (var k = 0; k < filtered.length; k++) {
+            (function(order) {
+                var card = document.createElement('div');
+                var orderId = order.id || order.order_id;
+                card.setAttribute('data-order-id', orderId);
+
+                var currentStatus = order.status || 'Pending';
+                var statusClass = currentStatus.replace(/\s+/g, '-');
+                card.className = 'order-card status-' + statusClass;
+                if (bulkSelectedIds[String(orderId)]) card.classList.add('selected-for-bulk');
+
+                var gameList = gameListOf(order);
                 sortGameList(gameList);
 
-                const remainingCount = gameList.length - 3;
-                const gamesPreview = (gameList && gameList.length > 0)
-                    ? gameList.slice(0, 3).map((g, i) => `<div>${i + 1}. ${g}</div>`).join('') + (gameList.length > 3 ? `<div><button class="more-games-link" data-order-id="${orderId}">+ ${remainingCount} more games...</button></div>` : '')
-                    : '<em>No games selected</em>';
+                var gamesPreview = '<em>No games selected</em>';
+                if (gameList.length > 0) {
+                    var lines = [];
+                    var shown = Math.min(3, gameList.length);
+                    for (var m = 0; m < shown; m++) lines.push('<div>' + (m + 1) + '. ' + gameList[m] + '</div>');
+                    if (gameList.length > 3) {
+                        lines.push('<div><button class="more-games-link" data-order-id="' + orderId + '">+ ' + (gameList.length - 3) + ' more games...</button></div>');
+                    }
+                    gamesPreview = lines.join('');
+                }
 
-                const waDisplay = order.whatsapp_username
-                    ? `<span style="color:#25D366; word-break:break-word;">WA: ${order.whatsapp_username}</span>`
-                    : `<span style="color:#6a6357; font-style:italic;">WA: Not assigned</span>`;
+                var waDisplay = order.whatsapp_username
+                    ? '<span style="color:#25D366; word-break:break-word;">WA: ' + order.whatsapp_username + '</span>'
+                    : '<span style="color:#6a6357; font-style:italic;">WA: Not assigned</span>';
 
-                const remarksDisplay = order.remarks && order.remarks.trim() !== ''
+                var remarksDisplay = (order.remarks && order.remarks.trim() !== '')
                     ? order.remarks
                     : '<span style="color:#6a6357; font-style:italic;">None</span>';
 
-                const phoneCount = orderCountByPhone[order.phone_ending] || 1;
-                const multiBadge = phoneCount > 1
-                    ? `<span class="order-number-badge multi">${phoneCount} orders from this customer</span>`
-                    : `<span class="order-number-badge">1st order</span>`;
+                var phoneCount = orderCountByPhone[order.phone_ending] || 1;
+                var multiBadge = phoneCount > 1
+                    ? '<span class="order-number-badge multi">' + phoneCount + ' orders from this customer</span>'
+                    : '<span class="order-number-badge">1st order</span>';
 
-                const currentProgress = order.progress_stage || 'Order Received';
-                const currentSub = order.progress_substage || '';
+                var currentProgress = order.progress_stage || 'Order Received';
+                var currentSub = order.progress_substage || '';
 
-                const progressOptions = PROGRESS_STAGES.map(s =>
-                    `<option value="${s}" ${currentProgress === s ? 'selected' : ''}>${STAGE_ICONS[s] || ''} ${s}</option>`
-                ).join('');
+                var progressOptions = '';
+                for (var p = 0; p < PROGRESS_STAGES.length; p++) {
+                    var s = PROGRESS_STAGES[p];
+                    var sel = (currentProgress === s) ? ' selected' : '';
+                    progressOptions += '<option value="' + s + '"' + sel + '>' + (STAGE_ICONS[s] || '') + ' ' + s + '</option>';
+                }
 
-                const applicableSubs = SUBSTAGES_BY_SERVICE[order.service_type] || [];
-                const isInProgress = currentProgress === 'In Progress';
-                const subOptions = ['<option value="">— Select —</option>'].concat(
-                    applicableSubs.map(s => `<option value="${s}" ${currentSub === s ? 'selected' : ''}>${s}</option>`)
-                ).join('');
+                var applicableSubs = SUBSTAGES_BY_SERVICE[order.service_type] || [];
+                var isInProgress = (currentProgress === 'In Progress');
+                var subOptions = '<option value="">-- Select --</option>';
+                for (var q = 0; q < applicableSubs.length; q++) {
+                    var sb = applicableSubs[q];
+                    var sSel = (currentSub === sb) ? ' selected' : '';
+                    subOptions += '<option value="' + sb + '"' + sSel + '>' + sb + '</option>';
+                }
 
-                const notifyVisible = order.whatsapp_username ? ' visible' : '';
+                var notifyVisible = order.whatsapp_username ? ' visible' : '';
+                var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
 
-                card.innerHTML = `
-                    <div class="card-select-wrap">
-                        <input type="checkbox"
-                               class="bulk-checkbox"
-                               data-order-id="${orderId}"
-                               ${bulkSelectedIds.has(String(orderId)) ? 'checked' : ''}>
-                    </div>
+                card.innerHTML =
+                    '<div class="card-select-wrap">' +
+                        '<input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '>' +
+                    '</div>' +
+                    '<div class="order-header">' +
+                        '<div class="customer-info">' +
+                            '<div>Order ID: ' + (order.phone_ending || 'N/A') + ' ' + multiBadge + '</div>' +
+                            '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
+                                waDisplay +
+                                '<button class="edit-wa-btn" data-order-id="' + orderId + '">Edit WA</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="order-date">' + (order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A') + '</div>' +
+                    '</div>' +
+                    '<div class="order-body">' +
+                        '<div>' +
+                            '<strong>Service:</strong> ' + (order.service_type || 'N/A') + '<br>' +
+                            '<strong>Storage:</strong> ' + (order.sd_card_size || order.free_storage_gb || 0) + ' GB<br>' +
+                            '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:6px; flex-wrap:wrap;">' +
+                                '<div style="flex:1; min-width:0;">' +
+                                    '<strong>Remarks:</strong>' +
+                                    '<div style="font-size:12px; color:#b8b0a0; margin-top:2px; word-break:break-word;">' + remarksDisplay + '</div>' +
+                                '</div>' +
+                                '<button class="edit-remarks-btn" data-order-id="' + orderId + '" style="flex-shrink:0;">Edit</button>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div>' +
+                            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">' +
+                                '<strong>Games (' + gameList.length + '):</strong>' +
+                                '<button class="copy-txt-btn copy-main-btn" data-order-id="' + orderId + '">Copy Game List</button>' +
+                            '</div>' +
+                            '<div style="max-height:90px; overflow-y:auto; font-size:12px;">' + gamesPreview + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="progress-controls">' +
+                        '<div class="progress-controls-row">' +
+                            '<label>Progress:</label>' +
+                            '<select class="progress-select" onchange="updateProgress(\'' + orderId + '\', this.value)">' + progressOptions + '</select>' +
+                        '</div>' +
+                        '<div class="progress-controls-row">' +
+                            '<label>Substage:</label>' +
+                            '<select class="progress-select" onchange="updateSubstage(\'' + orderId + '\', this.value)"' + (isInProgress ? '' : ' disabled') + '>' + subOptions + '</select>' +
+                        '</div>' +
+                        '<div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">' +
+                            '<button class="copy-track-btn" data-order-id="' + orderId + '" title="Copy tracking link">Copy Tracking Link</button>' +
+                            '<button class="notify-btn' + notifyVisible + '" data-order-id="' + orderId + '">Notify Customer</button>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="order-actions-row">' +
+                        '<div>' +
+                            '<span style="font-size:12px; color:#8a8272; align-self:center;">Status: </span>' +
+                            '<select class="status-select" onchange="updateStatus(\'' + orderId + '\', this.value)">' +
+                                '<option value="Pending"' + (currentStatus === 'Pending' ? ' selected' : '') + '>Pending</option>' +
+                                '<option value="In Progress"' + (currentStatus === 'In Progress' ? ' selected' : '') + '>In Progress</option>' +
+                                '<option value="Completed"' + (currentStatus === 'Completed' ? ' selected' : '') + '>Completed</option>' +
+                                '<option value="Cancelled"' + (currentStatus === 'Cancelled' ? ' selected' : '') + '>Cancelled</option>' +
+                            '</select>' +
+                        '</div>' +
+                        '<div>' +
+                            '<button class="view-btn" data-order-id="' + orderId + '">View Full Order</button>' +
+                            '<button class="delete-btn" data-order-id="' + orderId + '">Delete</button>' +
+                        '</div>' +
+                    '</div>';
 
-                    <div class="order-header">
-                        <div class="customer-info">
-                            <div>Order ID: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
-                            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                                ${waDisplay}
-                                <button class="edit-wa-btn" data-order-id="${orderId}">Edit WA</button>
-                            </div>
-                        </div>
-                        <div class="order-date">${order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A'}</div>
-                    </div>
-
-                    <div class="order-body">
-                        <div>
-                            <strong>Service:</strong> ${order.service_type || 'N/A'}<br>
-                            <strong>Storage:</strong> ${order.sd_card_size || order.free_storage_gb || 0} GB<br>
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:6px; flex-wrap:wrap;">
-                                <div style="flex:1; min-width:0;">
-                                    <strong>Remarks:</strong>
-                                    <div style="font-size:12px; color:#b8b0a0; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
-                                </div>
-                                <button class="edit-remarks-btn" data-order-id="${orderId}" style="flex-shrink:0;">Edit</button>
-                            </div>
-                        </div>
-                        <div>
-                            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">
-                                <strong>Games (${gameList.length}):</strong>
-                                <button class="copy-txt-btn copy-main-btn" data-order-id="${orderId}">Copy Game List</button>
-                            </div>
-                            <div style="max-height:90px; overflow-y:auto; font-size:12px;">${gamesPreview}</div>
-                        </div>
-                    </div>
-
-                    <div class="progress-controls">
-                        <div class="progress-controls-row">
-                            <label for="progress-${orderId}">Progress:</label>
-                            <select id="progress-${orderId}" class="progress-select" onchange="updateProgress('${orderId}', this.value)">
-                                ${progressOptions}
-                            </select>
-                        </div>
-                        <div class="progress-controls-row">
-                            <label for="substage-${orderId}">Substage:</label>
-                            <select id="substage-${orderId}" class="progress-select" onchange="updateSubstage('${orderId}', this.value)" ${isInProgress ? '' : 'disabled'}>
-                                ${subOptions}
-                            </select>
-                        </div>
-                        <div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">
-                            <button class="copy-track-btn" data-order-id="${orderId}" title="Copy tracking link for this customer">Copy Tracking Link</button>
-                            <button class="notify-btn${notifyVisible}" data-order-id="${orderId}">Notify Customer</button>
-                        </div>
-                    </div>
-
-                    <div class="order-actions-row">
-                        <div>
-                            <span style="font-size:12px; color:#8a8272; align-self:center;">Status: </span>
-                            <select class="status-select" onchange="updateStatus('${orderId}', this.value)">
-                                <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
-                                <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                                <option value="Completed" ${currentStatus === 'Completed' ? 'selected' : ''}>Completed</option>
-                                <option value="Cancelled" ${currentStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
-                            </select>
-                        </div>
-                        <div>
-                            <button class="view-btn" data-order-id="${orderId}">View Full Order</button>
-                            <button class="delete-btn" data-order-id="${orderId}">Delete</button>
-                        </div>
-                    </div>
-                `;
                 container.appendChild(card);
-            });
-
-            // Update toolbar after render
-            updateBulkBarUI();
+            })(filtered[k]);
         }
 
-        async function openOrderModal(orderId) {
-            let order = allOrders.find(o =>
-                String(o.id) === String(orderId) || String(o.order_id) === String(orderId)
-            );
+        updateBulkBarUI();
+    }
 
-            if (!order) {
-                const byId = await supabaseClient.from('orders').select('*').eq('id', orderId).maybeSingle();
-                if (byId.data) order = byId.data;
-                else {
-                    const byOrderId = await supabaseClient.from('orders').select('*').eq('order_id', orderId).maybeSingle();
-                    if (byOrderId.data) order = byOrderId.data;
+    // =========================================================
+    // ORDER MODAL
+    // =========================================================
+    function openOrderModal(orderId) {
+        var order = findOrder(orderId);
+
+        if (!order) {
+            supabaseClient.from('orders').select('*').eq('id', orderId).limit(1).then(function(res) {
+                if (res.data && res.data.length > 0) {
+                    showOrderModal(res.data[0]);
+                } else {
+                    supabaseClient.from('orders').select('*').eq('order_id', orderId).limit(1).then(function(res2) {
+                        if (res2.data && res2.data.length > 0) showOrderModal(res2.data[0]);
+                        else alert('Could not load order details.');
+                    });
+                }
+            });
+            return;
+        }
+
+        showOrderModal(order);
+    }
+
+    function showOrderModal(order) {
+        currentRemarksOrderId = order.id || order.order_id;
+
+        document.getElementById('modalTitle').innerText = 'Order Details - Customer ' + (order.phone_ending || 'N/A');
+        document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
+        document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
+        document.getElementById('modalServiceVal').innerText = order.service_type || 'N/A';
+        document.getElementById('modalStorageVal').innerText = (order.sd_card_size || order.free_storage_gb || 0) + ' GB';
+        document.getElementById('modalPriceVal').innerText = 'RM' + Math.round(order.estimated_price || 0);
+        document.getElementById('modalProgressVal').innerText = order.progress_stage || 'Order Received';
+        document.getElementById('modalSubstageVal').innerText = order.progress_substage || '-';
+        document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
+
+        var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
+        document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
+
+        var remarksDisplay = (order.remarks && order.remarks.trim() !== '')
+            ? order.remarks
+            : '<span style="color:#6a6357; font-style:italic;">None</span>';
+        document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
+
+        document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(currentRemarksOrderId); };
+
+        var gameGrid = document.getElementById('modalGameGrid');
+        gameGrid.innerHTML = '';
+        var gameList = gameListOf(order);
+        sortGameList(gameList);
+        currentModalGames = gameList;
+
+        if (gameList.length > 0) {
+            document.getElementById('modalGameCount').innerText = gameList.length + ' Games Total';
+            for (var i = 0; i < gameList.length; i++) {
+                var item = document.createElement('div');
+                item.className = 'game-item';
+                item.innerHTML = '<span class="game-num">' + (i + 1) + '</span> <span>' + gameList[i] + '</span>';
+                gameGrid.appendChild(item);
+            }
+        } else {
+            document.getElementById('modalGameCount').innerText = '0 Games';
+            gameGrid.innerHTML = '<div style="color:#6a6357; padding: 10px;">No games selected for this order.</div>';
+        }
+
+        document.getElementById('orderModalOverlay').style.display = 'flex';
+    }
+
+    function copyGamesForScript() {
+        if (!currentModalGames || currentModalGames.length === 0) { alert('No games to copy!'); return; }
+        var textToCopy = currentModalGames.join('\n');
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            var btn = document.querySelector('.modal-copy-btn');
+            var originalText = btn.innerText;
+            btn.innerText = 'Copied';
+            btn.style.background = '#ffc000';
+            btn.style.color = '#14110a';
+            setTimeout(function() {
+                btn.innerText = originalText;
+                btn.style.background = '#2e2716';
+                btn.style.color = '#e8dcc0';
+            }, 2000);
+        }).catch(function(err) { alert('Failed to copy text: ' + err); });
+    }
+
+    function copyGamesForScriptMain(orderId, btnElement) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var gameList = gameListOf(order);
+        sortGameList(gameList);
+        if (gameList.length === 0) { alert('No games in this order to copy!'); return; }
+        var textToCopy = gameList.join('\n');
+        navigator.clipboard.writeText(textToCopy).then(function() {
+            var originalText = btnElement.innerText;
+            btnElement.innerText = 'Copied';
+            btnElement.style.background = '#ffc000';
+            btnElement.style.color = '#14110a';
+            setTimeout(function() {
+                btnElement.innerText = originalText;
+                btnElement.style.background = '#2e2716';
+                btnElement.style.color = '#e8dcc0';
+            }, 2000);
+        }).catch(function(err) { alert('Failed to copy text: ' + err); });
+    }
+
+    function closeOrderModal() {
+        document.getElementById('orderModalOverlay').style.display = 'none';
+    }
+
+    function closeModalOnBackdrop(event) {
+        if (event.target.id === 'orderModalOverlay') closeOrderModal();
+    }
+
+    // =========================================================
+    // SINGLE DELETE
+    // =========================================================
+    function deleteOrder(orderId) {
+        if (!confirm('Are you sure you want to delete this order?')) return;
+        var order = findOrder(orderId);
+        var idField = (order && order.id) ? 'id' : 'order_id';
+        supabaseClient.from('orders').delete().eq(idField, orderId).then(function(res) {
+            if (res.error) {
+                alert('Delete failed: ' + res.error.message);
+                return;
+            }
+            var newList = [];
+            for (var i = 0; i < allOrders.length; i++) {
+                var o = allOrders[i];
+                if (String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId)) {
+                    newList.push(o);
                 }
             }
-
-            if (!order) { alert("Could not load order details."); return; }
-
-            currentRemarksOrderId = order.id || order.order_id;
-            document.getElementById('modalTitle').innerText = `Order Details — Customer ${order.phone_ending || 'N/A'}`;
-            document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
-            document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
-            document.getElementById('modalServiceVal').innerText = order.service_type || 'N/A';
-            document.getElementById('modalStorageVal').innerText = `${order.sd_card_size || order.free_storage_gb || 0} GB`;
-            document.getElementById('modalPriceVal').innerText = `RM${Math.round(order.estimated_price || 0)}`;
-            document.getElementById('modalProgressVal').innerText = order.progress_stage || 'Order Received';
-            document.getElementById('modalSubstageVal').innerText = order.progress_substage || '—';
-            document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
-
-            const lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
-            document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
-
-            const remarksDisplay = order.remarks && order.remarks.trim() !== ''
-                ? order.remarks
-                : '<span style="color:#6a6357; font-style:italic;">None</span>';
-            document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
-
-            document.getElementById('modalEditRemarksBtn').onclick = () => openRemarksModal(currentRemarksOrderId);
-
-            const gameGrid = document.getElementById('modalGameGrid');
-            gameGrid.innerHTML = '';
-            let gameList = [];
-            if (Array.isArray(order.games)) gameList = order.games;
-            else if (typeof order.games === 'string') {
-                try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(',').map(g => g.trim()); }
+            allOrders = newList;
+            delete bulkSelectedIds[String(orderId)];
+            orderCountByPhone = {};
+            for (var j = 0; j < allOrders.length; j++) {
+                var p = allOrders[j].phone_ending || '';
+                orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
             }
-            sortGameList(gameList);
-            currentModalGames = gameList;
-
-            if (gameList && gameList.length > 0) {
-                document.getElementById('modalGameCount').innerText = `${gameList.length} Games Total`;
-                gameList.forEach((game, index) => {
-                    const item = document.createElement('div');
-                    item.className = 'game-item';
-                    item.innerHTML = `<span class="game-num">${index + 1}</span> <span>${game}</span>`;
-                    gameGrid.appendChild(item);
-                });
-            } else {
-                document.getElementById('modalGameCount').innerText =.display '0 Games = '';
-                gameflexGrid.innerHTML = '<div style="';
-color:#6a6357; padding       : 10px;">No games selected for this order.</div>';
-            }
-
-            document.getElementById('orderModalOverlay').style }
-
-        function copyGamesForScript() {
-            if (!currentModalGames || currentModalGames.length === 0) { alert("No games to copy!"); return; }
-            const textToCopy = currentModalGames.join('\n');
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const btn = document.querySelector('.modal-copy-btn');
-                const originalText = btn.innerText;
-                btn.innerText = 'Copied';
-                btn.style.background = '#ffc000';
-                btn.style.color = '#14110a';
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.style.background = '#2e2716';
-                    btn.style.color = '#e8dcc0';
-                }, 2000);
-            }).catch(err => alert('Failed to copy text: ' + err));
-        }
-
-        function copyGamesForScriptMain(orderId, btnElement) {
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            if (!order) return;
-            let gameList = [];
-            if (Array.isArray(order.games)) gameList = order.games;
-            else if (typeof order.games === 'string') {
-                try { gameList = JSON.parse(order.games); } catch(e) { gameList = order.games.split(',').map(g => g.trim()); }
-            }
-            sortGameList(gameList);
-            if (!gameList || gameList.length === 0) { alert("No games in this order to copy!"); return; }
-            const textToCopy = gameList.join('\n');
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const originalText = btnElement.innerText;
-                btnElement.innerText = 'Copied';
-                btnElement.style.background = '#ffc000';
-                btnElement.style.color = '#14110a';
-                setTimeout(() => {
-                    btnElement.innerText = originalText;
-                    btnElement.style.background = '#2e2716';
-                    btnElement.style.color = '#e8dcc0';
-                }, 2000);
-            }).catch(err => alert('Failed to copy text: ' + err));
-        }
-
-        function closeOrderModal() { document.getElementById('orderModalOverlay').style.display = 'none'; }
-        function closeModalOnBackdrop(event) { if (event.target.id === 'orderModalOverlay') closeOrderModal(); }
-
-        async function deleteOrder(orderId) {
-            if (!confirm('Are you sure you want to delete this order?')) return;
-            const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
-            const idField = (order && order.id) ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').delete().eq(idField, orderId);
-            if (error) { alert('Delete failed: ' + error.message); }
-            else {
-                allOrders = allOrders.filter(o => String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId));
-                bulkSelectedIds.delete(String(orderId));
-                orderCountByPhone = {};
-                allOrders.forEach(o => {
-                    const p = o.phone_ending || '';
-                    orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
-                });
-                updateStats();
-                filterAndRenderOrders();
-            }
-        }
+            updateStats();
+            filterAndRenderOrders();
+        });
+    }
     </script>
 </body>
 </html>
