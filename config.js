@@ -64,7 +64,6 @@ const APP_CONFIG = {
     },
 
     // ===== OPTIONAL: Estimated time per substage (toggle via showEstimatedTime) =====
-    // Set showEstimatedTime to false to hide all estimated times from the tracker
     showEstimatedTime: true,
     subStageEstimatedTimes: {
         'Modchip Installation': "~1 day",
