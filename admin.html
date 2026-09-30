@@ -10,7 +10,7 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
-            color: #fff;
+            color: #f0e9d8;
             margin: 0;
             padding: 16px;
             padding-bottom: 40px;
@@ -20,7 +20,7 @@
 
         .site-logo {
             display: block; width: 80px; height: 80px; margin: 0 auto 10px;
-            border-radius: 50%; box-shadow: 0 0 0 2px #ffc000, 0 4px 14px rgba(255, 192, 0, 0.25);
+            border-radius: 50%; box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
         #loginOverlay {
@@ -33,11 +33,11 @@
             border-radius: 12px; width: 100%; max-width: 340px; text-align: center;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); box-sizing: border-box;
         }
-        .login-card h2 { color: #ffc000; margin-top: 0; margin-bottom: 6px; font-size: 22px; }
-        .login-card p { font-size: 13px; color: #aaa; margin-top: 0; margin-bottom: 16px; }
+        .login-card h2 { color: #e8dcc0; margin-top: 0; margin-bottom: 6px; font-size: 22px; }
+        .login-card p { font-size: 13px; color: #8a8272; margin-top: 0; margin-bottom: 16px; }
         .login-card input {
             width: 100%; padding: 14px; margin: 6px 0; box-sizing: border-box;
-            background: #221c10; border: 1px solid #3a3018; color: #fff;
+            background: #221c10; border: 1px solid #3a3018; color: #f0e9d8;
             border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.2s;
         }
         .login-card input:focus { border-color: #ffc000; }
@@ -66,16 +66,16 @@
             padding: 12px; text-align: center;
         }
         .stat-card .val { font-size: 20px; font-weight: bold; color: #ffc000; margin-top: 4px; }
-        .stat-card .lbl { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-card .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; }
 
         .controls-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
         .search-box {
             width: 100%; padding: 12px; background: #1f190e;
-            border: 1px solid #3a3018; color: #fff; border-radius: 6px;
+            border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px;
             font-size: 16px; outline: none; transition: border-color 0.2s; box-sizing: border-box;
         }
         .search-box:focus { border-color: #ffc000; }
-        .search-box::placeholder { color: #888; }
+        .search-box::placeholder { color: #6a6357; }
 
         .filter-buttons-wrapper {
             display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
@@ -83,37 +83,37 @@
         }
         .filter-buttons-wrapper::-webkit-scrollbar { display: none; }
         .filter-btn {
-            background: #1f190e; color: #ccc; border: 1px solid #3a3018;
+            background: #1f190e; color: #b8b0a0; border: 1px solid #3a3018;
             padding: 8px 14px; border-radius: 6px; cursor: pointer;
             font-size: 13px; font-weight: 600; transition: all 0.2s;
             white-space: nowrap; flex-shrink: 0;
         }
-        .filter-btn:hover { border-color: #ffc000; color: #ffc000; }
+        .filter-btn:hover { border-color: #ffc000; color: #e8dcc0; }
         .filter-btn.active { background: #ffc000; color: #14110a; border-color: #ffc000; font-weight: bold; }
 
         .btn-action {
-            background: #2e2716; color: #ffc000; border: 1px solid #ffc000;
+            background: #2e2716; color: #ffc000; border: 1px solid #3a3018;
             padding: 8px 14px; border-radius: 6px; cursor: pointer;
             font-weight: bold; text-decoration: none; display: inline-block;
             font-size: 12.5px; line-height: normal; transition: all 0.2s;
             white-space: nowrap;
         }
-        .btn-action:hover { background: #ffc000; color: #14110a; }
-        .btn-logout { border-color: #ff5252; color: #ff5252; }
-        .btn-logout:hover { background: #ff5252; color: #fff; }
+        .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .btn-logout { border-color: #4a2525; color: #e57373; }
+        .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .orders-grid { display: flex; flex-direction: column; gap: 12px; }
         .order-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 14px; display: flex; flex-direction: column; gap: 12px;
-            border-left: 4px solid #888; transition: transform 0.1s, border-color 0.2s;
+            border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s;
         }
         .order-card:hover { border-color: #5a4a20; }
         .order-card.status-Pending { border-left-color: #ffb74d; }
-        .order-card.status-In-Progress { border-left-color: #2196F3; }
+        .order-card.status-In-Progress { border-left-color: #7dd3fc; }
         .order-card.status-Completed { border-left-color: #00e676; }
-        .order-card.status-Cancelled { border-left-color: #ff5252; }
+        .order-card.status-Cancelled { border-left-color: #e57373; }
 
         .order-header {
             display: flex; justify-content: space-between; align-items: flex-start;
@@ -123,21 +123,22 @@
             font-size: 14px; font-weight: bold; display: flex; flex-direction: column;
             gap: 6px; min-width: 0; flex: 1;
         }
-        .customer-info > div:first-child { word-break: break-word; }
-        .order-date { font-size: 11px; color: #888; white-space: nowrap; }
+        .customer-info > div:first-child { word-break: break-word; color: #f0e9d8; }
+        .order-date { font-size: 11px; color: #8a8272; white-space: nowrap; }
         .order-number-badge {
-            background: #2e2716; color: #ffc000; border: 1px solid #3a3018;
+            background: #2e2716; color: #b8b0a0; border: 1px solid #3a3018;
             padding: 2px 8px; border-radius: 10px; font-size: 10.5px;
             font-weight: 600; letter-spacing: 0.3px;
         }
-        .order-number-badge.multi { background: #2d1a08; color: #ffb74d; border-color: #ff9800; }
+        .order-number-badge.multi { background: #2d1a08; color: #ffb74d; border-color: #7a5420; }
 
         .order-body {
             display: grid; grid-template-columns: 1fr; gap: 12px;
             background: #17120a; padding: 12px; border-radius: 6px;
             border: 1px solid #241e12;
         }
-        .order-body > div { min-width: 0; word-break: break-word; }
+        .order-body > div { min-width: 0; word-break: break-word; color: #b8b0a0; }
+        .order-body strong { color: #e8dcc0; }
 
         .progress-controls {
             display: grid; grid-template-columns: 1fr; gap: 10px;
@@ -148,12 +149,12 @@
             display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         }
         .progress-controls-row label {
-            font-size: 11.5px; color: #888; text-transform: uppercase;
+            font-size: 11.5px; color: #8a8272; text-transform: uppercase;
             letter-spacing: 0.5px; font-weight: 700; min-width: 70px;
         }
         .progress-select {
             padding: 9px 12px; border-radius: 6px; background: #221c10;
-            color: #fff; border: 1px solid #3a3018; cursor: pointer;
+            color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer;
             font-size: 13px; outline: none; min-width: 180px; flex: 1;
             font-family: inherit;
         }
@@ -172,7 +173,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: opacity 0.2s, background 0.2s, color 0.2s;
+            transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
         }
         .notify-btn {
             background: #25D366; color: #fff;
@@ -183,26 +184,27 @@
 
         .copy-track-btn {
             background: #2e2716;
-            color: #64b5f6;
-            border: 1px solid #2196F3;
+            color: #7dd3fc;
+            border: 1px solid #3a3018;
         }
         .copy-track-btn:hover {
-            background: #2196F3;
-            color: #fff;
+            background: #7dd3fc;
+            color: #14110a;
+            border-color: #7dd3fc;
         }
 
         .status-select {
             padding: 10px; border-radius: 6px; background: #221c10;
-            color: #fff; border: 1px solid #3a3018; cursor: pointer;
+            color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer;
             font-size: 14px; outline: none; min-width: 140px;
         }
         .status-select:focus { border-color: #ffc000; }
         .delete-btn {
-            background: transparent; color: #ff5252; border: 1px solid #ff5252;
+            background: transparent; color: #e57373; border: 1px solid #4a2525;
             padding: 9px 14px; border-radius: 5px; cursor: pointer;
             font-weight: 600; font-size: 13px; transition: all 0.2s;
         }
-        .delete-btn:hover { background: #ff5252; color: #fff; }
+        .delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
         .view-btn {
             background: #ffc000; color: #14110a; border: none;
             padding: 9px 16px; border-radius: 5px; cursor: pointer;
@@ -216,13 +218,13 @@
         }
         .edit-wa-btn:hover { opacity: 0.85; }
         .edit-remarks-btn {
-            background: #2196F3; border: none; color: #fff;
+            background: #7dd3fc; border: none; color: #14110a;
             font-size: 11px; padding: 5px 10px; border-radius: 4px;
             cursor: pointer; font-weight: bold; transition: opacity 0.2s;
         }
         .edit-remarks-btn:hover { opacity: 0.85; }
         .no-orders {
-            text-align: center; padding: 40px 20px; color: #888;
+            text-align: center; padding: 40px 20px; color: #8a8272;
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
         }
 
@@ -250,13 +252,13 @@
             border-bottom: 1px solid #3a3018;
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
         }
-        .modal-header h2 { margin: 0; color: #ffc000; font-size: 16px; word-break: break-word; }
+        .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; word-break: break-word; }
         .close-modal-btn {
-            background: transparent; border: none; color: #aaa; font-size: 26px;
+            background: transparent; border: none; color: #b8b0a0; font-size: 26px;
             cursor: pointer; line-height: 1; transition: color 0.2s;
             padding: 0 6px; flex-shrink: 0;
         }
-        .close-modal-btn:hover { color: #ffc000; }
+        .close-modal-btn:hover { color: #e8dcc0; }
         .modal-body {
             padding: 16px; overflow-y: auto; display: flex;
             flex-direction: column; gap: 14px;
@@ -269,11 +271,11 @@
             border: 1px solid #241e12;
         }
         .modal-info-item .lbl {
-            font-size: 11px; color: #888; text-transform: uppercase;
+            font-size: 11px; color: #8a8272; text-transform: uppercase;
             margin-bottom: 3px; letter-spacing: 0.3px;
         }
         .modal-info-item .val {
-            font-size: 14px; font-weight: 500; color: #fff; word-break: break-word;
+            font-size: 14px; font-weight: 500; color: #f0e9d8; word-break: break-word;
         }
         .remarks-header-row {
             display: flex; justify-content: space-between; align-items: center;
@@ -289,18 +291,18 @@
             margin-bottom: 10px; padding-bottom: 8px;
             border-bottom: 1px solid #2e2716; flex-wrap: wrap; gap: 8px;
         }
-        .game-list-header h3 { margin: 0; font-size: 14px; color: #ffc000; }
+        .game-list-header h3 { margin: 0; font-size: 14px; color: #e8dcc0; }
         .game-list-header-actions {
             display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
         }
 
         .copy-txt-btn {
-            background: #2e2716; color: #ffc000; border: 1px solid #ffc000;
+            background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018;
             padding: 7px 12px; border-radius: 5px; cursor: pointer;
             font-size: 12px; font-weight: bold; transition: all 0.2s;
             white-space: nowrap;
         }
-        .copy-txt-btn:hover { background: #ffc000; color: #14110a; }
+        .copy-txt-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
         .modal-game-list {
             display: flex; flex-direction: column; gap: 6px;
@@ -311,6 +313,7 @@
             background: #221c10; border: 1px solid #2e2716;
             padding: 8px 10px; border-radius: 5px; font-size: 13px;
             display: flex; align-items: flex-start; gap: 8px; word-break: break-word;
+            color: #f0e9d8;
         }
         .game-num {
             background: #ffc000; color: #14110a; font-weight: bold;
@@ -319,12 +322,12 @@
         }
 
         .more-games-link {
-            color: #ffc000; text-decoration: underline;
+            color: #e8dcc0; text-decoration: underline;
             background: none; border: none; padding: 0;
             font-size: inherit; cursor: pointer;
             margin-top: 4px; display: inline-block;
         }
-        .more-games-link:hover { color: #ffe066; }
+        .more-games-link:hover { color: #ffc000; }
 
         #remarksModalOverlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -343,14 +346,14 @@
             border-bottom: 1px solid #3a3018;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .remarks-modal-header h2 { margin: 0; color: #ffc000; font-size: 16px; }
+        .remarks-modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; }
         .remarks-modal-body {
             padding: 16px; display: flex; flex-direction: column; gap: 8px;
         }
-        .remarks-modal-body label { font-size: 13px; color: #aaa; }
+        .remarks-modal-body label { font-size: 13px; color: #b8b0a0; }
         .remarks-textarea {
             width: 100%; padding: 12px; background: #221c10;
-            border: 1px solid #3a3018; color: #fff; border-radius: 6px;
+            border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px;
             font-size: 16px; box-sizing: border-box; resize: vertical;
             min-height: 130px; font-family: inherit; outline: none;
             transition: border-color 0.2s;
@@ -361,35 +364,34 @@
             display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
         }
         .btn-secondary {
-            background: transparent; color: #aaa; border: 1px solid #3a3018;
+            background: transparent; color: #b8b0a0; border: 1px solid #3a3018;
             padding: 10px 18px; border-radius: 6px; cursor: pointer;
             font-weight: 600; font-size: 14px; transition: all 0.2s;
         }
-        .btn-secondary:hover { border-color: #888; color: #fff; }
+        .btn-secondary:hover { border-color: #8a8272; color: #f0e9d8; }
         .btn-primary {
             background: #ffc000; color: #14110a; border: none;
             padding: 10px 18px; border-radius: 6px; cursor: pointer;
             font-weight: bold; font-size: 14px; transition: background 0.2s;
         }
         .btn-primary:hover { background: #e6ac00; }
-        .btn-primary:disabled { background: #4a4020; color: #888; cursor: not-allowed; }
+        .btn-primary:disabled { background: #4a4020; color: #8a8272; cursor: not-allowed; }
 
-        /* ===== TRUST FOOTER ===== */
         .trust-footer {
             margin-top: 40px;
             padding-top: 20px;
             border-top: 1px solid #2e2716;
             text-align: center;
             font-size: 12px;
-            color: #888;
+            color: #8a8272;
             line-height: 1.7;
         }
         .trust-footer .brand {
-            color: #ffc000; font-weight: bold; margin-bottom: 6px;
+            color: #e8dcc0; font-weight: bold; margin-bottom: 6px;
             font-size: 13px;
         }
         .trust-footer .note {
-            margin-top: 4px; color: #666; font-size: 11px;
+            margin-top: 4px; color: #6a6357; font-size: 11px;
         }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -462,7 +464,7 @@
         <div class="stats-overview">
             <div class="stat-card"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
             <div class="stat-card"><div class="lbl">Pending</div><div class="val" id="statPending" style="color:#ffb74d;">0</div></div>
-            <div class="stat-card"><div class="lbl">In Progress</div><div class="val" id="statInProgress" style="color:#2196F3;">0</div></div>
+            <div class="stat-card"><div class="lbl">In Progress</div><div class="val" id="statInProgress" style="color:#7dd3fc;">0</div></div>
             <div class="stat-card"><div class="lbl">Est. Revenue</div><div class="val" id="statRevenue">RM0</div></div>
         </div>
 
@@ -498,8 +500,8 @@
                     <div class="modal-info-item"><div class="lbl">Service Type</div><div class="val" id="modalServiceVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Storage Size</div><div class="val" id="modalStorageVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Total Estimated Price</div><div class="val" id="modalPriceVal" style="color:#ffc000;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Progress Stage</div><div class="val" id="modalProgressVal" style="color:#2196F3;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Progress Sub-stage</div><div class="val" id="modalSubstageVal" style="color:#2196F3;">-</div></div>
+                    <div class="modal-info-item"><div class="lbl">Progress Stage</div><div class="val" id="modalProgressVal" style="color:#7dd3fc;">-</div></div>
+                    <div class="modal-info-item"><div class="lbl">Progress Sub-stage</div><div class="val" id="modalSubstageVal" style="color:#7dd3fc;">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Date Created</div><div class="val" id="modalDateVal">-</div></div>
                     <div class="modal-info-item"><div class="lbl">Last Updated</div><div class="val" id="modalUpdatedVal" style="color:#ffb74d;">-</div></div>
                     <div class="modal-info-item" style="grid-column: 1 / -1;">
@@ -515,7 +517,7 @@
                     <div class="game-list-header">
                         <h3>Selected Games</h3>
                         <div class="game-list-header-actions">
-                            <span id="modalGameCount" style="font-size:12px; color:#aaa;">0 Games</span>
+                            <span id="modalGameCount" style="font-size:12px; color:#8a8272;">0 Games</span>
                             <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">Copy Game List</button>
                         </div>
                     </div>
@@ -560,11 +562,11 @@
             'games_only':   ['Game Installation']
         };
         const STAGE_ICONS = {
-            'Order Received':   '\u2022', // •
-            'Confirmed':        '\u2713', // ✓
-            'In Progress':      '\u25D0', // ◐
-            'Ready for Pickup': '\u25D1', // ◑
-            'Completed':        '\u2713'  // ✓
+            'Order Received':   '\u2022',
+            'Confirmed':        '\u2713',
+            'In Progress':      '\u25D0',
+            'Ready for Pickup': '\u25D1',
+            'Completed':        '\u2713'
         };
 
         window.onload = async function() {
@@ -762,14 +764,14 @@
             navigator.clipboard.writeText(url).then(() => {
                 const originalText = btnElement.innerHTML;
                 btnElement.innerHTML = 'Copied';
-                btnElement.style.background = '#ffc000';
+                btnElement.style.background = '#7dd3fc';
                 btnElement.style.color = '#14110a';
-                btnElement.style.borderColor = '#ffc000';
+                btnElement.style.borderColor = '#7dd3fc';
                 setTimeout(() => {
                     btnElement.innerHTML = originalText;
                     btnElement.style.background = '#2e2716';
-                    btnElement.style.color = '#64b5f6';
-                    btnElement.style.borderColor = '#2196F3';
+                    btnElement.style.color = '#7dd3fc';
+                    btnElement.style.borderColor = '#3a3018';
                 }, 2000);
             }).catch(err => alert('Failed to copy link: ' + err));
         }
@@ -910,11 +912,11 @@
 
                 const waDisplay = order.whatsapp_username
                     ? `<span style="color:#25D366; word-break:break-word;">WA: ${order.whatsapp_username}</span>`
-                    : `<span style="color:#777; font-style:italic;">WA: Not assigned</span>`;
+                    : `<span style="color:#6a6357; font-style:italic;">WA: Not assigned</span>`;
 
                 const remarksDisplay = order.remarks && order.remarks.trim() !== ''
                     ? order.remarks
-                    : '<span style="color:#777; font-style:italic;">None</span>';
+                    : '<span style="color:#6a6357; font-style:italic;">None</span>';
 
                 const phoneCount = orderCountByPhone[order.phone_ending] || 1;
                 const multiBadge = phoneCount > 1
@@ -955,7 +957,7 @@
                             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:6px; flex-wrap:wrap;">
                                 <div style="flex:1; min-width:0;">
                                     <strong>Remarks:</strong>
-                                    <div style="font-size:12px; color:#ccc; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
+                                    <div style="font-size:12px; color:#b8b0a0; margin-top:2px; word-break:break-word;">${remarksDisplay}</div>
                                 </div>
                                 <button class="edit-remarks-btn" data-order-id="${orderId}" style="flex-shrink:0;">Edit</button>
                             </div>
@@ -990,7 +992,7 @@
 
                     <div class="order-actions-row">
                         <div>
-                            <span style="font-size:12px; color:#aaa; align-self:center;">Status: </span>
+                            <span style="font-size:12px; color:#8a8272; align-self:center;">Status: </span>
                             <select class="status-select" onchange="updateStatus('${orderId}', this.value)">
                                 <option value="Pending" ${currentStatus === 'Pending' ? 'selected' : ''}>Pending</option>
                                 <option value="In Progress" ${currentStatus === 'In Progress' ? 'selected' : ''}>In Progress</option>
@@ -1040,7 +1042,7 @@
 
             const remarksDisplay = order.remarks && order.remarks.trim() !== ''
                 ? order.remarks
-                : '<span style="color:#777; font-style:italic;">None</span>';
+                : '<span style="color:#6a6357; font-style:italic;">None</span>';
             document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
 
             document.getElementById('modalEditRemarksBtn').onclick = () => openRemarksModal(currentRemarksOrderId);
@@ -1065,7 +1067,7 @@
                 });
             } else {
                 document.getElementById('modalGameCount').innerText = '0 Games';
-                gameGrid.innerHTML = '<div style="color:#777; padding: 10px;">No games selected for this order.</div>';
+                gameGrid.innerHTML = '<div style="color:#6a6357; padding: 10px;">No games selected for this order.</div>';
             }
 
             document.getElementById('orderModalOverlay').style.display = 'flex';
@@ -1083,7 +1085,7 @@
                 setTimeout(() => {
                     btn.innerText = originalText;
                     btn.style.background = '#2e2716';
-                    btn.style.color = '#ffc000';
+                    btn.style.color = '#e8dcc0';
                 }, 2000);
             }).catch(err => alert('Failed to copy text: ' + err));
         }
@@ -1107,7 +1109,7 @@
                 setTimeout(() => {
                     btnElement.innerText = originalText;
                     btnElement.style.background = '#2e2716';
-                    btnElement.style.color = '#ffc000';
+                    btnElement.style.color = '#e8dcc0';
                 }, 2000);
             }).catch(err => alert('Failed to copy text: ' + err));
         }
