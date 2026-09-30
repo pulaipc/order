@@ -31,6 +31,7 @@
         }
         .container { max-width: 900px; margin: 0 auto; }
 
+        /* ===== HEADER BAR ===== */
         .header-bar {
             display: flex;
             justify-content: space-between;
@@ -55,6 +56,15 @@
             box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5);
             flex-shrink: 0;
         }
+        .logo-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+            transition: transform 0.2s;
+        }
+        .logo-link:active { transform: scale(0.96); }
         h1 {
             color: #ffc000;
             margin: 0;
@@ -89,6 +99,7 @@
             border-color: #ffc000;
         }
 
+        /* ===== WHAT HAPPENS NEXT ===== */
         .how-it-works {
             background: #1a1814;
             border: 1px solid #2e2716;
@@ -143,6 +154,7 @@
             margin-top: 2px;
         }
 
+        /* ===== SUMMARY VIEW ===== */
         .summary-view {
             display: none;
             flex-direction: column;
@@ -376,9 +388,82 @@
         }
         .locked-notice strong { color: #ffb74d; }
 
+        /* ===== MISSING ORDER NOTICE ===== */
+        .missing-order-notice {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100% - 28px);
+            max-width: 480px;
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-left: 4px solid #ffb74d;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 200;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-sizing: border-box;
+        }
+        .missing-order-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffb74d;
+            line-height: 1.3;
+        }
+        .missing-order-body {
+            font-size: 13.5px;
+            color: #d8d2c0;
+            line-height: 1.6;
+        }
+        .missing-order-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+        }
+        .missing-order-btn {
+            flex: 1 1 auto;
+            min-width: 140px;
+            min-height: 44px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 13.5px;
+            cursor: pointer;
+            padding: 11px 16px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+            border: none;
+        }
+        .missing-order-btn.whatsapp {
+            background: #25D366;
+            color: #fff;
+        }
+        .missing-order-btn.whatsapp:hover { background: #1eaa52; }
+        .missing-order-btn.secondary {
+            background: #2e2716;
+            color: #e8dcc0;
+            border: 1px solid #3a3018;
+        }
+        .missing-order-btn.secondary:hover {
+            background: #ffc000;
+            color: #14110a;
+            border-color: #ffc000;
+        }
+
+        /* ===== FORM VIEW ===== */
         .form-view { display: block; }
         .form-view.hidden { display: none; }
 
+        /* ===== PRICING GUIDE ===== */
         .pricing-guide { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #c9c1af; }
         .pricing-guide summary { color: #e8dcc0; font-weight: bold; cursor: pointer; outline: none; padding: 4px 0; }
         .pricing-tiers { display: flex; justify-content: space-around; margin-top: 10px; gap: 8px; flex-wrap: wrap; text-align: center; }
@@ -389,7 +474,8 @@
         .pricing-col h4 { margin: 0 0 6px 0; color: #e8dcc0; font-size: 12.5px; }
         .pricing-col ul { margin: 0; padding-left: 16px; font-size: 12px; color: #b8b0a0; line-height: 1.5; }
 
-        .config-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 14px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; }
+        /* ===== CONFIG CARD ===== */
+        .config-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 14px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 14px; }
         .config-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
         .field-group { display: flex; flex-direction: column; flex: 1 1 100%; min-width: 0; }
         .phone-input, .sd-select, .service-select, .model-select, .sd-source-select, .free-storage-input {
@@ -481,6 +567,7 @@
             display: none; align-items: flex-start; gap: 10px; line-height: 1.45;
         }
 
+        /* ===== SEARCH & GAME LIST ===== */
         .search-container { margin-bottom: 15px; display: flex; flex-direction: column; }
         .search-input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
         .search-box {
@@ -600,6 +687,7 @@
         .game-card.hidden-game .game-title { color: #8a8272; }
         .game-lock-icon { font-size: 15px; flex-shrink: 0; line-height: 1; opacity: 0.7; }
 
+        /* ===== CHECKOUT BAR ===== */
         .checkout-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: #221c10; border-top: 1px solid #3a3018;
@@ -618,6 +706,7 @@
         .submit-btn:hover { background-color: #e6ac00; }
         .submit-btn:disabled { background-color: #4a4020; color: #888; cursor: not-allowed; }
 
+        /* ===== POST-SAVE PANEL ===== */
         .post-save-panel {
             position: fixed;
             bottom: 0; left: 0; right: 0;
@@ -751,6 +840,7 @@
         }
         .post-save-close-btn:hover { border-color: #00e676; color: #00e676; }
 
+        /* ===== MODALS ===== */
         .modal {
             display: none; position: fixed; z-index: 1000;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -805,6 +895,7 @@
             border-bottom: 1px solid #2e2716;
         }
 
+        /* ===== CART ITEMS ===== */
         .cart-item {
             display: flex; justify-content: space-between; align-items: center; gap: 10px;
             background: #2e2716; padding: 12px 14px; border-radius: 6px; font-size: 13px;
@@ -828,6 +919,7 @@
         }
         .remove-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
+        /* ===== NATIVE COLLAPSIBLE ===== */
         .cart-details {
             background: #191309;
             border: 1px solid #2e2716;
@@ -868,6 +960,7 @@
             overscroll-behavior: contain;
         }
 
+        /* ===== SHARE LINK ===== */
         .share-link-prominent {
             background: #16202a;
             border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc;
@@ -897,6 +990,7 @@
         }
         .copy-link-btn:hover { background: #a4e2fc; }
 
+        /* ===== PRICE BREAKDOWN ===== */
         .price-breakdown-box {
             background: #191309; border: 1px solid #2e2716;
             border-radius: 6px; padding: 12px; font-size: 12.5px;
@@ -913,6 +1007,7 @@
             color: #f0e9d8; font-weight: bold; font-size: 16px;
         }
 
+        /* ===== PAYMENT REASSURANCE ===== */
         .payment-note {
             display: flex;
             align-items: flex-start;
@@ -933,6 +1028,7 @@
             font-weight: bold;
         }
 
+        /* ===== STICKY FOOTER FOR SAVE BUTTON ===== */
         .modal-sticky-footer {
             position: sticky;
             bottom: 0;
@@ -955,6 +1051,7 @@
         }
         .remarks-input:focus { border-color: #ffc000; }
 
+        /* ===== ALERT BOXES ===== */
         .modal-alert {
             padding: 10px 14px;
             border-radius: 6px;
@@ -979,6 +1076,7 @@
         }
         .modal-alert.danger strong { color: #ffb74d; }
 
+        /* ===== LOAD CHOICE MODAL ===== */
         .load-choice-content { max-width: 460px; }
         .load-choice-btn {
             display: flex; align-items: center; gap: 14px;
@@ -996,6 +1094,7 @@
         .load-choice-btn .choice-text strong { font-size: 14.5px; font-weight: 700; color: #f0e9d8; }
         .load-choice-btn .choice-text small { font-size: 11.5px; opacity: 0.85; line-height: 1.35; }
 
+        /* ===== TRUST FOOTER ===== */
         .trust-footer {
             margin-top: 40px;
             padding-top: 20px;
@@ -1017,11 +1116,13 @@
             margin-top: 4px; color: #6a6357; font-size: 11px;
         }
 
+        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
+        /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
             body { padding: 20px 20px 110px; }
             body.summary-active { padding-bottom: 20px; }
@@ -1071,7 +1172,9 @@
     <div class="container">
         <div class="header-bar">
             <div class="header-left">
-                <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
+                <a href="#" class="logo-link" onclick="scrollToTop(event)" aria-label="Back to top">
+                    <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
+                </a>
                 <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
             </div>
             <div class="header-actions">
@@ -1149,7 +1252,7 @@
                 </p>
             </details>
 
-            <div class="config-card">
+            <div class="config-card" id="configCard">
                 <div class="field-group">
                     <div class="phone-load-row">
                         <input type="text" id="phoneInput" class="phone-input" maxlength="4" placeholder="e.g. 5678" inputmode="numeric" pattern="[0-9]*" oninput="savePhone()">
@@ -1460,6 +1563,11 @@
     const $ = id => document.getElementById(id);
     const valOf = id => ($(id) ? $(id).value : '');
 
+    function scrollToTop(e) {
+        if (e) e.preventDefault();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
     function scrollToPricing() {
         const el = $('pricingGuide');
         if (el) {
@@ -1637,7 +1745,18 @@
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
         document.body.classList.remove('summary-active');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Scroll to the config card (start of the editable section)
+        // rather than the top of the page (header + instructions).
+        // A small delay lets the browser finish switching views before
+        // scrolling so the target position is calculated correctly.
+        setTimeout(() => {
+            const configCard = $('configCard');
+            if (configCard) {
+                configCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }, 50);
     }
 
     function hideSummaryShowForm() {
@@ -1692,32 +1811,49 @@
         return gameList;
     }
 
+    // Real-world SD cards always deliver less than their label size because
+    // manufacturers count 1 GB = 1,000,000,000 bytes while operating systems
+    // count 1 GB = 1,073,741,824 bytes. A "256GB" card typically shows ~238GB.
+    // We also reserve space for system overhead (bootloader, firmware, partitions)
+    // so the customer never over-fills their card.
+    const SD_REAL_CAPACITY_FACTOR = 0.93;
+
     function computeUsableStorage() {
         const serviceType = valOf('serviceTypeSelect');
         if (serviceType === 'games_only') {
+            // Customer reported their own free space — trust their number.
             const userSpace = parseFloat(valOf('userFreeStorageInput'));
-            if (isNaN(userSpace) || userSpace <= 0) return { usable: 0, baseOverhead: 0, partition: 0 };
-            return { usable: userSpace, baseOverhead: 0, partition: 0 };
+            if (isNaN(userSpace) || userSpace <= 0) return { usable: 0, baseOverhead: 0, partition: 0, realCapacity: 0 };
+            return { usable: userSpace, baseOverhead: 0, partition: 0, realCapacity: userSpace };
         }
+
+        const labelSize = state.maxSdSize;
+        const realCapacity = Math.floor(labelSize * SD_REAL_CAPACITY_FACTOR);
+
         let baseOverhead = 0, partition = 0;
-        const s = state.maxSdSize;
-        if (s <= 64) baseOverhead = 8;
-        else if (s <= 128) { baseOverhead = 10; partition = 10; }
-        else if (s <= 256) { baseOverhead = 16; partition = 16; }
-        else if (s <= 512) { baseOverhead = 20; partition = 20; }
+        if (labelSize <= 64) baseOverhead = 8;
+        else if (labelSize <= 128) { baseOverhead = 10; partition = 10; }
+        else if (labelSize <= 256) { baseOverhead = 16; partition = 16; }
+        else if (labelSize <= 512) { baseOverhead = 20; partition = 20; }
         else { baseOverhead = 32; partition = 32; }
 
         let deduction = baseOverhead;
         if ($('androidModeCheck').checked) deduction += partition;
         if ($('linuxModeCheck').checked) deduction += partition;
-        return { usable: Math.max(0, s - deduction), baseOverhead, partition };
+
+        return {
+            usable: Math.max(0, realCapacity - deduction),
+            baseOverhead: baseOverhead,
+            partition: partition,
+            realCapacity: realCapacity
+        };
     }
 
     function buildStorageBreakdownText() {
         const serviceType = valOf('serviceTypeSelect');
         const consoleModel = valOf('consoleModelSelect');
         const sdSource = valOf('sdSourceSelect');
-        const { usable, baseOverhead, partition } = computeUsableStorage();
+        const { usable, baseOverhead, partition, realCapacity } = computeUsableStorage();
         state.usableStorageLimit = usable;
 
         let gSize = 0;
@@ -1730,7 +1866,7 @@
         const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
         const sourceLabel = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
         const serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModel})` : 'System Setup';
-        let text = `Service: ${serviceLabel} | SD: ${sdLabel} (${sourceLabel}) | System OS: -${baseOverhead}GB`;
+        let text = `Service: ${serviceLabel} | SD: ${sdLabel} (${sourceLabel}) | Real capacity: ~${realCapacity}GB | System OS: -${baseOverhead}GB`;
         if ($('androidModeCheck').checked) text += ` | Android: -${partition}GB`;
         if ($('linuxModeCheck').checked) text += ` | Linux: -${partition}GB`;
         text += `<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usable} GB</strong>`;
@@ -1796,20 +1932,76 @@
     async function loadOrderAndShowSummary(orderId) {
         setStatusMessage('Loading your order...', '#7dd3fc', 0);
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).single();
+            // Use .limit(1) instead of .single() so a missing row returns an
+            // empty array instead of throwing "Cannot coerce the result to a
+            // single JSON object". We handle the empty case ourselves with a
+            // friendly message.
+            const { data, error } = await supabaseClient
+                .from('orders')
+                .select('*')
+                .eq('id', orderId)
+                .limit(1);
+
             if (error) throw error;
-            if (!data) { alert('This order link is no longer valid.'); hideSummaryShowForm(); return; }
-            state.currentEditingOrderId = data.id;
-            state.currentLoadedPhone = data.phone_ending || null;
-            $('phoneInput').value = data.phone_ending || '';
-            showSummaryView(data);
+
+            if (!data || data.length === 0) {
+                // Order ID not found — either deleted, or link was mistyped.
+                hideSummaryShowForm();
+                clearStatusMessage();
+                showMissingOrderNotice();
+                return;
+            }
+
+            const order = data[0];
+            state.currentEditingOrderId = order.id;
+            state.currentLoadedPhone = order.phone_ending || null;
+            $('phoneInput').value = order.phone_ending || '';
+            showSummaryView(order);
             updateSaveButtonLabel();
             clearStatusMessage();
         } catch (err) {
             console.error(err);
-            alert('Failed to load shared order: ' + (err.message || err));
             hideSummaryShowForm();
+            clearStatusMessage();
+            showMissingOrderNotice();
         }
+    }
+
+    // Friendly inline banner when a shared order link no longer resolves.
+    // Replaces the raw "Cannot coerce to single JSON object" alert.
+    function showMissingOrderNotice() {
+        // Avoid duplicates if called twice
+        const existing = document.querySelector('.missing-order-notice');
+        if (existing) existing.remove();
+
+        const notice = document.createElement('div');
+        notice.className = 'missing-order-notice';
+        const waNumber = APP_CONFIG.whatsappNumber || '';
+        const waText = encodeURIComponent('Hi, I clicked my order link and it says the order is no longer valid. Can you check for me?');
+        notice.innerHTML = ''
+            + '<div class="missing-order-title">This order link is no longer valid</div>'
+            + '<div class="missing-order-body">'
+            + 'The order this link points to has been removed or does not exist. '
+            + 'If you recently placed an order and need help, please message us on WhatsApp.'
+            + '</div>'
+            + '<div class="missing-order-actions">'
+            + '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + waText + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>'
+            + '  <button class="missing-order-btn secondary" onclick="dismissMissingOrderNotice()">Start a new order</button>'
+            + '</div>';
+        document.body.appendChild(notice);
+        // Hide the checkout bar while the notice is up
+        const bar = $('checkoutBar');
+        if (bar) bar.classList.add('hidden');
+    }
+
+    function dismissMissingOrderNotice() {
+        const notice = document.querySelector('.missing-order-notice');
+        if (notice) notice.remove();
+        // Reset to a clean new-order form
+        resetFormForNewOrder();
+        // Bring the checkout bar back
+        const bar = $('checkoutBar');
+        if (bar) bar.classList.remove('hidden');
     }
 
     function populateSdCardOptions() {
