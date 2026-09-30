@@ -9,16 +9,15 @@
         * { -webkit-tap-highlight-color: transparent; }
         html {
             -webkit-text-size-adjust: 100%;
-            scroll-padding-bottom: calc(160px + env(safe-area-inset-bottom, 0px));
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
             color: #f0e9d8;
             margin: 0;
-            padding: 14px 14px 24px;
+            padding: 14px 14px 140px;
             box-sizing: border-box;
-            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: calc(140px + env(safe-area-inset-bottom, 0px));
         }
         body.modal-open {
             overflow: hidden;
@@ -26,6 +25,9 @@
             width: 100%;
             left: 0;
             right: 0;
+        }
+        body.summary-active {
+            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
         }
         .container { max-width: 900px; margin: 0 auto; }
 
@@ -511,6 +513,39 @@
         .mode-wrapper { display: flex; flex-direction: column; gap: 4px; }
         .mode-checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #c9c1af; cursor: pointer; padding: 6px 0; min-height: 32px; }
         .mode-checkbox-label input[type="checkbox"] { transform: scale(1.3); }
+
+        .modes-locked-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #2a1e0a;
+            border: 1px solid #7a5420;
+            border-left: 3px solid #ffb74d;
+            border-radius: 6px;
+            font-size: 12.5px;
+            color: #ffd9a0;
+            line-height: 1.5;
+        }
+        .modes-locked-notice strong {
+            color: #ffb74d;
+        }
+        .modes-locked-icon {
+            color: #ffb74d;
+            font-size: 15px;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .mode-checkbox-label input[type="checkbox"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .mode-wrapper.mode-disabled {
+            opacity: 0.55;
+        }
+        .mode-wrapper.mode-disabled .mode-checkbox-label {
+            cursor: not-allowed;
+        }
 
         .storage-breakdown {
             font-size: 12px; color: #e8dcc0; width: 100%; background: #17120a;
@@ -1018,7 +1053,8 @@
 
         /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
-            body { padding: 20px 20px 24px; }
+            body { padding: 20px 20px 90px; }
+            body.summary-active { padding-bottom: 20px; }
             .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
             .how-it-works { padding: 16px 18px; }
@@ -1043,7 +1079,7 @@
         }
         @media (min-width: 900px) { .field-group { flex: 1; } }
         @media (max-width: 380px) {
-            body { padding: 10px 10px 24px; }
+            body { padding: 10px 10px 140px; }
             .site-logo { width: 40px; height: 40px; }
             h1 { font-size: 15px; }
             .how-it-works { padding: 12px 14px; }
@@ -1220,6 +1256,10 @@
 
                 <div id="jailbreakModesContainer" class="modes-container">
                     <span class="addon-label-title">Multi-Boot System Addons:</span>
+                    <div id="modesLockedNotice" class="modes-locked-notice" style="display:none;">
+                        <span class="modes-locked-icon">&#9432;</span>
+                        <span>Android and Linux modes require an SD card of <strong>128GB or larger</strong>. Upgrade your storage to enable these options.</span>
+                    </div>
                     <div class="mode-options-row">
                         <div class="mode-wrapper">
                             <label class="mode-checkbox-label">
@@ -1486,6 +1526,7 @@
         formEl.classList.add('hidden');
         checkoutBar.classList.add('hidden');
         summaryEl.classList.add('active');
+        document.body.classList.add('summary-active');
 
         const trackLink = $('headerTrackLink');
         if (trackLink && order.phone_ending) {
@@ -1620,6 +1661,7 @@
         $('summaryView').classList.remove('active');
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
+        document.body.classList.remove('summary-active');
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
@@ -1627,6 +1669,7 @@
         $('summaryView').classList.remove('active');
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
+        document.body.classList.remove('summary-active');
         state.loadedOrderForSummary = null;
     }
 
@@ -1980,14 +2023,24 @@
         if (isJbOrSetup) {
             const android = $('androidModeCheck');
             const linux = $('linuxModeCheck');
+            const modesLockedNotice = $('modesLockedNotice');
+            const androidWrapper = android.closest('.mode-wrapper');
+            const linuxWrapper = linux.closest('.mode-wrapper');
+
             if (state.maxSdSize < 128) {
-                if (android.checked) { android.checked = false; alert('Android Mode requires an SD card of 128GB or larger.'); }
-                if (linux.checked) { linux.checked = false; alert('Linux Mode requires an SD card of 128GB or larger.'); }
+                if (android.checked) { android.checked = false; }
+                if (linux.checked) { linux.checked = false; }
                 android.disabled = true;
                 linux.disabled = true;
+                if (androidWrapper) androidWrapper.classList.add('mode-disabled');
+                if (linuxWrapper) linuxWrapper.classList.add('mode-disabled');
+                if (modesLockedNotice) modesLockedNotice.style.display = 'flex';
             } else {
                 android.disabled = false;
                 linux.disabled = false;
+                if (androidWrapper) androidWrapper.classList.remove('mode-disabled');
+                if (linuxWrapper) linuxWrapper.classList.remove('mode-disabled');
+                if (modesLockedNotice) modesLockedNotice.style.display = 'none';
             }
 
             state.usableStorageLimit = computeUsableStorage().usable;
@@ -2304,8 +2357,6 @@
     }
 
     // ============ TIER RECOMMENDATION ============
-    // Only fires when a real price break is coming up.
-    // Silent at tier boundaries (3, 13, 23, 43 for jailbreak; 10, 20, 40 for games-only).
     function checkTierRecommendation(count, serviceType) {
         if (!serviceType) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
         if (count === 0) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
@@ -2313,7 +2364,6 @@
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            // Not enough to use the free allocation yet
             if (count < 3) {
                 return {
                     hasWarning: true,
@@ -2323,10 +2373,8 @@
                 };
             }
 
-            // Exactly at the free boundary — clean state, no banner
             if (count === 3) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
 
-            // Heading into the RM2.50/game bracket at 23 total
             if (count > 13 && count < 23) {
                 return {
                     hasWarning: true,
@@ -2337,7 +2385,6 @@
             }
             if (count === 23) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
 
-            // Heading into the RM2/game bracket at 43 total
             if (count > 23 && count < 43) {
                 return {
                     hasWarning: true,
@@ -2348,11 +2395,9 @@
             }
             if (count === 43) return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
 
-            // Past 43 — no more brackets
             return { hasWarning: false, targetCount: 0, remaining: 0, msg: '' };
         }
 
-        // Games-only service (no free allocation)
         if (count > 10 && count < 20) {
             return {
                 hasWarning: true,
@@ -2790,7 +2835,6 @@
 
         $('sizeWarningBox').style.display = details.exceeded ? 'block' : 'none';
 
-        // Ensure button label matches current mode
         updateSaveButtonLabel();
     }
 
