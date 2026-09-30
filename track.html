@@ -84,7 +84,6 @@
         }
         .status-msg.fading { opacity: 0; }
 
-        /* ===== ORDER LIST (shown when 2+ active orders) ===== */
         .order-list-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 18px; margin-bottom: 20px;
@@ -166,7 +165,6 @@
             color: #8a8272;
         }
 
-        /* ===== NO ACTIVE ORDERS CARD ===== */
         .no-active-card {
             background: #1f190e;
             border: 1px solid #3a3018;
@@ -219,7 +217,6 @@
         }
         .no-active-btn.whatsapp:hover { background: #1eaa52; }
 
-        /* ===== BACK TO ORDERS BAR ===== */
         .back-to-orders-bar {
             display: none;
             margin-bottom: 16px;
@@ -246,7 +243,6 @@
             border-color: #7dd3fc;
         }
 
-        /* ===== RESULT CARD ===== */
         .result-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 20px; display: none;
@@ -624,21 +620,18 @@
 
         <div id="statusMsg" class="status-msg"></div>
 
-        <!-- Back to orders bar (shown only when a customer picked one from a list) -->
         <div id="backToOrdersBar" class="back-to-orders-bar">
             <button class="back-to-orders-btn" onclick="showOrderListAgain()">
                 &#8592; Back to orders
             </button>
         </div>
 
-        <!-- Order list (shown when 2+ active orders) -->
         <div id="orderListCard" class="order-list-card">
             <div class="order-list-title" id="orderListTitle">You have multiple active orders</div>
             <div class="order-list-subtitle" id="orderListSubtitle"></div>
             <div id="orderList" class="order-list"></div>
         </div>
 
-        <!-- No active orders card -->
         <div id="noActiveCard" class="no-active-card">
             <div class="no-active-title">No active orders found</div>
             <div class="no-active-body" id="noActiveBody"></div>
@@ -647,7 +640,6 @@
             </div>
         </div>
 
-        <!-- Result card (single order tracker) -->
         <div id="resultCard" class="result-card">
             <div class="result-header">
                 <div class="order-summary-left">
@@ -708,13 +700,10 @@
 
     const $ = id => document.getElementById(id);
     let currentPhone = null;
-    let currentOrders = [];        // all active orders for the phone
-    let currentOrder = null;       // the currently displayed order
-    let currentOrderId = null;     // the currently displayed order id
+    let currentOrders = [];
+    let currentOrder = null;
+    let currentOrderId = null;
 
-    // =========================================================
-    // RATE-LIMITING (brute-force protection)
-    // =========================================================
     const RATE_LIMIT = {
         maxAttempts: 5,
         windowMs: 10 * 60 * 1000,
@@ -816,12 +805,17 @@
         'Cancelled':        '\u2717'
     };
 
-    // Orders in these states are considered "active" for the tracker.
     const INACTIVE_STATUSES = ['Completed', 'Cancelled'];
 
     function isActiveOrder(order) {
         const status = order.status || 'Pending';
         return INACTIVE_STATUSES.indexOf(status) === -1;
+    }
+
+    // Set header Order Page button to a specific URL, or reset if null
+    function setHeaderOrderPageLink(href) {
+        const link = $('headerOrderPageLink');
+        if (link) link.href = href || 'index.html';
     }
 
     window.onload = function() {
@@ -836,9 +830,6 @@
             if (!checkRateLimit().allowed) {
                 applyRateLimitUI();
             } else {
-                // If ?id= is present, we still fetch by phone (to apply the
-                // active filter and build the list if needed), then jump
-                // straight to the matching order.
                 trackOrder(urlId || null);
             }
         }
@@ -878,18 +869,18 @@
 
             if (error) throw error;
 
-            // Filter to active only (matches what the customer needs to see)
             const activeOrders = (data || []).filter(isActiveOrder);
 
             if (activeOrders.length === 0) {
-                // No active orders. Check if they have any orders at all —
-                // if so, they might be looking for a completed one.
                 const hadAnyOrders = (data || []).length > 0;
                 recordSuccess();
                 currentPhone = phone;
                 currentOrders = [];
                 currentOrder = null;
                 currentOrderId = null;
+                // Header Order Page button carries the searched phone so the
+                // order page opens the picker flow for this customer.
+                setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(phone));
                 setStatus('');
                 showNoActiveOrders(phone, hadAnyOrders);
                 return;
@@ -900,21 +891,16 @@
             currentOrders = activeOrders;
 
             if (activeOrders.length === 1) {
-                // Single active order — straight to tracker (no list, no bar)
                 currentOrder = activeOrders[0];
                 currentOrderId = String(activeOrders[0].id || activeOrders[0].order_id);
                 renderTracker(activeOrders[0]);
                 setStatus('');
-                // Update URL so refresh keeps them on this order
                 const newUrl = window.location.pathname + '?phone=' + encodeURIComponent(phone) + '&id=' + encodeURIComponent(currentOrderId);
                 window.history.replaceState({}, '', newUrl);
                 return;
             }
 
-            // 2+ active orders
             if (preferredOrderId) {
-                // Came in with ?id= — jump straight to that order if it's
-                // in the active list, otherwise fall back to the list.
                 const preferred = activeOrders.find(o =>
                     String(o.id || o.order_id) === String(preferredOrderId)
                 );
@@ -928,8 +914,10 @@
                 }
             }
 
-            // Show the list
             renderOrderList(activeOrders);
+            // Header Order Page button carries the searched phone so the
+            // order page shows this customer's pick list.
+            setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(phone));
             setStatus('');
 
         } catch (err) {
@@ -1026,11 +1014,10 @@
         if (!order) return;
         currentOrder = order;
         currentOrderId = String(order.id || order.order_id);
-        renderTracker(order);
+        renderTracker(order); // sets header Order Page link to ?order=<uuid>
         $('orderListCard').classList.remove('show');
         $('noActiveCard').classList.remove('show');
         $('backToOrdersBar').classList.add('show');
-        // Push state so browser Back returns to the list
         const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone) + '&id=' + encodeURIComponent(currentOrderId);
         window.history.pushState({ orderId: currentOrderId }, '', url);
     }
@@ -1040,13 +1027,15 @@
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
         renderOrderList(currentOrders);
-        // Reset URL to phone only
         const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
         window.history.pushState({}, '', url);
+        // Header Order Page link back to the phone version (shows the pick list)
+        if (currentPhone) {
+            setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(currentPhone));
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Handle browser back/forward
     window.addEventListener('popstate', function(e) {
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
@@ -1062,10 +1051,13 @@
                 return;
             }
         }
-        // No id → show list
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
         if (currentOrders.length >= 2) renderOrderList(currentOrders);
+        // Back on the list — header Order Page button should point to phone
+        if (currentPhone) {
+            setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(currentPhone));
+        }
     });
 
     async function refreshOrder() {
@@ -1085,7 +1077,6 @@
                 renderTracker(data[0]);
                 setStatus('Status updated.', '#00e676', 3000);
             } else {
-                // The order was deleted while the customer was viewing it.
                 setStatus('This order is no longer available.', '#e57373', 5000);
             }
         } catch (err) {
@@ -1149,11 +1140,16 @@
     function renderTracker(order) {
         $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
 
-        // Header Order Page link carries the tracked phone number so the
-        // customer lands directly in their order context on index.html.
-        const orderPageLink = $('headerOrderPageLink');
-        if (orderPageLink && order.phone_ending) {
-            orderPageLink.href = 'index.html?phone=' + encodeURIComponent(order.phone_ending);
+        // Header Order Page link points directly to this specific order on
+        // index.html so the customer lands on its summary view without
+        // having to go through the pick dialog again.
+        if (order.phone_ending) {
+            const thisOrderId = order.id || order.order_id;
+            if (thisOrderId) {
+                setHeaderOrderPageLink('index.html?order=' + encodeURIComponent(thisOrderId));
+            } else {
+                setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(order.phone_ending));
+            }
         }
 
         const serviceLabels = {
