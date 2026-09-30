@@ -13,7 +13,7 @@
             color: #f0e9d8;
             margin: 0;
             padding: 16px;
-            padding-bottom: 40px;
+            padding-bottom: 120px;
             -webkit-text-size-adjust: 100%;
         }
         .admin-container { max-width: 900px; margin: 0 auto; }
@@ -103,21 +103,65 @@
         .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
+        /* Selection toolbar above order list */
+        .selection-toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 10px; flex-wrap: wrap;
+            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
+            padding: 10px 14px; margin-bottom: 12px;
+        }
+        .selection-toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .select-all-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: #b8b0a0; cursor: pointer; user-select: none;
+        }
+        .select-all-label input[type="checkbox"] {
+            transform: scale(1.3); accent-color: #ffc000; cursor: pointer;
+        }
+        .selection-count {
+            font-size: 12.5px; color: #e8dcc0; font-weight: 600;
+        }
+
         .orders-grid { display: flex; flex-direction: column; gap: 12px; }
         .order-card {
             background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
             padding: 14px; display: flex; flex-direction: column; gap: 12px;
-            border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s;
+            border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s, background-color 0.2s;
+            position: relative;
         }
         .order-card:hover { border-color: #5a4a20; }
         .order-card.status-Pending { border-left-color: #ffb74d; }
         .order-card.status-In-Progress { border-left-color: #7dd3fc; }
         .order-card.status-Completed { border-left-color: #00e676; }
         .order-card.status-Cancelled { border-left-color: #e57373; }
+        .order-card.selected-for-bulk {
+            background: #232a1a;
+            border-color: #00e676;
+        }
+
+        /* Bulk select checkbox on card */
+        .card-select-wrap {
+            position: absolute;
+            top: 12px; right: 12px;
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            background: #14110a; border: 1px solid #3a3018; border-radius: 6px;
+            z-index: 3;
+        }
+        .card-select-wrap input[type="checkbox"] {
+            transform: scale(1.4); accent-color: #00e676; cursor: pointer;
+        }
+        .order-card.selected-for-bulk .card-select-wrap {
+            background: #00e676; border-color: #00e676;
+        }
+        .order-card.selected-for-bulk .card-select-wrap input[type="checkbox"] {
+            accent-color: #14110a;
+        }
 
         .order-header {
             display: flex; justify-content: space-between; align-items: flex-start;
             flex-wrap: wrap; gap: 8px;
+            padding-right: 44px; /* leave room for the bulk checkbox */
         }
         .customer-info {
             font-size: 14px; font-weight: bold; display: flex; flex-direction: column;
@@ -233,6 +277,74 @@
             flex-wrap: wrap; gap: 10px;
         }
         .order-actions-row > div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        /* ===== BULK ACTION BAR (floating at bottom) ===== */
+        .bulk-bar {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #1a2433;
+            border-top: 2px solid #7dd3fc;
+            padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 500;
+            box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6);
+            animation: bulkBarSlide 0.25s ease-out;
+        }
+        @keyframes bulkBarSlide {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+        .bulk-bar-inner {
+            max-width: 900px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .bulk-bar-info {
+            font-size: 13px;
+            color: #cfe6ff;
+            font-weight: 600;
+        }
+        .bulk-bar-info strong { color: #7dd3fc; }
+        .bulk-bar-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .bulk-btn {
+            border: none;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+            white-space: nowrap;
+            min-height: 42px;
+        }
+        .bulk-btn.status {
+            background: #7dd3fc;
+            color: #14110a;
+        }
+        .bulk-btn.status:hover { background: #a4e2fc; }
+        .bulk-btn.delete {
+            background: transparent;
+            color: #e57373;
+            border: 1px solid #4a2525;
+        }
+        .bulk-btn.delete:hover { background: #e57373; color: #14110a; border-color: #e57373; }
+        .bulk-btn.cancel {
+            background: transparent;
+            color: #b8b0a0;
+            border: 1px solid #3a3018;
+        }
+        .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
 
         /* MODALS */
         #orderModalOverlay {
@@ -400,7 +512,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
         @media (min-width: 600px) {
-            body { padding: 20px; }
+            body { padding: 20px; padding-bottom: 120px; }
             .stats-overview { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .stat-card { padding: 14px; }
             .stat-card .val { font-size: 22px; }
@@ -422,7 +534,7 @@
             .order-body { gap: 15px; }
         }
         @media (max-width: 380px) {
-            body { padding: 10px; }
+            body { padding: 10px; padding-bottom: 120px; }
             .stat-card { padding: 10px; }
             .stat-card .val { font-size: 18px; }
             .stat-card .lbl { font-size: 10px; }
@@ -431,6 +543,8 @@
             .order-card { padding: 12px; }
             .filter-btn { padding: 7px 12px; font-size: 12px; }
             .btn-action { padding: 7px 10px; font-size: 11px; }
+            .card-select-wrap { width: 28px; height: 28px; top: 10px; right: 10px; }
+            .order-header { padding-right: 38px; }
         }
     </style>
 </head>
@@ -479,12 +593,37 @@
             </div>
         </div>
 
+        <!-- Selection toolbar -->
+        <div class="selection-toolbar" id="selectionToolbar">
+            <div class="selection-toolbar-left">
+                <label class="select-all-label">
+                    <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this.checked)">
+                    <span>Select all visible</span>
+                </label>
+                <span class="selection-count" id="selectionCount">0 selected</span>
+            </div>
+        </div>
+
         <div id="ordersContainer" class="orders-grid"></div>
 
         <footer class="trust-footer">
             <div class="brand">Pulai PC — Admin</div>
             <div class="note">Internal dashboard. Not for customer use.</div>
         </footer>
+    </div>
+
+    <!-- Bulk action bar (floating) -->
+    <div id="bulkBar" class="bulk-bar" style="display:none;">
+        <div class="bulk-bar-inner">
+            <div class="bulk-bar-info">
+                <strong id="bulkCount">0</strong> order<span id="bulkCountPlural">s</span> selected
+            </div>
+            <div class="bulk-bar-actions">
+                <button class="bulk-btn status" onclick="bulkUpdateStatus()">Update Status</button>
+                <button class="bulk-btn delete" onclick="bulkDeleteOrders()">Delete Selected</button>
+                <button class="bulk-btn cancel" onclick="clearBulkSelection()">Cancel</button>
+            </div>
+        </div>
     </div>
 
     <div id="orderModalOverlay" onclick="closeModalOnBackdrop(event)">
@@ -552,6 +691,7 @@
         let currentModalGames = [];
         let currentRemarksOrderId = null;
         let orderCountByPhone = {};
+        let bulkSelectedIds = new Set();  // Stores order IDs currently checked
 
         const PROGRESS_STAGES = (APP_CONFIG.progressStages) || [
             'Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'
@@ -569,6 +709,17 @@
             'Completed':        '\u2713'
         };
 
+        // ====== Mapping Progress Stage → Status ======
+        // When the admin changes the progress stage, we auto-set the
+        // status to match, unless they've overridden it manually.
+        const STAGE_TO_STATUS = {
+            'Order Received':   'Pending',
+            'Confirmed':        'Pending',
+            'In Progress':      'In Progress',
+            'Ready for Pickup': 'In Progress',
+            'Completed':        'Completed'
+        };
+
         window.onload = async function() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
@@ -578,20 +729,38 @@
             }
         };
 
+        // ============ EVENT DELEGATION ============
         document.addEventListener('click', function(e) {
             if (!e.target) return;
-            if (e.target.classList.contains('view-btn')) openOrderModal(e.target.getAttribute('data-order-id'));
-            else if (e.target.classList.contains('delete-btn')) deleteOrder(e.target.getAttribute('data-order-id'));
-            else if (e.target.classList.contains('edit-wa-btn')) editWhatsappUsername(e.target.getAttribute('data-order-id'));
-            else if (e.target.classList.contains('edit-remarks-btn')) {
-                const id = e.target.getAttribute('data-order-id');
+            const t = e.target;
+            if (t.classList.contains('view-btn')) openOrderModal(t.getAttribute('data-order-id'));
+            else if (t.classList.contains('delete-btn')) deleteOrder(t.getAttribute('data-order-id'));
+            else if (t.classList.contains('edit-wa-btn')) editWhatsappUsername(t.getAttribute('data-order-id'));
+            else if (t.classList.contains('edit-remarks-btn')) {
+                const id = t.getAttribute('data-order-id');
                 if (id) openRemarksModal(id);
                 else if (currentRemarksOrderId) openRemarksModal(currentRemarksOrderId);
             }
-            else if (e.target.classList.contains('copy-main-btn')) copyGamesForScriptMain(e.target.getAttribute('data-order-id'), e.target);
-            else if (e.target.classList.contains('more-games-link')) openOrderModal(e.target.getAttribute('data-order-id'));
-            else if (e.target.classList.contains('notify-btn')) notifyCustomer(e.target.getAttribute('data-order-id'));
-            else if (e.target.classList.contains('copy-track-btn')) copyTrackingLink(e.target.getAttribute('data-order-id'), e.target);
+            else if (t.classList.contains('copy-main-btn')) copyGamesForScriptMain(t.getAttribute('data-order-id'), t);
+            else if (t.classList.contains('more-games-link')) openOrderModal(t.getAttribute('data-order-id'));
+            else if (t.classList.contains('notify-btn')) notifyCustomer(t.getAttribute('data-order-id'));
+            else if (t.classList.contains('copy-track-btn')) copyTrackingLink(t.getAttribute('data-order-id'), t);
+        });
+
+        // Handle bulk checkbox changes separately (change event, not click)
+        document.addEventListener('change', function(e) {
+            if (!e.target) return;
+            if (e.target.classList && e.target.classList.contains('bulk-checkbox')) {
+                const id = e.target.getAttribute('data-order-id');
+                if (e.target.checked) bulkSelectedIds.add(String(id));
+                else bulkSelectedIds.delete(String(id));
+                const card = e.target.closest('.order-card');
+                if (card) {
+                    if (e.target.checked) card.classList.add('selected-for-bulk');
+                    else card.classList.remove('selected-for-bulk');
+                }
+                updateBulkBarUI();
+            }
         });
 
         async function login() {
@@ -621,6 +790,8 @@
                     const p = o.phone_ending || '';
                     orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
                 });
+                // Clear bulk selection on reload
+                bulkSelectedIds.clear();
                 updateStats();
                 filterAndRenderOrders();
             } catch (err) {
@@ -645,6 +816,8 @@
             filterAndRenderOrders();
         }
 
+        // ============ SINGLE-ORDER UPDATES ============
+
         async function updateStatus(orderId, newStatus) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) return;
@@ -666,8 +839,11 @@
 
             const oldStage = order.progress_stage;
             const oldSub = order.progress_substage;
+            const oldStatus = order.status;
+
             order.progress_stage = newStage;
 
+            // Auto-set substage when entering "In Progress"
             let newSub = null;
             if (newStage === 'In Progress') {
                 const list = SUBSTAGES_BY_SERVICE[order.service_type] || [];
@@ -676,20 +852,32 @@
             order.progress_substage = newSub;
             order.progress_updated_at = new Date().toISOString();
 
+            // Auto-sync status to match progress stage
+            const derivedStatus = STAGE_TO_STATUS[newStage];
+            const statusChanged = derivedStatus && derivedStatus !== order.status;
+            if (statusChanged) {
+                order.status = derivedStatus;
+            }
+
             const idField = order.id ? 'id' : 'order_id';
-            const { error } = await supabaseClient.from('orders').update({
+            const updatePayload = {
                 progress_stage: newStage,
                 progress_substage: newSub,
                 progress_updated_at: order.progress_updated_at
-            }).eq(idField, orderId);
+            };
+            if (statusChanged) updatePayload.status = derivedStatus;
+
+            const { error } = await supabaseClient.from('orders').update(updatePayload).eq(idField, orderId);
 
             if (error) {
                 alert('Failed to update progress: ' + error.message);
                 order.progress_stage = oldStage;
                 order.progress_substage = oldSub;
+                order.status = oldStatus;
                 return;
             }
 
+            updateStats();
             filterAndRenderOrders();
 
             const card = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
@@ -728,11 +916,17 @@
             }
         }
 
+        // ============ NOTIFY CUSTOMER (opens WhatsApp app) ============
         function notifyCustomer(orderId) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) return;
-            const wa = APP_CONFIG.whatsappNumber || '';
-            if (!wa) return alert('WhatsApp number not set.');
+
+            // No WhatsApp username on file → fall back to clipboard + warning
+            const waUsername = (order.whatsapp_username || '').trim();
+            if (!waUsername) {
+                alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.');
+                return;
+            }
 
             const stage = order.progress_stage || 'Order Received';
             const sub = order.progress_substage;
@@ -741,10 +935,41 @@
             if (sub) msg += ` — ${sub}`;
             msg += `\n\nTrack live here: ${buildTrackingUrl(order.phone_ending)}`;
 
-            navigator.clipboard.writeText(msg).then(() => {
-                alert('Message copied to clipboard.\n\nPaste it into WhatsApp for the customer.');
-                window.open('https://web.whatsapp.com/', '_blank');
-            }).catch(err => alert('Failed to copy: ' + err));
+            const encoded = encodeURIComponent(msg);
+
+            // Decide target:
+            // - If the WA username looks like a phone number (digits, +, spaces, dashes),
+            //   use the wa.me deep link for that specific contact.
+            // - Otherwise fall back to a generic "share to WhatsApp" link where
+            //   the admin picks the contact from their address book.
+            const digitsOnly = waUsername.replace(/[^\d]/g, '');
+            let waUrl;
+            if (digitsOnly.length >= 8) {
+                // Convert to international format if it looks local (starts with 0)
+                let intl = digitsOnly;
+                if (intl.startsWith('0')) {
+                    // Assume Malaysia (+60) — adjust this if your customers are elsewhere
+                    intl = '60' + intl.slice(1);
+                }
+                waUrl = `https://wa.me/${intl}?text=${encoded}`;
+            } else {
+                // Fallback: generic WhatsApp share — admin picks the chat
+                waUrl = `https://wa.me/?text=${encoded}`;
+            }
+
+            // Open WhatsApp app (falls back to Web on desktop automatically)
+            try {
+                const a = document.createElement('a');
+                a.href = waUrl;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.style.display = 'none';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 100);
+            } catch (err) {
+                window.open(waUrl, '_blank');
+            }
         }
 
         function buildTrackingUrl(phoneEnding) {
@@ -780,7 +1005,7 @@
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) return;
             const currentWa = order.whatsapp_username || '';
-            const newWa = prompt("Enter WhatsApp Username or Contact Name:", currentWa);
+            const newWa = prompt("Enter WhatsApp contact name OR phone number (e.g. 60123456789):", currentWa);
             if (newWa === null) return;
             const trimmedWa = newWa.trim();
             const oldWa = order.whatsapp_username;
@@ -794,6 +1019,176 @@
             filterAndRenderOrders();
         }
 
+        // ============ BULK ACTIONS ============
+        function toggleSelectAll(checked) {
+            // Only affects currently-rendered (visible) cards
+            const visibleIds = Array.from(document.querySelectorAll('.bulk-checkbox'))
+                .map(cb => cb.getAttribute('data-order-id'));
+
+            if (checked) {
+                visibleIds.forEach(id => bulkSelectedIds.add(String(id)));
+            } else {
+                visibleIds.forEach(id => bulkSelectedIds.delete(String(id)));
+            }
+
+            // Sync checkboxes on-screen
+            document.querySelectorAll('.bulk-checkbox').forEach(cb => {
+                const id = String(cb.getAttribute('data-order-id'));
+                cb.checked = bulkSelectedIds.has(id);
+                const card = cb.closest('.order-card');
+                if (card) {
+                    if (cb.checked) card.classList.add('selected-for-bulk');
+                    else card.classList.remove('selected-for-bulk');
+                }
+            });
+
+            updateBulkBarUI();
+        }
+
+        function clearBulkSelection() {
+            bulkSelectedIds.clear();
+            document.querySelectorAll('.bulk-checkbox').forEach(cb => {
+                cb.checked = false;
+                const card = cb.closest('.order-card');
+                if (card) card.classList.remove('selected-for-bulk');
+            });
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+            if (selectAllCb) selectAllCb.checked = false;
+            updateBulkBarUI();
+        }
+
+        function updateBulkBarUI() {
+            const count = bulkSelectedIds.size;
+            const bar = document.getElementById('bulkBar');
+            const counter = document.getElementById('selectionCount');
+            const bulkCount = document.getElementById('bulkCount');
+            const bulkCountPlural = document.getElementById('bulkCountPlural');
+            const selectAllCb = document.getElementById('selectAllCheckbox');
+
+            // Toolbar count
+            if (counter) counter.innerText = count === 0 ? '0 selected' : `${count} selected`;
+
+            // Floating bulk bar visibility
+            if (bar) {
+                if (count > 0) bar.style.display = 'block';
+                else bar.style.display = 'none';
+            }
+            if (bulkCount) bulkCount.innerText = count;
+            if (bulkCountPlural) bulkCountPlural.textContent = count === 1 ? '' : 's';
+
+            // Select-all tri-state: checked if all visible are selected
+            if (selectAllCb) {
+                const visibleIds = Array.from(document.querySelectorAll('.bulk-checkbox'))
+                    .map(cb => String(cb.getAttribute('data-order-id')));
+                if (visibleIds.length === 0) {
+                    selectAllCb.checked = false;
+                    selectAllCb.indeterminate = false;
+                } else {
+                    const selectedVisible = visibleIds.filter(id => bulkSelectedIds.has(id)).length;
+                    if (selectedVisible === 0) {
+                        selectAllCb.checked = false;
+                        selectAllCb.indeterminate = false;
+                    } else if (selectedVisible === visibleIds.length) {
+                        selectAllCb.checked = true;
+                        selectAllCb.indeterminate = false;
+                    } else {
+                        selectAllCb.checked = false;
+                        selectAllCb.indeterminate = true;
+                    }
+                }
+            }
+        }
+
+        async function bulkUpdateStatus() {
+            const count = bulkSelectedIds.size;
+            if (count === 0) return;
+
+            // Ask which status to apply
+            const choice = prompt(
+                `Update ${count} order${count === 1 ? '' : 's'} to which status?\n\n` +
+                `1 — Pending\n` +
+                `2 — In Progress\n` +
+                `3 — Completed\n` +
+                `4 — Cancelled\n\n` +
+                `Type the number (1-4):`
+            );
+            if (choice === null) return;
+
+            const statusMap = { '1': 'Pending', '2': 'In Progress', '3': 'Completed', '4': 'Cancelled' };
+            const newStatus = statusMap[String(choice).trim()];
+            if (!newStatus) {
+                alert('Invalid choice. Please enter 1, 2, 3, or 4.');
+                return;
+            }
+
+            if (!confirm(`Set ${count} order${count === 1 ? '' : 's'} to "${newStatus}"?`)) return;
+
+            const idsToUpdate = Array.from(bulkSelectedIds);
+
+            // Apply optimistic update locally
+            idsToUpdate.forEach(id => {
+                const order = allOrders.find(o => String(o.id) === String(id) || String(o.order_id) === String(id));
+                if (order) order.status = newStatus;
+            });
+
+            // Supabase: batch update by matching either `id` or `order_id`
+            // We use `.in()` with the raw string IDs.
+            // If your table uses only `id`, this is fine.
+            // If it uses `order_id`, both patterns still match because we collected the raw key strings.
+            const { error } = await supabaseClient
+                .from('orders')
+                .update({ status: newStatus })
+                .in('id', idsToUpdate);
+
+            if (error) {
+                // Try fallback with order_id column
+                const { error: err2 } = await supabaseClient
+                    .from('orders')
+                    .update({ status: newStatus })
+                    .in('order_id', idsToUpdate);
+                if (err2) {
+                    alert('Bulk update failed: ' + err2.message);
+                    // Revert optimistic updates
+                    await loadOrders();
+                    return;
+                }
+            }
+
+            clearBulkSelection();
+            await loadOrders();
+        }
+
+        async function bulkDeleteOrders() {
+            const count = bulkSelectedIds.size;
+            if (count === 0) return;
+
+            if (!confirm(`Delete ${count} order${count === 1 ? '' : 's'}?\n\nThis cannot be undone.`)) return;
+
+            const idsToDelete = Array.from(bulkSelectedIds);
+
+            // Supabase batch delete
+            const { error } = await supabaseClient
+                .from('orders')
+                .delete()
+                .in('id', idsToDelete);
+
+            if (error) {
+                // Fallback with order_id
+                const { error: err2 } = await supabaseClient
+                    .from('orders')
+                    .delete()
+                    .in('order_id', idsToDelete);
+                if (err2) {
+                    alert('Bulk delete failed: ' + err2.message);
+                    return;
+                }
+            }
+
+            clearBulkSelection();
+            await loadOrders();
+        }
+
+        // ============ REMARKS MODAL ============
         function openRemarksModal(orderId) {
             const order = allOrders.find(o => String(o.id) === String(orderId) || String(o.order_id) === String(orderId));
             if (!order) { alert('Order not found.'); return; }
@@ -885,6 +1280,7 @@
 
             if (filtered.length === 0) {
                 container.innerHTML = '<div class="no-orders">No matching orders found.</div>';
+                updateBulkBarUI();
                 return;
             }
 
@@ -897,6 +1293,7 @@
                 const currentStatus = order.status || 'Pending';
                 const statusClass = currentStatus.replace(/\s+/g, '-');
                 card.className = `order-card status-${statusClass}`;
+                if (bulkSelectedIds.has(String(orderId))) card.classList.add('selected-for-bulk');
 
                 let gameList = [];
                 if (Array.isArray(order.games)) gameList = order.games;
@@ -939,6 +1336,13 @@
                 const notifyVisible = order.whatsapp_username ? ' visible' : '';
 
                 card.innerHTML = `
+                    <div class="card-select-wrap">
+                        <input type="checkbox"
+                               class="bulk-checkbox"
+                               data-order-id="${orderId}"
+                               ${bulkSelectedIds.has(String(orderId)) ? 'checked' : ''}>
+                    </div>
+
                     <div class="order-header">
                         <div class="customer-info">
                             <div>Order ID: ${order.phone_ending || 'N/A'} ${multiBadge}</div>
@@ -1008,6 +1412,9 @@
                 `;
                 container.appendChild(card);
             });
+
+            // Update toolbar after render
+            updateBulkBarUI();
         }
 
         async function openOrderModal(orderId) {
@@ -1066,12 +1473,12 @@
                     gameGrid.appendChild(item);
                 });
             } else {
-                document.getElementById('modalGameCount').innerText = '0 Games';
-                gameGrid.innerHTML = '<div style="color:#6a6357; padding: 10px;">No games selected for this order.</div>';
+                document.getElementById('modalGameCount').innerText =.display '0 Games = '';
+                gameflexGrid.innerHTML = '<div style="';
+color:#6a6357; padding       : 10px;">No games selected for this order.</div>';
             }
 
-            document.getElementById('orderModalOverlay').style.display = 'flex';
-        }
+            document.getElementById('orderModalOverlay').style }
 
         function copyGamesForScript() {
             if (!currentModalGames || currentModalGames.length === 0) { alert("No games to copy!"); return; }
@@ -1125,6 +1532,7 @@
             if (error) { alert('Delete failed: ' + error.message); }
             else {
                 allOrders = allOrders.filter(o => String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId));
+                bulkSelectedIds.delete(String(orderId));
                 orderCountByPhone = {};
                 allOrders.forEach(o => {
                     const p = o.phone_ending || '';
