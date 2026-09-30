@@ -42,8 +42,8 @@ const APP_CONFIG = {
 
     // Customer-facing descriptions for each stage
     progressDescriptions: {
-        'Order Received':   "We've received your order and will review it shortly.",
-        'Confirmed':        "Your game list and storage are confirmed. Work will begin soon.",
+        'Order Received':   "We've received your order. We'll confirm the details on WhatsApp and arrange a drop-off time.",
+        'Confirmed':        "Details confirmed. Please drop off your console so we can begin work.",
         'In Progress':      "Your console is being prepared. See details below.",
         'Ready for Pickup': "Your console is ready. Come collect it anytime — payment on pickup.",
         'Completed':        "Thanks for your business. Enjoy your games."
