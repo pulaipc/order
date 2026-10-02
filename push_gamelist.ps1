@@ -7,10 +7,10 @@ $scriptDir =$PSScriptRoot
 # Alternative method to go one folder up safely
 $parentDir = Split-Path $scriptDir -Parent
 $gameDirectoryPath = Join-Path $parentDir "nsp"
-$configPath = Join-Path $scriptDir "config.js"
+$configPath = Join-Path $scriptDir "gameslist.js"
 
 if (-not (Test-Path $configPath)) {
-    Write-Host "[ERROR] config.js not found at: $configPath" -ForegroundColor Red
+    Write-Host "[ERROR] gameslist.js not found at: $configPath" -ForegroundColor Red
     pause
     exit 1
 }
@@ -41,16 +41,16 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
 
 $gamesJsBlock = "const games = [`r`n" + ($gameEntries -join ",`r`n") + "`r`n    ];"
 
-Write-Host "[2/3] Updating config.js game dataset..." -ForegroundColor Cyan
+Write-Host "[2/3] Updating gameslist.js game dataset..." -ForegroundColor Cyan
 
 $configContent = Get-Content $configPath -Raw
 
-# Regex replace only the 'const games = [...]' section in config.js, preserving credentials & pricing settings
+# Regex replace only the 'const games = [...]' section in gameslist.js, preserving credentials & pricing settings
 $updatedConfig = [regex]::Replace($configContent, 'const games = \[[\s\S]*?\];', { param($m)$gamesJsBlock })
 
 Set-Content $configPath $updatedConfig -Encoding UTF8
 
-Write-Host "[SUCCESS] config.js updated locally!" -ForegroundColor Green
+Write-Host "[SUCCESS] gameslist.js updated locally!" -ForegroundColor Green
 
 Write-Host "[3/3] Syncing changes to GitHub..." -ForegroundColor Yellow
 
@@ -58,7 +58,7 @@ Set-Location $scriptDir
 
 $currentDate = Get-Date -Format "yyyy-MM-dd HH:mm"
 
-git add config.js
+git add gameslist.js
 git commit -m "Auto-update game list: $currentDate"
 git push origin main
 
