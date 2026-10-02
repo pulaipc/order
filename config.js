@@ -80,6 +80,13 @@ const APP_CONFIG = {
     }
 };
 
-// Attach the game catalog (defined in gameslist.js) to APP_CONFIG so code can
-// access it via APP_CONFIG.gamesList. Gameslist.js must be loaded first.
-APP_CONFIG.gamesList = games;
+// Attach the game catalog (defined in gameslist.js) to APP_CONFIG.
+// Uses a getter so the value is resolved lazily — this way the script
+// load order between gameslist.js and config.js doesn't matter.
+Object.defineProperty(APP_CONFIG, 'gamesList', {
+    get: function() {
+        return (typeof games !== 'undefined') ? games : [];
+    },
+    enumerable: true,
+    configurable: true
+});
