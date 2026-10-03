@@ -489,6 +489,64 @@
         .notify-btn:hover { opacity: 0.85; }
         .notify-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* Secondary button in the modal footer (e.g. View Tracking).
+           Needed because .action-btn is only styled inside .modal-section-title,
+           so outside of it the element fell back to browser-default styling. */
+        .modal-footer-actions .action-btn {
+            background: transparent;
+            border: 1px solid #3a3018;
+            color: #e8dcc0;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.2s;
+            min-height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-sizing: border-box;
+            text-decoration: none;
+        }
+        .modal-footer-actions .action-btn:hover {
+            background: #ffc000;
+            color: #14110a;
+            border-color: #ffc000;
+        }
+
+        /* Inline row of small actions inside the modal body (Edit WhatsApp / Edit Remarks). */
+        .modal-inline-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-top: 4px;
+        }
+        .modal-inline-actions .action-btn {
+            background: transparent;
+            border: 1px solid #3a3018;
+            color: #e8dcc0;
+            padding: 7px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .modal-inline-actions .action-btn:hover {
+            background: #ffc000;
+            color: #14110a;
+            border-color: #ffc000;
+        }
+
         /* ===== REPAIR CATALOG TAB ===== */
         .catalog-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
         .catalog-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; }
@@ -723,8 +781,8 @@
             <div class="controls-row">
                 <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, repair, remarks..." onkeyup="filterAndRenderOrders()">
                 <div class="filter-buttons-wrapper">
-                    <button class="filter-btn needs" data-status="NEEDS" onclick="setStatusFilter('NEEDS', this)">&#9889; Needs Action</button>
-                    <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
+                    <button class="filter-btn active needs" data-status="NEEDS" onclick="setStatusFilter('NEEDS', this)">&#9889; Needs Action</button>
+                    <button class="filter-btn" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                     <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
                     <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
                     <button class="filter-btn" data-status="Ready" onclick="setStatusFilter('Ready', this)">Ready</button>
@@ -880,7 +938,7 @@
                         <span class="lbl">Remarks:</span>
                         <span class="val" id="modalRemarksVal">—</span>
                     </div>
-                    <div style="display:flex; gap:8px; flex-wrap:wrap; padding-top:4px;">
+                    <div class="modal-inline-actions">
                         <button class="action-btn" id="modalEditWaBtn">Edit WhatsApp</button>
                         <button class="action-btn" id="modalEditRemarksBtn">Edit Remarks</button>
                     </div>
@@ -1694,8 +1752,8 @@
             '<div class="checklist-body' + (isExpanded ? ' open' : '') + '">' + checklistHtml + '</div>' +
             '<div class="order-card-footer">' +
                 '<div class="order-card-footer-left">' +
-                    '<button class="view-btn" data-order-id="' + orderId + '">View Full Order</button>' +
-                    '<a class="view-btn track-btn" href="' + buildTrackLink(order) + '" target="_blank" rel="noopener noreferrer">View Tracking</a>' +
+                    '<button class="view-btn" data-order-id="' + orderId + '" title="Open the full order details">Full Order</button>' +
+                    '<a class="view-btn track-btn" href="' + buildTrackLink(order) + '" target="_blank" rel="noopener noreferrer" title="Open the customer tracking page in a new tab">Tracking</a>' +
                 '</div>' +
                 '<div class="order-card-footer-right">' +
                     '<button class="delete-btn" data-order-id="' + orderId + '">Delete</button>' +
