@@ -79,7 +79,7 @@ const APP_CONFIG = {
         'Game Installation':    "Copying your selected games onto the SD card.",
         'Diagnosis':            "Inspecting the issue and confirming what needs to be repaired.",
         'Repair':               "Performing the repair work.",
-        'System Repair':        "Performing the repair work alongside your modding service.",
+        'Device Repair':        "Performing the repair work alongside your modding service.",
         'Testing':              "Testing the console after repair to make sure everything works."
     },
 
@@ -91,7 +91,7 @@ const APP_CONFIG = {
         'Game Installation':    "~1–2 hours",
         'Diagnosis':            "~1 hour",
         'Repair':               "~1 day",
-        'System Repair':        "~1 day",
+        'Device Repair':        "~1 day",
         'Testing':              "~1 hour"
     },
 
@@ -223,8 +223,8 @@ function getEffectiveSubStages(order) {
     if (!hasRepair || serviceType === 'repair_only') return base;
 
     const insertAt = base.indexOf('Game Installation');
-    if (insertAt >= 0) base.splice(insertAt, 0, 'System Repair');
-    else base.push('System Repair');
+    if (insertAt >= 0) base.splice(insertAt, 0, 'Device Repair');
+    else base.push('Device Repair');
     return base;
 }
 

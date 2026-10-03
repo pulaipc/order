@@ -898,7 +898,7 @@
                             const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                             if (gc > 0) metaLine = `Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total`;
                         }
-                        if ((sub === 'Repair' || sub === 'System Repair') && isCur && !isDone && rCount > 0) {
+                        if ((sub === 'Repair' || sub === 'Device Repair') && isCur && !isDone && rCount > 0) {
                             metaLine = `Working on ${rCount} repair${rCount !== 1 ? 's' : ''}`;
                         }
 
