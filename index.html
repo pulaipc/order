@@ -1836,28 +1836,34 @@
             if (!isNaN(userSpace) && userSpace > 2048) { userSpace = 2048; freeInput.value = 2048; }
 
             const hasFreeSpace = !isNaN(userSpace) && userSpace > 0;
-            const gamesCount = state.selectedGames.size;
 
             state.usableStorageLimit = hasFreeSpace ? userSpace : 0;
-            // isStorageConfigured gates the game picker.
             state.isStorageConfigured = hasFreeSpace;
 
             if (hasFreeSpace) {
+                // Free space given → unlock game list
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.remove('locked');
+
                 let gSize = 0;
                 state.selectedGames.forEach(s => gSize += s);
                 $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
             } else {
-                // No free space → cannot pick games. Fine to save update-only.
+                // No free space → freeze game list, clear any games, update-only state
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
-                $('gameSectionWrapper').classList.remove('locked'); // still visible, but picker will refuse
-                $('storageBreakdown').innerHTML = '<span>Service: System Update | <span style="color:#8a8272;">Enter free GB above to add games. Or leave blank for update only.</span></span>';
+                $('gameSectionWrapper').classList.add('locked');
+
+                // (B): wipe game selection so the order is cleanly update-only
+                if (state.selectedGames.size > 0) {
+                    state.selectedGames.clear();
+                }
+
+                $('storageBreakdown').innerHTML = '<span>Service: System Update | <span style="color:#8a8272;">Enter free GB above to add games, or leave blank for update only.</span></span>';
             }
 
-            // Trim if over
+            // Trim excess games when free space shrinks below selected total
             if (hasFreeSpace && state.usableStorageLimit > 0) {
                 let gSize = 0;
                 state.selectedGames.forEach(s => gSize += s);
@@ -1870,8 +1876,7 @@
                 }
             }
 
-            // Submit button state: enabled unless games are picked without free space
-            // (we allow submit if zero games even with zero free space)
+            // Submit allowed regardless (order can be update-only)
             $('mainSubmitBtn').disabled = false;
 
             if ($('gameSectionWrapper').style.display !== 'none') scheduleGamesRerender();
