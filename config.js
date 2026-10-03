@@ -49,7 +49,7 @@ const APP_CONFIG = {
         'Order Received',
         'Confirmed',
         'In Progress',
-        'Ready for Pickup',
+        'Ready',
         'Completed'
     ],
 
@@ -58,7 +58,7 @@ const APP_CONFIG = {
         'Order Received':   "We've received your order. We'll confirm the details on WhatsApp and arrange a drop-off time.",
         'Confirmed':        "Details confirmed. Please drop off your console so we can begin work.",
         'In Progress':      "Your console is being prepared. See details below.",
-        'Ready for Pickup': "Your console is ready. Come collect it anytime — payment on pickup.",
+        'Ready':            "Your console is ready. Pick it up or wait for us to ship it — we'll confirm on WhatsApp.",
         'Completed':        "Thanks for your business. Enjoy your games."
     },
 

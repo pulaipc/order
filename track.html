@@ -119,6 +119,19 @@
         .next-step-icon { color: #7dd3fc; font-size: 16px; flex-shrink: 0; line-height: 1.3; font-weight: bold; }
         .next-step-hint strong { color: #7dd3fc; }
 
+        /* ===== SHIPPING TRACKING ===== */
+        .shipping-card { background: #16202a; border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc; border-radius: 6px; padding: 16px; margin-top: 20px; }
+        .shipping-card-title { font-size: 13px; text-transform: uppercase; letter-spacing: 0.7px; color: #7dd3fc; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .shipping-card-title .icon { font-size: 16px; }
+        .shipping-row { background: #0d1620; border: 1px solid #3a5a72; border-radius: 5px; padding: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; }
+        .shipping-row:last-child { margin-bottom: 0; }
+        .shipping-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8fb8d8; font-weight: 700; }
+        .shipping-courier { font-size: 13.5px; color: #cfe6ff; font-weight: 600; }
+        .shipping-number { font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 14px; color: #7dd3fc; letter-spacing: 0.5px; word-break: break-all; background: #0a1118; padding: 6px 10px; border-radius: 4px; border: 1px solid #22384a; }
+        .shipping-btn { align-self: flex-start; background: #7dd3fc; color: #14110a; border: none; padding: 9px 16px; border-radius: 5px; cursor: pointer; font-family: inherit; font-size: 12.5px; font-weight: bold; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s; }
+        .shipping-btn:hover { background: #a4e2fc; }
+        .shipping-hint { font-size: 11.5px; color: #8fb8d8; line-height: 1.4; font-style: italic; padding: 4px 0; }
+
         .substages { margin-top: 18px; padding-top: 16px; border-top: 1px solid #2e2716; }
         .substages-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.8px; color: #e8dcc0; font-weight: 700; margin-bottom: 12px; }
         .substage-list { display: flex; flex-direction: column; gap: 8px; }
@@ -140,58 +153,6 @@
         .substage-simple { background: #2a2108; border: 1px solid #7a6820; border-left: 4px solid #ffc000; border-radius: 6px; padding: 14px; margin-top: 18px; font-size: 13.5px; color: #e0d7b8; line-height: 1.5; display: flex; align-items: flex-start; gap: 12px; }
         .substage-simple .spin-icon { font-size: 22px; flex-shrink: 0; animation: spin 3s linear infinite; display: inline-block; color: #ffc000; }
         .substage-simple .substage-simple-content { flex: 1; min-width: 0; }
-
-        /* ===== REPAIRS ON TRACKER ===== */
-        .tracker-repairs-card {
-            background: #1f190e;
-            border: 1px solid #3a3018;
-            border-left: 4px solid #ffb74d;
-            border-radius: 6px;
-            padding: 16px;
-            margin-top: 20px;
-        }
-        .tracker-repairs-title {
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: #ffb74d;
-            font-weight: 700;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .tracker-repairs-title .tr-icon { font-size: 16px; }
-        .tracker-repairs-list { display: flex; flex-direction: column; gap: 8px; }
-        .tracker-repair-item {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            gap: 10px;
-            background: #17120a;
-            border: 1px solid #241e12;
-            border-left: 3px solid #ffb74d;
-            border-radius: 5px;
-            padding: 10px 12px;
-            font-size: 13px;
-        }
-        .tracker-repair-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-        .tracker-repair-name { color: #f0e9d8; font-weight: 600; line-height: 1.35; word-break: break-word; }
-        .tracker-repair-cat { font-size: 11px; color: #8a8272; }
-        .tracker-repair-note { font-size: 11.5px; color: #b8b0a0; font-style: italic; line-height: 1.4; }
-        .tracker-repair-price { font-weight: bold; color: #ffc000; white-space: nowrap; flex-shrink: 0; font-size: 13px; }
-        .tracker-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
-        .tracker-repairs-summary {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #2e2716;
-            font-size: 12.5px;
-            color: #b8b0a0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .tracker-repairs-summary strong { color: #ffc000; }
 
         .wa-button-wrap { margin-top: 22px; text-align: center; }
         .wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; border: none; padding: 12px 22px; border-radius: 6px; font-weight: bold; font-size: 14px; font-family: inherit; cursor: pointer; text-decoration: none; transition: opacity 0.2s; }
@@ -321,10 +282,9 @@
                 <div class="current-stage-updated" id="currentStageUpdated"></div>
             </div>
 
-            <div id="substagesContainer"></div>
+            <div id="shippingContainer"></div>
 
-            <!-- ===== REPAIRS DISPLAY ===== -->
-            <div id="repairsContainer"></div>
+            <div id="substagesContainer"></div>
 
             <div class="wa-button-wrap">
                 <a id="waChatBtn" class="wa-btn" href="#" target="_blank" rel="noopener noreferrer">
@@ -418,13 +378,25 @@
         return true;
     }
 
+    // Emoji stage icons
     const STAGE_ICONS = {
-        'Order Received':   '\u2022',
-        'Confirmed':        '\u2713',
-        'In Progress':      '\u25D0',
-        'Ready for Pickup': '\u25D1',
-        'Completed':        '\u2713',
-        'Cancelled':        '\u2717'
+        'Order Received':   '\u{1F4E5}',  // 📥
+        'Confirmed':        '\u{1F4DD}',  // 📝
+        'In Progress':      '\u{1F527}',  // 🔧
+        'Ready':            '\u{1F4E6}',  // 📦
+        'Completed':        '\u2705',     // ✅
+        'Cancelled':        '\u274C'      // ❌
+    };
+
+    // Courier lookup
+    const COURIERS = {
+        'jnt':       { label: 'J&T Express',   pattern: 'https://www.jtexpress.my/tracking/{n}' },
+        'poslaju':   { label: 'Pos Laju',      pattern: 'https://tracking.pos.com.my/tracking?trackingNumber={n}' },
+        'gdex':      { label: 'GDEX',          pattern: 'https://www.gdexpress.com/malaysia/e-tracking/?tracking_no={n}' },
+        'citylink':  { label: 'City-Link',     pattern: 'https://www.citylinkexpress.com/track/?tracking_no={n}' },
+        'dhl':       { label: 'DHL eCommerce', pattern: 'https://www.dhl.com/my-en/home/tracking.html?tracking-id={n}' },
+        'ninjavan':  { label: 'Ninja Van',     pattern: 'https://www.ninjavan.co/en-my/tracking?id={n}' },
+        'other':     { label: 'Courier',       pattern: '' }
     };
 
     const INACTIVE_STATUSES = ['Completed', 'Cancelled'];
@@ -440,7 +412,6 @@
 
     window.onload = async function() {
         applyRateLimitUI();
-        // Load repair catalog so we can resolve prices for legacy id-only orders
         await loadRepairServices(supabaseClient);
 
         const params = new URLSearchParams(window.location.search);
@@ -724,41 +695,51 @@
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
-    // ===== REPAIRS RENDERING =====
-    function renderRepairsOnTracker(order) {
-        const container = $('repairsContainer');
+    // ===== SHIPPING (stage-aware) =====
+    // Inbound visible: Confirmed + In Progress
+    // Outbound visible: Ready + Completed
+    function renderShipping(order) {
+        const container = $('shippingContainer');
         if (!container) return;
-        const repairs = getEnrichedRepairs(order);
-        if (repairs.length === 0) { container.innerHTML = ''; return; }
 
-        const sum = sumRepairs(repairs);
-        const count = repairs.length;
+        const stage = order.progress_stage || 'Order Received';
         const isCancelled = order.status === 'Cancelled';
 
-        let html = '<div class="tracker-repairs-card">';
-        html += '<div class="tracker-repairs-title"><span class="tr-icon">&#128295;</span>Repair Jobs (' + count + ')</div>';
-        html += '<div class="tracker-repairs-list">';
-        repairs.forEach(r => {
-            html += '<div class="tracker-repair-item">';
-            html += '<div class="tracker-repair-info">';
-            html += '<div class="tracker-repair-name">' + escapeHtml(r.name) + '</div>';
-            if (r.category) html += '<div class="tracker-repair-cat">' + escapeHtml(r.category) + '</div>';
-            if (r.note) html += '<div class="tracker-repair-note">' + escapeHtml(r.note) + '</div>';
-            html += '</div>';
-            html += '<div class="tracker-repair-price' + (r.isQuote ? ' quote' : '') + '">' + (r.isQuote ? 'TBC' : 'RM' + r.price) + '</div>';
-            html += '</div>';
-        });
-        html += '</div>';
+        const showInbound  = !isCancelled && (stage === 'Confirmed' || stage === 'In Progress');
+        const showOutbound = !isCancelled && (stage === 'Ready' || stage === 'Completed');
 
-        if (!isCancelled) {
-            html += '<div class="tracker-repairs-summary">';
-            html += '<span>Repair subtotal' + (sum.quoteCount > 0 ? ' (+' + sum.quoteCount + ' awaiting quote)' : '') + '</span>';
-            html += '<strong>RM' + sum.total + (sum.quoteCount > 0 ? ' + TBC' : '') + '</strong>';
-            html += '</div>';
-        }
+        const hasInbound  = showInbound  && !!(order.tracking_inbound_number  && order.tracking_inbound_number.trim());
+        const hasOutbound = showOutbound && !!(order.tracking_outbound_number && order.tracking_outbound_number.trim());
+
+        if (!hasInbound && !hasOutbound) { container.innerHTML = ''; return; }
+
+        let html = '<div class="shipping-card">';
+        html += '<div class="shipping-card-title"><span class="icon">&#128230;</span>Parcel Tracking</div>';
+
+        if (hasInbound)  html += buildShippingRow('Inbound — You &rarr; Us',  order.tracking_inbound_courier,  order.tracking_inbound_number);
+        if (hasOutbound) html += buildShippingRow('Outbound — Us &rarr; You', order.tracking_outbound_courier, order.tracking_outbound_number);
 
         html += '</div>';
         container.innerHTML = html;
+    }
+
+    function buildShippingRow(label, courierKey, number) {
+        const courier = COURIERS[courierKey] || COURIERS['other'];
+        const trackingUrl = courier.pattern ? courier.pattern.replace('{n}', encodeURIComponent(number)) : '';
+        const needsVerify = (courierKey === 'jnt'); // J&T requires phone verification
+
+        let html = '<div class="shipping-row">';
+        html += '<div class="shipping-label">' + label + '</div>';
+        html += '<div class="shipping-courier">' + escapeHtml(courier.label) + '</div>';
+        html += '<div class="shipping-number">' + escapeHtml(number) + '</div>';
+        if (needsVerify) {
+            html += '<div class="shipping-hint">' + escapeHtml(courier.label) + ' may ask for the last 4 digits of your phone for verification.</div>';
+        }
+        if (trackingUrl) {
+            html += '<a class="shipping-btn" href="' + trackingUrl + '" target="_blank" rel="noopener noreferrer">Track Parcel &#8599;</a>';
+        }
+        html += '</div>';
+        return html;
     }
 
     function renderTracker(order) {
@@ -780,8 +761,7 @@
 
         const gameCount = Array.isArray(order.games) ? order.games.length : 0;
         const sizeGb = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
-        const repairs = getEnrichedRepairs(order);
-        const rCount = repairs.length;
+        const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
 
         const detailParts = [];
         detailParts.push(serviceLabel);
@@ -797,7 +777,7 @@
             ? `Placed ${new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`
             : '';
 
-        const stages = APP_CONFIG.progressStages || ['Order Received','Confirmed','In Progress','Ready for Pickup','Completed'];
+        const stages = APP_CONFIG.progressStages || ['Order Received','Confirmed','In Progress','Ready','Completed'];
         let currentStage = order.progress_stage || 'Order Received';
         if (order.status === 'Cancelled') currentStage = 'Cancelled';
 
@@ -850,11 +830,11 @@
             const nextStepEl = $('nextStepHint');
             const nextStepTextEl = $('nextStepText');
             const nextStepMap = {
-                'Order Received':    'No action needed yet — we\'ll be in touch on WhatsApp to confirm and arrange a drop-off time.',
-                'Confirmed':         'Please drop off your console at the agreed time so we can begin work.',
-                'In Progress':       'No action needed — we\'re working on your console and will update this page as we progress.',
-                'Ready for Pickup':  'Your console is ready. Come collect it whenever is convenient — payment on pickup.',
-                'Completed':         'All done. Enjoy your games.'
+                'Order Received':   'No action needed yet — we\'ll be in touch on WhatsApp to confirm and arrange a drop-off time.',
+                'Confirmed':        'Please drop off your console at the agreed time so we can begin work.',
+                'In Progress':      'No action needed — we\'re working on your console and will update this page as we progress.',
+                'Ready':            'Your console is ready. Come collect it, or wait for us to ship it — we\'ll confirm on WhatsApp.',
+                'Completed':        'All done. Enjoy your games.'
             };
             const nextStepMsg = nextStepMap[currentStage];
             if (nextStepMsg) { nextStepTextEl.innerHTML = nextStepMsg; nextStepEl.classList.remove('hidden'); }
@@ -869,7 +849,6 @@
             etaBox.style.display = 'none';
 
             if (currentStage === 'In Progress') {
-                // Use merged substages (repair-aware)
                 const stagesList = getEffectiveSubStages(order);
                 const currentSub = order.progress_substage || (stagesList[0] || null);
                 const currentSubIdx = stagesList.indexOf(currentSub);
@@ -936,8 +915,8 @@
             }
         }
 
-        // Render repairs
-        renderRepairsOnTracker(order);
+        // Shipping (stage-aware)
+        renderShipping(order);
 
         const wa = APP_CONFIG.whatsappNumber || '';
         const waBtn = $('waChatBtn');

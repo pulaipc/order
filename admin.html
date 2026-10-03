@@ -191,6 +191,90 @@
             margin-top: 3px;
             line-height: 1.4;
         }
+        /* ===== SHIPPING EDITOR ===== */
+        .shipping-editor {
+            background: #16202a;
+            border: 1px solid #3a5a72;
+            border-left: 3px solid #7dd3fc;
+            border-radius: 6px;
+            padding: 12px;
+            margin-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .shipping-editor-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #7dd3fc;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .shipping-editor-row {
+            display: flex;
+            gap: 6px;
+            align-items: stretch;
+            flex-wrap: wrap;
+        }
+        .shipping-editor-row .shipping-field-label {
+            flex: 0 0 100%;
+            font-size: 10.5px;
+            color: #8fb8d8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .shipping-select,
+        .shipping-input {
+            padding: 9px 11px;
+            background: #0d1620;
+            border: 1px solid #3a5a72;
+            color: #f0e9d8;
+            border-radius: 5px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+        .shipping-select:focus,
+        .shipping-input:focus { border-color: #7dd3fc; }
+        .shipping-select { flex: 0 0 140px; cursor: pointer; }
+        .shipping-input { flex: 1 1 160px; min-width: 0; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; }
+        .shipping-save-btn {
+            flex: 0 0 auto;
+            background: #7dd3fc;
+            color: #14110a;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: bold;
+            transition: background 0.2s, opacity 0.2s;
+            white-space: nowrap;
+        }
+        .shipping-save-btn:hover:not(:disabled) { background: #a4e2fc; }
+        .shipping-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .shipping-clear-btn {
+            flex: 0 0 auto;
+            background: transparent;
+            color: #e57373;
+            border: 1px solid #4a2525;
+            padding: 9px 13px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .shipping-clear-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
         /* ===== REPAIRS IN MODAL ===== */
         .modal-repairs-container {
@@ -835,15 +919,15 @@
         'Order Received':   'Pending',
         'Confirmed':        'Pending',
         'In Progress':      'In Progress',
-        'Ready for Pickup': 'In Progress',
+        'Ready':            'In Progress',
         'Completed':        'Completed'
     };
     var STAGE_ICONS = {
-        'Order Received':   '\u2022',
-        'Confirmed':        '\u2713',
-        'In Progress':      '\u25D0',
-        'Ready for Pickup': '\u25D1',
-        'Completed':        '\u2713'
+        'Order Received':   '\u{1F4E5}',
+        'Confirmed':        '\u{1F4DD}',
+        'In Progress':      '\u{1F527}',
+        'Ready':            '\u{1F4E6}',
+        'Completed':        '\u2705'
     };
 
     function login() {
@@ -1023,6 +1107,121 @@
         return { total: total, quoteCount: quoteCount };
     }
 
+    const COURIERS = {
+        'jnt':       { label: 'J&T Express',   pattern: 'https://www.jtexpress.my/tracking/{n}' },
+        'poslaju':   { label: 'Pos Laju',      pattern: 'https://tracking.pos.com.my/tracking?trackingNumber={n}' },
+        'gdex':      { label: 'GDEX',          pattern: 'https://www.gdexpress.com/malaysia/e-tracking/?tracking_no={n}' },
+        'citylink':  { label: 'City-Link',     pattern: 'https://www.citylinkexpress.com/track/?tracking_no={n}' },
+        'dhl':       { label: 'DHL eCommerce', pattern: 'https://www.dhl.com/my-en/home/tracking.html?tracking-id={n}' },
+        'ninjavan':  { label: 'Ninja Van',     pattern: 'https://www.ninjavan.co/en-my/tracking?id={n}' },
+        'other':     { label: 'Courier',       pattern: '' }
+    };
+
+    function buildShippingEditor(order) {
+        var inboundCourier  = order.tracking_inbound_courier  || '';
+        var inboundNumber   = order.tracking_inbound_number   || '';
+        var outboundCourier = order.tracking_outbound_courier || '';
+        var outboundNumber  = order.tracking_outbound_number  || '';
+        var orderId = order.id || order.order_id;
+
+        var courierOptions = function(selected) {
+            var opts = '<option value="">— Courier —</option>';
+            for (var key in COURIERS) {
+                if (!COURIERS.hasOwnProperty(key)) continue;
+                var sel = (selected === key) ? ' selected' : '';
+                opts += '<option value="' + key + '"' + sel + '>' + COURIERS[key].label + '</option>';
+            }
+            return opts;
+        };
+
+        var html = '<div class="shipping-editor">';
+        html += '<div class="shipping-editor-title">&#128230; Shipping Tracking</div>';
+
+        html += '<div class="shipping-editor-row">';
+        html += '<span class="shipping-field-label">Inbound (Customer &rarr; You)</span>';
+        html += '<select class="shipping-select" id="ship_in_' + orderId + '">' + courierOptions(inboundCourier) + '</select>';
+        html += '<input class="shipping-input" id="shipnum_in_' + orderId + '" placeholder="Tracking number" value="' + escapeHtml(inboundNumber) + '">';
+        html += '<button class="shipping-save-btn" onclick="saveShipping(\'' + orderId + '\', \'inbound\')">Save</button>';
+        if (inboundNumber) html += '<button class="shipping-clear-btn" onclick="clearShipping(\'' + orderId + '\', \'inbound\')">Clear</button>';
+        html += '</div>';
+
+        html += '<div class="shipping-editor-row">';
+        html += '<span class="shipping-field-label">Outbound (You &rarr; Customer)</span>';
+        html += '<select class="shipping-select" id="ship_out_' + orderId + '">' + courierOptions(outboundCourier) + '</select>';
+        html += '<input class="shipping-input" id="shipnum_out_' + orderId + '" placeholder="Tracking number" value="' + escapeHtml(outboundNumber) + '">';
+        html += '<button class="shipping-save-btn" onclick="saveShipping(\'' + orderId + '\', \'outbound\')">Save</button>';
+        if (outboundNumber) html += '<button class="shipping-clear-btn" onclick="clearShipping(\'' + orderId + '\', \'outbound\')">Clear</button>';
+        html += '</div>';
+
+        html += '</div>';
+        return html;
+    }
+
+    async function saveShipping(orderId, direction) {
+        var order = findOrder(orderId);
+        if (!order) return;
+
+        var prefix = (direction === 'inbound') ? 'in' : 'out';
+        var courierEl = document.getElementById('ship_' + prefix + '_' + orderId);
+        var numberEl  = document.getElementById('shipnum_' + prefix + '_' + orderId);
+        var courierVal = courierEl ? courierEl.value : '';
+        var numberVal  = numberEl ? numberEl.value.trim() : '';
+
+        if (numberVal && !courierVal) { alert('Please choose a courier before saving.'); courierEl && courierEl.focus(); return; }
+        if (courierVal && !numberVal) { alert('Please enter a tracking number.'); numberEl && numberEl.focus(); return; }
+
+        var payload = {};
+        if (direction === 'inbound') {
+            payload.tracking_inbound_courier = courierVal || null;
+            payload.tracking_inbound_number  = numberVal  || null;
+        } else {
+            payload.tracking_outbound_courier = courierVal || null;
+            payload.tracking_outbound_number  = numberVal  || null;
+        }
+
+        var idField = order.id ? 'id' : 'order_id';
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        if (res.error) { alert('Failed to save tracking: ' + res.error.message); return; }
+
+        if (direction === 'inbound') {
+            order.tracking_inbound_courier = courierVal || null;
+            order.tracking_inbound_number  = numberVal  || null;
+        } else {
+            order.tracking_outbound_courier = courierVal || null;
+            order.tracking_outbound_number  = numberVal  || null;
+        }
+        alert('Tracking saved.');
+        filterAndRenderOrders();
+    }
+
+    async function clearShipping(orderId, direction) {
+        if (!confirm('Clear ' + direction + ' tracking?')) return;
+        var order = findOrder(orderId);
+        if (!order) return;
+
+        var payload = {};
+        if (direction === 'inbound') {
+            payload.tracking_inbound_courier = null;
+            payload.tracking_inbound_number  = null;
+        } else {
+            payload.tracking_outbound_courier = null;
+            payload.tracking_outbound_number  = null;
+        }
+
+        var idField = order.id ? 'id' : 'order_id';
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        if (res.error) { alert('Failed to clear tracking: ' + res.error.message); return; }
+
+        if (direction === 'inbound') {
+            order.tracking_inbound_courier = null;
+            order.tracking_inbound_number  = null;
+        } else {
+            order.tracking_outbound_courier = null;
+            order.tracking_outbound_number  = null;
+        }
+        filterAndRenderOrders();
+    }
+    
     function buildRepairsDisplay(repairs) {
         if (!repairs || repairs.length === 0) return { line: '', mini: '' };
         var sum = sumOrderRepairs(repairs);
@@ -1124,6 +1323,20 @@
             msg += '\nRepairs (' + repairs.length + '):\n';
             repairs.forEach(function(r) { msg += '• ' + r.name + ' — ' + (r.isQuote ? 'TBC' : 'RM' + r.price) + '\n'; });
         }
+
+        var trackLines = [];
+        if (order.tracking_inbound_number) {
+            var cin = COURIERS[order.tracking_inbound_courier] || COURIERS['other'];
+            trackLines.push('• Inbound (' + cin.label + '): ' + order.tracking_inbound_number);
+        }
+        if (order.tracking_outbound_number) {
+            var cout = COURIERS[order.tracking_outbound_courier] || COURIERS['other'];
+            trackLines.push('• Outbound (' + cout.label + '): ' + order.tracking_outbound_number);
+        }
+        if (trackLines.length > 0) {
+            msg += '\nParcel Tracking:\n' + trackLines.join('\n') + '\n';
+        }
+
         msg += '\nTrack live here: ' + buildTrackingUrl(order.phone_ending);
 
         var encoded = encodeURIComponent(msg);
@@ -1624,6 +1837,7 @@
                             '<button class="notify-btn' + notifyVisible + '" data-order-id="' + orderId + '">Notify Customer</button>' +
                         '</div>' +
                     '</div>' +
+                    buildShippingEditor(order) +
                     '<div class="order-actions-row">' +
                         '<div>' +
                             '<span style="font-size:12px; color:#8a8272; align-self:center;">Status: </span>' +
