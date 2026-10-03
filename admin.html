@@ -13,7 +13,7 @@
             color: #f0e9d8;
             margin: 0;
             padding: 16px;
-            padding-bottom: 120px;
+            padding-bottom: 60px;
             -webkit-text-size-adjust: 100%;
         }
         .admin-container { max-width: 900px; margin: 0 auto; }
@@ -40,45 +40,27 @@
         .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .header-left .site-logo { margin: 0; width: 48px; height: 48px; flex-shrink: 0; }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
+        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; font-family: inherit; }
+        .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .btn-logout { border-color: #4a2525; color: #e57373; }
+        .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
         /* ===== TABS ===== */
-        .admin-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 18px;
-            background: #1a1814;
-            border: 1px solid #2e2716;
-            border-radius: 8px;
-            padding: 5px;
-        }
-        .admin-tab {
-            flex: 1;
-            background: transparent;
-            color: #b8b0a0;
-            border: none;
-            padding: 11px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13.5px;
-            font-weight: 700;
-            font-family: inherit;
-            transition: all 0.2s;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
+        .admin-tabs { display: flex; gap: 6px; margin-bottom: 18px; background: #1a1814; border: 1px solid #2e2716; border-radius: 8px; padding: 5px; }
+        .admin-tab { flex: 1; background: transparent; color: #b8b0a0; border: none; padding: 11px 14px; border-radius: 6px; cursor: pointer; font-size: 13.5px; font-weight: 700; font-family: inherit; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
         .admin-tab:hover { color: #f0e9d8; background: #221c10; }
         .admin-tab.active { background: #ffc000; color: #14110a; }
         .tab-view { display: none; }
         .tab-view.active { display: block; }
 
+        /* ===== STATS ===== */
         .stats-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
         .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px; text-align: center; }
         .stat-card .val { font-size: 20px; font-weight: bold; color: #ffc000; margin-top: 4px; }
         .stat-card .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; }
 
+        /* ===== CONTROLS ===== */
         .controls-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
         .search-box { width: 100%; padding: 12px; background: #1f190e; border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
         .search-box:focus { border-color: #ffc000; }
@@ -86,24 +68,41 @@
 
         .filter-buttons-wrapper { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .filter-buttons-wrapper::-webkit-scrollbar { display: none; }
-        .filter-btn { background: #1f190e; color: #b8b0a0; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
+        .filter-btn { background: #1f190e; color: #b8b0a0; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; font-family: inherit; }
         .filter-btn:hover { border-color: #ffc000; color: #e8dcc0; }
         .filter-btn.active { background: #ffc000; color: #14110a; border-color: #ffc000; font-weight: bold; }
+        .filter-btn.needs { border-color: #3a5a72; color: #7dd3fc; }
+        .filter-btn.needs.active { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
 
-        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; }
-        .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-        .btn-logout { border-color: #4a2525; color: #e57373; }
-        .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
-        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        /* ===== QUEUE / ORDERS LIST ===== */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 2px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #8a8272;
+            font-weight: 700;
+        }
+        .section-header .count { color: #e8dcc0; }
 
-        .selection-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
-        .selection-toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .select-all-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #b8b0a0; cursor: pointer; user-select: none; }
-        .select-all-label input[type="checkbox"] { transform: scale(1.3); accent-color: #ffc000; cursor: pointer; }
-        .selection-count { font-size: 12.5px; color: #e8dcc0; font-weight: 600; }
-
-        .orders-grid { display: flex; flex-direction: column; gap: 12px; }
-        .order-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s, background-color 0.2s; position: relative; }
+        .orders-grid { display: flex; flex-direction: column; gap: 10px; }
+        .order-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-radius: 8px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-left: 4px solid #8a8272;
+            transition: border-color 0.2s, background-color 0.2s;
+            position: relative;
+        }
         .order-card:hover { border-color: #5a4a20; }
         .order-card.status-Pending { border-left-color: #ffb74d; }
         .order-card.status-In-Progress { border-left-color: #7dd3fc; }
@@ -111,123 +110,342 @@
         .order-card.status-Cancelled { border-left-color: #e57373; }
         .order-card.selected-for-bulk { background: #232a1a; border-color: #00e676; }
 
-        .card-select-wrap { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #14110a; border: 1px solid #3a3018; border-radius: 6px; z-index: 3; }
+        .card-select-wrap {
+            position: absolute; top: 12px; right: 12px;
+            display: flex; align-items: center; justify-content: center;
+            width: 32px; height: 32px;
+            background: #14110a; border: 1px solid #3a3018; border-radius: 6px;
+            z-index: 3;
+        }
         .card-select-wrap input[type="checkbox"] { transform: scale(1.4); accent-color: #00e676; cursor: pointer; }
         .order-card.selected-for-bulk .card-select-wrap { background: #00e676; border-color: #00e676; }
         .order-card.selected-for-bulk .card-select-wrap input[type="checkbox"] { accent-color: #14110a; }
 
-        .order-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; padding-right: 44px; }
-        .customer-info { font-size: 14px; font-weight: bold; display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
-        .customer-info > div:first-child { word-break: break-word; color: #f0e9d8; }
-        .order-date { font-size: 11px; color: #8a8272; white-space: nowrap; }
-        .order-number-badge { background: #2e2716; color: #b8b0a0; border: 1px solid #3a3018; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; }
-        .order-number-badge.multi { background: #2d1a08; color: #ffb74d; border-color: #7a5420; }
-
-        .order-body { display: grid; grid-template-columns: 1fr; gap: 12px; background: #17120a; padding: 12px; border-radius: 6px; border: 1px solid #241e12; }
-        .order-body > div { min-width: 0; word-break: break-word; color: #b8b0a0; }
-        .order-body strong { color: #e8dcc0; }
-
-        .progress-controls { display: grid; grid-template-columns: 1fr; gap: 10px; background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px; }
-        .progress-controls-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-        .progress-controls-row label { font-size: 11.5px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; min-width: 70px; }
-        .progress-select { padding: 9px 12px; border-radius: 6px; background: #221c10; color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer; font-size: 13px; outline: none; min-width: 180px; flex: 1; font-family: inherit; }
-        .progress-select:focus { border-color: #ffc000; }
-        .progress-select:disabled { opacity: 0.45; cursor: not-allowed; }
-
-        .notify-btn, .copy-track-btn { border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s; }
-        .notify-btn { background: #25D366; color: #fff; display: none; }
-        .notify-btn.visible { display: inline-flex; }
-        .notify-btn:hover { opacity: 0.85; }
-        .copy-track-btn { background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; }
-        .copy-track-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
-
-        .status-select { padding: 10px; border-radius: 6px; background: #221c10; color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer; font-size: 14px; outline: none; min-width: 140px; }
-        .status-select:focus { border-color: #ffc000; }
-        .delete-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: 9px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
-        .delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
-        .view-btn { background: #ffc000; color: #14110a; border: none; padding: 9px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: background 0.2s; }
-        .view-btn:hover { background: #e6ac00; }
-        .edit-wa-btn { background: #25D366; border: none; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
-        .edit-wa-btn:hover { opacity: 0.85; }
-        .edit-remarks-btn { background: #7dd3fc; border: none; color: #14110a; font-size: 11px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
-        .edit-remarks-btn:hover { opacity: 0.85; }
-        .no-orders { text-align: center; padding: 40px 20px; color: #8a8272; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; }
-
-        .order-actions-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .order-actions-row > div { display: flex; gap: 8px; flex-wrap: wrap; }
-
-        /* ===== REPAIR BADGE ON ORDER CARD ===== */
-        .order-repair-line {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #2a1e0a;
-            border: 1px solid #7a5420;
-            border-left: 3px solid #ffb74d;
-            border-radius: 5px;
-            padding: 8px 11px;
-            font-size: 12px;
-            color: #ffd9a0;
-            line-height: 1.4;
-            margin-top: 4px;
-        }
-        .order-repair-line .icon { font-size: 14px; flex-shrink: 0; }
-        .order-repair-line .text { flex: 1; min-width: 0; }
-        .order-repair-line .text strong { color: #ffb74d; }
-        .order-repair-line .quote-pill {
-            font-size: 10px;
+        .order-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; padding-right: 44px; }
+        .order-card-header-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+        .order-id-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .order-id { font-size: 15px; font-weight: bold; color: #ffc000; letter-spacing: 0.2px; }
+        .order-copy-btn {
+            background: transparent;
+            border: 1px solid #3a3018;
+            color: #b8b0a0;
             padding: 2px 7px;
-            border-radius: 8px;
-            background: rgba(255,183,77,0.15);
-            color: #ffb74d;
-            font-weight: 700;
-            border: 1px solid #7a5420;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: inherit;
+            transition: all 0.2s;
+            line-height: 1;
+            min-height: 22px;
+        }
+        .order-copy-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .stage-pill {
+            font-size: 10.5px;
+            font-weight: bold;
+            padding: 3px 9px;
+            border-radius: 12px;
             white-space: nowrap;
             flex-shrink: 0;
+            border: 1px solid;
         }
-        .order-repair-list-mini {
-            font-size: 11.5px;
-            color: #b8b0a0;
-            margin-top: 3px;
-            line-height: 1.4;
-        }
-        /* ===== SHIPPING EDITOR ===== */
-        .shipping-editor {
-            background: #16202a;
-            border: 1px solid #3a5a72;
-            border-left: 3px solid #7dd3fc;
+        .stage-pill.Pending     { background: #2a1e0a; color: #ffb74d; border-color: #7a5420; }
+        .stage-pill.Confirmed   { background: #2a1e0a; color: #ffb74d; border-color: #7a5420; }
+        .stage-pill.In-Progress { background: #16202a; color: #7dd3fc; border-color: #3a5a72; }
+        .stage-pill.Ready       { background: #1a2a1a; color: #7ee39b; border-color: #2a4530; }
+        .stage-pill.Completed   { background: #1a2a1a; color: #00e676; border-color: #2a4530; }
+        .stage-pill.Cancelled   { background: #2a1212; color: #e57373; border-color: #7a3030; }
+
+        .order-meta { font-size: 12px; color: #b8b0a0; line-height: 1.5; }
+        .order-meta strong { color: #e8dcc0; }
+        .order-meta-sep { color: #6a6357; margin: 0 4px; }
+        .order-meta-wa { color: #25D366; word-break: break-word; }
+        .order-meta-wa.empty { color: #6a6357; font-style: italic; }
+
+        .order-summary-line { font-size: 13px; color: #e8dcc0; line-height: 1.5; }
+        .order-summary-line strong { color: #ffc000; font-weight: 700; }
+        .order-summary-line .muted { color: #8a8272; }
+
+        /* ===== CHECKLIST ===== */
+        .checklist-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: #191309;
+            border: 1px solid #2e2716;
             border-radius: 6px;
-            padding: 12px;
-            margin-top: 4px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            font-weight: 700;
+            color: #e8dcc0;
+            transition: border-color 0.2s;
+        }
+        .checklist-toggle:hover { border-color: #3a3018; }
+        .checklist-toggle .chev { color: #b8b0a0; font-size: 11px; transition: transform 0.2s; }
+        .checklist-toggle.open .chev { transform: rotate(180deg); }
+        .checklist-toggle .progress-text { color: #7dd3fc; font-weight: 600; font-size: 11.5px; }
+
+        .checklist-body {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px 4px 4px 4px;
+        }
+        .checklist-body.open { display: flex; }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: #17120a;
+            border: 1px solid #241e12;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.15s, border-color 0.15s;
+            min-height: 44px;
+            user-select: none;
+        }
+        .checklist-item:hover { border-color: #3a3018; }
+        .checklist-item.done { background: #1a2a1a; border-color: #2a4530; }
+        .checklist-item.done .checklist-name { color: #7ee39b; text-decoration: line-through; text-decoration-color: rgba(126,227,155,0.4); }
+        .checklist-item.current { background: #16202a; border-color: #3a5a72; border-left: 3px solid #7dd3fc; }
+        .checklist-item.current .checklist-name { color: #7dd3fc; font-weight: 700; }
+
+        .checklist-box {
+            width: 22px; height: 22px;
+            border-radius: 4px;
+            border: 2px solid #3a3018;
+            background: #221c10;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            font-size: 14px;
+            color: #6a6357;
+            transition: all 0.15s;
+            box-sizing: border-box;
+        }
+        .checklist-item.done .checklist-box { background: #00e676; border-color: #00e676; color: #14110a; }
+        .checklist-item.current .checklist-box { border-color: #7dd3fc; }
+
+        .checklist-name { flex: 1; min-width: 0; font-size: 13.5px; color: #b8b0a0; word-break: break-word; line-height: 1.35; }
+        .checklist-name strong { color: #e8dcc0; font-weight: 700; }
+
+        .checklist-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: #2e2716;
+            color: #8a8272;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .checklist-item.done .checklist-badge { background: rgba(0,230,118,0.15); color: #7ee39b; }
+        .checklist-item.current .checklist-badge { background: #7dd3fc; color: #14110a; }
+
+        /* ===== CARD FOOTER ===== */
+        .order-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 2px;
+        }
+        .order-card-footer-left {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .order-card-footer-right {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-left: auto;
+        }
+        .view-btn {
+            background: #ffc000;
+            color: #14110a;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 13px;
+            font-family: inherit;
+            transition: background 0.2s;
+            min-height: 40px;
+        }
+        .view-btn:hover { background: #e6ac00; }
+        a.view-btn {
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .track-btn {
+            background: #2e2716;
+            color: #7dd3fc;
+            border: 1px solid #3a3018;
+        }
+        .track-btn:hover {
+            background: #7dd3fc;
+            color: #14110a;
+            border-color: #7dd3fc;
+        }
+        .delete-btn {
+            background: transparent;
+            color: #e57373;
+            border: 1px solid #4a2525;
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            font-family: inherit;
+            transition: all 0.2s;
+            min-height: 40px;
+        }
+        .delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
+
+        .no-orders { text-align: center; padding: 40px 20px; color: #8a8272; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; }
+
+        /* ===== BULK BAR (simplified: delete only) ===== */
+        .bulk-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1a2433;
+            border-top: 2px solid #e57373;
+            padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
+            z-index: 500;
+            box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6);
+            animation: bulkBarSlide 0.25s ease-out;
+        }
+        @keyframes bulkBarSlide { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .bulk-bar-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bulk-bar-info { font-size: 13px; color: #f5cdcd; font-weight: 600; }
+        .bulk-bar-info strong { color: #e57373; }
+        .bulk-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bulk-btn { border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; min-height: 42px; }
+        .bulk-btn.delete { background: #e57373; color: #14110a; }
+        .bulk-btn.delete:hover { background: #f08a8a; }
+        .bulk-btn.cancel { background: transparent; color: #b8b0a0; border: 1px solid #3a3018; }
+        .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
+
+        /* ===== MODAL (full order) ===== */
+        #orderModalOverlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); display: none;
+            justify-content: center; align-items: center;
+            z-index: 99999; padding: 12px; box-sizing: border-box;
+        }
+        .modal-card {
+            background: #1f190e; border: 1px solid #3a3018; border-radius: 12px;
+            width: 100%; max-width: 700px; max-height: 92vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+        }
+        .modal-header {
+            padding: 14px 16px; background: #2a2108;
+            border-bottom: 1px solid #3a3018;
+            display: flex; justify-content: space-between; align-items: center; gap: 10px;
+        }
+        .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; word-break: break-word; flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .modal-header h2 .stage-pill { font-size: 10px; padding: 3px 8px; }
+        .close-modal-btn { background: transparent; border: none; color: #b8b0a0; font-size: 26px; cursor: pointer; line-height: 1; transition: color 0.2s; padding: 0 6px; flex-shrink: 0; }
+        .close-modal-btn:hover { color: #e8dcc0; }
+        .modal-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
+
+        .modal-section {
+            background: #17120a;
+            border: 1px solid #241e12;
+            border-radius: 8px;
+            padding: 12px 14px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
-        .shipping-editor-title {
+        .modal-section-title {
             font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: #7dd3fc;
+            letter-spacing: 0.7px;
+            color: #8a8272;
             font-weight: 700;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 6px;
-        }
-        .shipping-editor-row {
-            display: flex;
-            gap: 6px;
-            align-items: stretch;
+            gap: 8px;
             flex-wrap: wrap;
         }
-        .shipping-editor-row .shipping-field-label {
-            flex: 0 0 100%;
-            font-size: 10.5px;
-            color: #8fb8d8;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 700;
-            margin-bottom: 2px;
+        .modal-section-title .action-btn {
+            background: transparent;
+            border: 1px solid #3a3018;
+            color: #e8dcc0;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+            text-transform: none;
+            letter-spacing: 0;
         }
+        .modal-section-title .action-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+
+        .modal-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; line-height: 1.5; flex-wrap: wrap; }
+        .modal-info-row .lbl { color: #8a8272; flex-shrink: 0; }
+        .modal-info-row .val { color: #f0e9d8; text-align: right; flex: 1; min-width: 0; word-break: break-word; }
+        .modal-info-row .val.muted { color: #6a6357; font-style: italic; }
+        .modal-info-row .val.wa { color: #25D366; }
+
+        .modal-repair-item,
+        .modal-game-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            background: #221c10;
+            border: 1px solid #2e2716;
+            border-radius: 5px;
+            padding: 8px 10px;
+            font-size: 13px;
+        }
+        .modal-repair-item { border-left: 3px solid #ffb74d; }
+        .modal-repair-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .modal-repair-name { color: #f0e9d8; font-weight: 600; word-break: break-word; }
+        .modal-repair-note { font-size: 11px; color: #b8b0a0; font-style: italic; line-height: 1.35; }
+        .modal-repair-right { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+        .modal-repair-price { font-weight: bold; color: #ffc000; white-space: nowrap; font-size: 13px; }
+        .modal-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
+        .set-price-btn {
+            background: #2e2716; color: #ffb74d; border: 1px solid #7a5420;
+            padding: 3px 8px; border-radius: 4px; cursor: pointer;
+            font-size: 10.5px; font-weight: 700; font-family: inherit;
+            white-space: nowrap; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .set-price-btn:hover { background: #ffb74d; color: #14110a; border-color: #ffb74d; }
+
+        .modal-game-num {
+            background: #ffc000; color: #14110a; font-weight: bold;
+            font-size: 11px; padding: 2px 7px; border-radius: 3px;
+            min-width: 22px; text-align: center; flex-shrink: 0; margin-top: 1px;
+        }
+        .modal-game-name { flex: 1; min-width: 0; word-break: break-word; color: #f0e9d8; }
+        .modal-game-size { color: #8a8272; font-size: 11.5px; white-space: nowrap; flex-shrink: 0; }
+
+        .modal-games-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+
+        /* Shipping editor inside modal */
+        .shipping-editor-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .shipping-editor-row .lbl { font-size: 11px; color: #8fb8d8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; flex: 0 0 100%; margin-bottom: 2px; }
         .shipping-select,
         .shipping-input {
             padding: 9px 11px;
@@ -243,19 +461,13 @@
         }
         .shipping-select:focus,
         .shipping-input:focus { border-color: #7dd3fc; }
-        .shipping-select { flex: 0 0 140px; cursor: pointer; }
-        .shipping-input { flex: 1 1 160px; min-width: 0; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; }
+        .shipping-select { flex: 0 0 130px; cursor: pointer; }
+        .shipping-input { flex: 1 1 140px; min-width: 0; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; }
         .shipping-save-btn {
             flex: 0 0 auto;
-            background: #7dd3fc;
-            color: #14110a;
-            border: none;
-            padding: 9px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 12.5px;
-            font-weight: bold;
+            background: #7dd3fc; color: #14110a; border: none;
+            padding: 9px 14px; border-radius: 5px; cursor: pointer;
+            font-family: inherit; font-size: 12.5px; font-weight: bold;
             transition: background 0.2s, opacity 0.2s;
             white-space: nowrap;
         }
@@ -263,161 +475,62 @@
         .shipping-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .shipping-clear-btn {
             flex: 0 0 auto;
-            background: transparent;
-            color: #e57373;
+            background: transparent; color: #e57373;
             border: 1px solid #4a2525;
-            padding: 9px 13px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 12px;
-            font-weight: bold;
+            padding: 9px 11px; border-radius: 5px; cursor: pointer;
+            font-family: inherit; font-size: 12px; font-weight: bold;
             transition: all 0.2s;
         }
         .shipping-clear-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
-        /* ===== REPAIRS IN MODAL ===== */
-        .modal-repairs-container {
-            background: #17120a;
-            border: 1px solid #241e12;
-            border-left: 3px solid #ffb74d;
-            border-radius: 8px;
-            padding: 12px;
-        }
-        .modal-repairs-header {
+        .modal-footer-actions {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid #2e2716;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .modal-repairs-header h3 { margin: 0; font-size: 14px; color: #ffb74d; display: flex; align-items: center; gap: 6px; }
-        .modal-repairs-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .modal-repair-item {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            gap: 10px;
-            background: #221c10;
-            border: 1px solid #2e2716;
-            border-radius: 5px;
-            padding: 10px 12px;
-            margin-bottom: 6px;
-            font-size: 13px;
-        }
-        .modal-repair-item:last-child { margin-bottom: 0; }
-        .modal-repair-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-        .modal-repair-name { color: #f0e9d8; font-weight: 600; word-break: break-word; }
-        .modal-repair-cat { font-size: 11px; color: #8a8272; }
-        .modal-repair-note { font-size: 11.5px; color: #b8b0a0; font-style: italic; line-height: 1.35; }
-        .modal-repair-right {
-            display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
-            flex-shrink: 0;
-        }
-        .modal-repair-price { font-weight: bold; color: #ffc000; white-space: nowrap; font-size: 13px; }
-        .modal-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
-        .set-price-btn {
-            background: #2e2716;
-            color: #ffb74d;
-            border: 1px solid #7a5420;
-            padding: 4px 9px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 10.5px;
-            font-weight: 700;
-            font-family: inherit;
-            white-space: nowrap;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        .set-price-btn:hover { background: #ffb74d; color: #14110a; border-color: #ffb74d; }
-
-        .modal-repairs-summary {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px solid #2e2716;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12.5px;
-            color: #b8b0a0;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .modal-repairs-summary strong { color: #ffc000; font-size: 14px; }
-
-        /* ===== REPAIR CATALOG TAB ===== */
-        .catalog-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             gap: 10px;
             flex-wrap: wrap;
-            margin-bottom: 14px;
+            padding-top: 6px;
         }
-        .catalog-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; }
-        .catalog-add-btn {
-            background: #ffc000;
-            color: #14110a;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 13.5px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s;
+        .modal-footer-actions > div { display: flex; gap: 8px; flex-wrap: wrap; }
+
+        .notify-btn {
+            background: #25D366; color: #fff; border: none;
+            padding: 10px 16px; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: bold; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: opacity 0.2s;
             min-height: 42px;
         }
-        .catalog-add-btn:hover { background: #e6ac00; }
+        .notify-btn:hover { opacity: 0.85; }
+        .notify-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+        /* ===== REPAIR CATALOG TAB ===== */
+        .catalog-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+        .catalog-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; }
+        .catalog-add-btn {
+            background: #ffc000; color: #14110a; border: none;
+            padding: 10px 16px; border-radius: 6px; cursor: pointer;
+            font-family: inherit; font-weight: bold; font-size: 13.5px;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: background 0.2s; min-height: 42px;
+        }
+        .catalog-add-btn:hover { background: #e6ac00; }
         .catalog-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
         .catalog-search { flex: 1 1 220px; }
 
-        .catalog-group {
-            background: #1f190e;
-            border: 1px solid #3a3018;
-            border-radius: 8px;
-            margin-bottom: 12px;
-            overflow: hidden;
-        }
+        .catalog-group { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
         .catalog-group-header {
-            padding: 11px 14px;
-            background: #2a2108;
+            padding: 11px 14px; background: #2a2108;
             border-bottom: 1px solid #3a3018;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: #ffb74d;
-            font-weight: 700;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            user-select: none;
+            font-size: 12px; text-transform: uppercase; letter-spacing: 0.7px;
+            color: #ffb74d; font-weight: 700;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 10px; cursor: pointer; user-select: none;
         }
-        .catalog-group-header .chev {
-            color: #b8b0a0;
-            font-size: 12px;
-            transition: transform 0.2s;
-        }
+        .catalog-group-header .chev { color: #b8b0a0; font-size: 12px; transition: transform 0.2s; }
         .catalog-group.collapsed .catalog-group-header .chev { transform: rotate(-90deg); }
         .catalog-group.collapsed .catalog-group-body { display: none; }
         .catalog-group-body { display: flex; flex-direction: column; }
-        .catalog-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            padding: 12px 14px;
-            border-bottom: 1px solid #241e12;
-            flex-wrap: wrap;
-        }
+        .catalog-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 14px; border-bottom: 1px solid #241e12; flex-wrap: wrap; }
         .catalog-row:last-child { border-bottom: none; }
         .catalog-row.inactive { opacity: 0.5; }
         .catalog-row-main { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
@@ -431,43 +544,25 @@
         .catalog-row-price-multi .m { color: #8a8272; font-weight: 500; margin-right: 4px; }
         .catalog-row-actions { flex: 0 0 auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
         .catalog-toggle-btn {
-            background: transparent;
-            color: #e8dcc0;
+            background: transparent; color: #e8dcc0;
             border: 1px solid #3a3018;
-            padding: 5px 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 11.5px;
-            font-weight: 700;
-            transition: all 0.2s;
-            white-space: nowrap;
+            padding: 5px 11px; border-radius: 4px; cursor: pointer;
+            font-family: inherit; font-size: 11.5px; font-weight: 700;
+            transition: all 0.2s; white-space: nowrap;
         }
         .catalog-toggle-btn:hover { border-color: #ffc000; color: #ffc000; }
         .catalog-toggle-btn.on { background: rgba(0,230,118,0.1); border-color: #2a4530; color: #00e676; }
         .catalog-edit-btn {
-            background: #2e2716;
-            color: #7dd3fc;
-            border: 1px solid #3a3018;
-            padding: 5px 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 11.5px;
-            font-weight: 700;
+            background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018;
+            padding: 5px 11px; border-radius: 4px; cursor: pointer;
+            font-family: inherit; font-size: 11.5px; font-weight: 700;
             transition: all 0.2s;
         }
         .catalog-edit-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
         .catalog-delete-btn {
-            background: transparent;
-            color: #e57373;
-            border: 1px solid #4a2525;
-            padding: 5px 11px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-family: inherit;
-            font-size: 11.5px;
-            font-weight: 700;
+            background: transparent; color: #e57373; border: 1px solid #4a2525;
+            padding: 5px 11px; border-radius: 4px; cursor: pointer;
+            font-family: inherit; font-size: 11.5px; font-weight: 700;
             transition: all 0.2s;
         }
         .catalog-delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
@@ -481,18 +576,14 @@
             overflow-y: auto;
         }
         .repair-form-card {
-            background: #1f190e;
-            border: 1px solid #3a3018;
-            border-radius: 12px;
+            background: #1f190e; border: 1px solid #3a3018; border-radius: 12px;
             width: 100%; max-width: 560px;
-            display: flex; flex-direction: column;
-            overflow: hidden;
+            display: flex; flex-direction: column; overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
             margin: auto;
         }
         .repair-form-header {
-            padding: 14px 16px;
-            background: #2a2108;
+            padding: 14px 16px; background: #2a2108;
             border-bottom: 1px solid #3a3018;
             display: flex; justify-content: space-between; align-items: center;
         }
@@ -530,11 +621,9 @@
         .pricing-radio-row label:hover { border-color: #ffb74d; }
         .pricing-radio-row label.checked { background: #2a1e0a; border-color: #ffb74d; color: #ffb74d; }
         .repair-form-footer {
-            padding: 12px 16px;
-            border-top: 1px solid #3a3018;
+            padding: 12px 16px; border-top: 1px solid #3a3018;
             display: flex; justify-content: flex-end; gap: 10px;
-            flex-wrap: wrap;
-            background: #1a1408;
+            flex-wrap: wrap; background: #1a1408;
         }
         .btn-secondary {
             background: transparent; color: #b8b0a0; border: 1px solid #3a3018;
@@ -552,48 +641,7 @@
         .btn-primary:hover { background: #e6ac00; }
         .btn-primary:disabled { background: #4a4020; color: #8a8272; cursor: not-allowed; }
 
-        .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a2433; border-top: 2px solid #7dd3fc; padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 500; box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6); animation: bulkBarSlide 0.25s ease-out; }
-        @keyframes bulkBarSlide { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .bulk-bar-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .bulk-bar-info { font-size: 13px; color: #cfe6ff; font-weight: 600; }
-        .bulk-bar-info strong { color: #7dd3fc; }
-        .bulk-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .bulk-btn { border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; min-height: 42px; }
-        .bulk-btn.status { background: #7dd3fc; color: #14110a; }
-        .bulk-btn.status:hover { background: #a4e2fc; }
-        .bulk-btn.delete { background: transparent; color: #e57373; border: 1px solid #4a2525; }
-        .bulk-btn.delete:hover { background: #e57373; color: #14110a; border-color: #e57373; }
-        .bulk-btn.cancel { background: transparent; color: #b8b0a0; border: 1px solid #3a3018; }
-        .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
-
-        #orderModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 99999; padding: 12px; box-sizing: border-box; }
-        .modal-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 12px; width: 100%; max-width: 700px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); }
-        .modal-header { padding: 14px 16px; background: #2a2108; border-bottom: 1px solid #3a3018; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-        .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; word-break: break-word; }
-        .close-modal-btn { background: transparent; border: none; color: #b8b0a0; font-size: 26px; cursor: pointer; line-height: 1; transition: color 0.2s; padding: 0 6px; flex-shrink: 0; }
-        .close-modal-btn:hover { color: #e8dcc0; }
-        .modal-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
-
-        .modal-info-grid { display: grid; grid-template-columns: 1fr; gap: 12px; background: #17120a; padding: 14px; border-radius: 8px; border: 1px solid #241e12; }
-        .modal-info-item .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.3px; }
-        .modal-info-item .val { font-size: 14px; font-weight: 500; color: #f0e9d8; word-break: break-word; }
-        .remarks-header-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-        .game-list-container { background: #17120a; border: 1px solid #241e12; border-radius: 8px; padding: 12px; }
-        .game-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #2e2716; flex-wrap: wrap; gap: 8px; }
-        .game-list-header h3 { margin: 0; font-size: 14px; color: #e8dcc0; }
-        .game-list-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-        .copy-txt-btn { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; padding: 7px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; white-space: nowrap; }
-        .copy-txt-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-
-        .modal-game-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; padding-right: 4px; -webkit-overflow-scrolling: touch; }
-        .game-item { background: #221c10; border: 1px solid #2e2716; padding: 8px 10px; border-radius: 5px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; word-break: break-word; color: #f0e9d8; }
-        .game-num { background: #ffc000; color: #14110a; font-weight: bold; font-size: 11px; padding: 2px 7px; border-radius: 3px; min-width: 22px; text-align: center; flex-shrink: 0; margin-top: 1px; }
-
-        .more-games-link { color: #e8dcc0; text-decoration: underline; background: none; border: none; padding: 0; font-size: inherit; cursor: pointer; margin-top: 4px; display: inline-block; }
-        .more-games-link:hover { color: #ffc000; }
-
+        /* ===== REMARKS MODAL ===== */
         #remarksModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 100000; padding: 12px; box-sizing: border-box; }
         .remarks-modal-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 12px; width: 100%; max-width: 520px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); }
         .remarks-modal-header { padding: 14px 16px; background: #2a2108; border-bottom: 1px solid #3a3018; display: flex; justify-content: space-between; align-items: center; }
@@ -614,39 +662,34 @@
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
         @media (min-width: 600px) {
-            body { padding: 20px; padding-bottom: 120px; }
+            body { padding: 20px; padding-bottom: 60px; }
             .stats-overview { grid-template-columns: repeat(4, 1fr); gap: 12px; }
             .stat-card { padding: 14px; }
             .stat-card .val { font-size: 22px; }
             .stat-card .lbl { font-size: 12px; }
             .controls-row { flex-direction: row; flex-wrap: wrap; gap: 12px; }
             .search-box { flex: 1; min-width: 200px; }
-            .order-body { grid-template-columns: 1fr 1fr; gap: 15px; }
-            .modal-info-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
-            .modal-header h2 { font-size: 18px; }
-            .game-list-header h3 { font-size: 15px; }
+            .modal-header h2 { font-size: 17px; }
             .modal-body { padding: 20px; }
             h1 { font-size: 20px; }
-            .progress-controls { grid-template-columns: 1fr 1fr; }
         }
         @media (min-width: 900px) {
             .header-left .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
-            .order-card { padding: 16px; }
-            .order-body { gap: 15px; }
+            .order-card { padding: 14px 16px; }
         }
         @media (max-width: 380px) {
-            body { padding: 10px; padding-bottom: 120px; }
+            body { padding: 10px; padding-bottom: 60px; }
             .stat-card { padding: 10px; }
             .stat-card .val { font-size: 18px; }
             .stat-card .lbl { font-size: 10px; }
             h1 { font-size: 15px; }
             .header-left .site-logo { width: 40px; height: 40px; }
-            .order-card { padding: 12px; }
+            .order-card { padding: 11px 12px; }
             .filter-btn { padding: 7px 12px; font-size: 12px; }
             .btn-action { padding: 7px 10px; font-size: 11px; }
             .card-select-wrap { width: 28px; height: 28px; top: 10px; right: 10px; }
-            .order-header { padding-right: 38px; }
+            .order-card-header { padding-right: 38px; }
         }
     </style>
 </head>
@@ -686,30 +729,21 @@
         <div id="tabOrders" class="tab-view active">
             <div class="stats-overview">
                 <div class="stat-card"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
-                <div class="stat-card"><div class="lbl">Pending</div><div class="val" id="statPending" style="color:#ffb74d;">0</div></div>
-                <div class="stat-card"><div class="lbl">In Progress</div><div class="val" id="statInProgress" style="color:#7dd3fc;">0</div></div>
+                <div class="stat-card"><div class="lbl">In Queue</div><div class="val" id="statQueue" style="color:#7dd3fc;">0</div></div>
+                <div class="stat-card"><div class="lbl">Needs Action</div><div class="val" id="statNeeds" style="color:#ffb74d;">0</div></div>
                 <div class="stat-card"><div class="lbl">Est. Revenue</div><div class="val" id="statRevenue">RM0</div></div>
             </div>
 
             <div class="controls-row">
-                <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, repair, remarks, or stage..." onkeyup="filterAndRenderOrders()">
+                <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, repair, remarks..." onkeyup="filterAndRenderOrders()">
                 <div class="filter-buttons-wrapper">
+                    <button class="filter-btn needs" data-status="NEEDS" onclick="setStatusFilter('NEEDS', this)">&#9889; Needs Action</button>
                     <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
                     <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
                     <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
+                    <button class="filter-btn" data-status="Ready" onclick="setStatusFilter('Ready', this)">Ready</button>
                     <button class="filter-btn" data-status="Completed" onclick="setStatusFilter('Completed', this)">Completed</button>
                     <button class="filter-btn" data-status="Cancelled" onclick="setStatusFilter('Cancelled', this)">Cancelled</button>
-                    <button class="filter-btn" data-status="WITH_REPAIRS" onclick="setStatusFilter('WITH_REPAIRS', this)">With Repairs</button>
-                </div>
-            </div>
-
-            <div class="selection-toolbar" id="selectionToolbar">
-                <div class="selection-toolbar-left">
-                    <label class="select-all-label">
-                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this.checked)">
-                        <span>Select all visible</span>
-                    </label>
-                    <span class="selection-count" id="selectionCount">0 selected</span>
                 </div>
             </div>
 
@@ -755,7 +789,7 @@
                 <div class="form-field">
                     <label for="rfId">ID (unique) *</label>
                     <input type="text" id="rfId" placeholder="e.g. lcd_display" oninput="sanitizeRepairId()">
-                    <div class="form-hint">Lowercase letters, numbers, underscores. Used in the database. Cannot be changed after saving if the repair is used in orders.</div>
+                    <div class="form-hint">Lowercase letters, numbers, underscores. Cannot be changed after saving.</div>
                 </div>
                 <div class="form-field">
                     <label for="rfCategory">Category</label>
@@ -821,59 +855,122 @@
 
     <div id="bulkBar" class="bulk-bar" style="display:none;">
         <div class="bulk-bar-inner">
-            <div class="bulk-bar-info">
-                <strong id="bulkCount">0</strong> order<span id="bulkCountPlural">s</span> selected
-            </div>
+            <div class="bulk-bar-info"><strong id="bulkCount">0</strong> order<span id="bulkCountPlural">s</span> selected</div>
             <div class="bulk-bar-actions">
-                <button class="bulk-btn status" onclick="bulkUpdateStatus()">Update Status</button>
                 <button class="bulk-btn delete" onclick="bulkDeleteOrders()">Delete Selected</button>
                 <button class="bulk-btn cancel" onclick="clearBulkSelection()">Cancel</button>
             </div>
         </div>
     </div>
 
+    <!-- ===== FULL ORDER MODAL ===== -->
     <div id="orderModalOverlay" onclick="closeModalOnBackdrop(event)">
         <div class="modal-card">
             <div class="modal-header">
-                <h2 id="modalTitle">Order Details</h2>
+                <h2>
+                    <span id="modalTitle">Order #—</span>
+                    <span class="stage-pill" id="modalStagePill">—</span>
+                    <button class="order-copy-btn" onclick="copyModalOrderNo()" title="Copy order number">Copy #</button>
+                </h2>
                 <button class="close-modal-btn" onclick="closeOrderModal()">&#10005;</button>
             </div>
             <div class="modal-body">
-                <div class="modal-info-grid">
-                    <div class="modal-info-item"><div class="lbl">Order ID</div><div class="val" id="modalPhoneVal">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">WhatsApp Username</div><div class="val" id="modalWaVal" style="color:#25D366;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Service Type</div><div class="val" id="modalServiceVal">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Storage Size</div><div class="val" id="modalStorageVal">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Total Estimated Price</div><div class="val" id="modalPriceVal" style="color:#ffc000;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Progress Stage</div><div class="val" id="modalProgressVal" style="color:#7dd3fc;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Progress Sub-stage</div><div class="val" id="modalSubstageVal" style="color:#7dd3fc;">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Date Created</div><div class="val" id="modalDateVal">-</div></div>
-                    <div class="modal-info-item"><div class="lbl">Last Updated</div><div class="val" id="modalUpdatedVal" style="color:#ffb74d;">-</div></div>
-                    <div class="modal-info-item" style="grid-column: 1 / -1;">
-                        <div class="remarks-header-row">
-                            <span class="lbl">Remarks</span>
-                            <button class="edit-remarks-btn" id="modalEditRemarksBtn">Edit Remarks</button>
-                        </div>
-                        <div class="val" id="modalRemarksVal" style="margin-top:6px;">-</div>
+
+                <!-- CUSTOMER -->
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span>Customer</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Phone (last 4):</span>
+                        <span class="val" id="modalPhoneVal">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">WhatsApp:</span>
+                        <span class="val wa" id="modalWaVal">Not assigned</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Remarks:</span>
+                        <span class="val" id="modalRemarksVal">—</span>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap; padding-top:4px;">
+                        <button class="action-btn" id="modalEditWaBtn">Edit WhatsApp</button>
+                        <button class="action-btn" id="modalEditRemarksBtn">Edit Remarks</button>
                     </div>
                 </div>
 
+                <!-- SERVICE -->
+                <div class="modal-section">
+                    <div class="modal-section-title"><span>Service</span></div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Type:</span>
+                        <span class="val" id="modalServiceVal">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Storage:</span>
+                        <span class="val" id="modalStorageVal">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Estimated total:</span>
+                        <span class="val" id="modalPriceVal" style="color:#ffc000;font-weight:bold;">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Placed:</span>
+                        <span class="val" id="modalDateVal">—</span>
+                    </div>
+                    <div class="modal-info-row">
+                        <span class="lbl">Last updated:</span>
+                        <span class="val" id="modalUpdatedVal" style="color:#ffb74d;">—</span>
+                    </div>
+                </div>
+
+                <!-- REPAIRS -->
                 <div id="modalRepairsContainer"></div>
 
-                <div class="game-list-container">
-                    <div class="game-list-header">
-                        <h3>Selected Games</h3>
-                        <div class="game-list-header-actions">
-                            <span id="modalGameCount" style="font-size:12px; color:#8a8272;">0 Games</span>
-                            <button class="copy-txt-btn modal-copy-btn" onclick="copyGamesForScript()">Copy Game List</button>
-                        </div>
+                <!-- GAMES -->
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span>Games <span id="modalGameCount" style="color:#ffc000;">(0)</span></span>
+                        <button class="action-btn" onclick="copyGamesFromModal(this)">Copy Game List</button>
                     </div>
-                    <div id="modalGameGrid" class="modal-game-list"></div>
+                    <div id="modalGameGrid" class="modal-games-list"></div>
                 </div>
+
+                <!-- SHIPPING -->
+                <div class="modal-section">
+                    <div class="modal-section-title"><span>Shipping</span></div>
+                    <div class="shipping-editor-row" id="modalShipInboundRow">
+                        <span class="lbl">Inbound (Customer &rarr; You)</span>
+                        <select class="shipping-select" id="modalShipInSelect"></select>
+                        <input class="shipping-input" id="modalShipInInput" placeholder="Tracking number">
+                        <button class="shipping-save-btn" onclick="saveShipping('inbound')">Save</button>
+                        <button class="shipping-clear-btn" id="modalShipInClearBtn" onclick="clearShipping('inbound')">Clear</button>
+                    </div>
+                    <div class="shipping-editor-row" id="modalShipOutboundRow">
+                        <span class="lbl">Outbound (You &rarr; Customer)</span>
+                        <select class="shipping-select" id="modalShipOutSelect"></select>
+                        <input class="shipping-input" id="modalShipOutInput" placeholder="Tracking number">
+                        <button class="shipping-save-btn" onclick="saveShipping('outbound')">Save</button>
+                        <button class="shipping-clear-btn" id="modalShipOutClearBtn" onclick="clearShipping('outbound')">Clear</button>
+                    </div>
+                </div>
+
+                <!-- FOOTER ACTIONS -->
+                <div class="modal-footer-actions">
+                    <div>
+                        <button class="notify-btn" id="modalNotifyBtn" onclick="notifyCustomerFromModal()">Notify on WhatsApp</button>
+                        <button class="action-btn" id="modalViewTrackingBtn" onclick="openTrackingFromModal()">View Tracking</button>
+                    </div>
+                    <div>
+                        <button class="delete-btn" onclick="deleteOrderFromModal()">Delete Order</button>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
+    <!-- ===== REMARKS MODAL ===== -->
     <div id="remarksModalOverlay" onclick="closeRemarksModalOnBackdrop(event)">
         <div class="remarks-modal-card">
             <div class="remarks-modal-header">
@@ -891,6 +988,24 @@
         </div>
     </div>
 
+    <!-- ===== INLINE PROMPT MODAL ===== -->
+    <div id="inlinePromptOverlay" style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.85);display:none;justify-content:center;align-items:center;z-index:100001;padding:12px;box-sizing:border-box;">
+        <div style="background:#1f190e;border:1px solid #3a3018;border-radius:12px;width:100%;max-width:420px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,0.7);">
+            <div style="padding:14px 16px;background:#2a2108;border-bottom:1px solid #3a3018;display:flex;justify-content:space-between;align-items:center;">
+                <h2 id="inlinePromptTitle" style="margin:0;color:#e8dcc0;font-size:16px;">Edit</h2>
+                <button class="close-modal-btn" onclick="closeInlinePrompt()">&#10005;</button>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:10px;">
+                <label id="inlinePromptLabel" style="font-size:13px;color:#b8b0a0;">Value:</label>
+                <input type="text" id="inlinePromptInput" style="width:100%;padding:12px;background:#221c10;border:1px solid #3a3018;color:#f0e9d8;border-radius:6px;font-size:16px;box-sizing:border-box;outline:none;">
+            </div>
+            <div style="padding:12px 16px;border-top:1px solid #3a3018;display:flex;justify-content:flex-end;gap:10px;">
+                <button class="btn-secondary" onclick="closeInlinePrompt()">Cancel</button>
+                <button class="btn-primary" id="inlinePromptSave">Save</button>
+            </div>
+        </div>
+    </div>
+
     <script src="gameslist.js"></script>
     <script src="config.js"></script>
     <script>
@@ -902,24 +1017,116 @@
 
     var supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
+    // ===== BODY SCROLL LOCK =====
+    var _modalLockCount = 0;
+    var _savedScrollY = 0;
+    function lockBodyScroll() {
+        if (_modalLockCount === 0) {
+            _savedScrollY = window.scrollY || window.pageYOffset || 0;
+            document.body.style.position = 'fixed';
+            document.body.style.top = '-' + _savedScrollY + 'px';
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+        }
+        _modalLockCount++;
+    }
+    function unlockBodyScroll() {
+        if (_modalLockCount <= 0) return;
+        _modalLockCount--;
+        if (_modalLockCount === 0) {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+            window.scrollTo(0, _savedScrollY);
+        }
+    }
+
+    var _inlinePromptResolver = null;
+    function openInlinePrompt(opts) {
+        document.getElementById('inlinePromptTitle').textContent = opts.title || 'Edit';
+        document.getElementById('inlinePromptLabel').textContent = opts.label || 'Value:';
+        var input = document.getElementById('inlinePromptInput');
+        input.value = opts.value || '';
+        input.placeholder = opts.placeholder || '';
+        if (opts.inputmode) input.setAttribute('inputmode', opts.inputmode);
+        else input.removeAttribute('inputmode');
+        if (opts.type) input.setAttribute('type', opts.type);
+        else input.setAttribute('type', 'text');
+
+        var saveBtn = document.getElementById('inlinePromptSave');
+        var newSave = saveBtn.cloneNode(true);
+        saveBtn.parentNode.replaceChild(newSave, saveBtn);
+
+        document.getElementById('inlinePromptOverlay').style.display = 'flex';
+        lockBodyScroll();
+        setTimeout(function() { input.focus(); input.select(); }, 100);
+
+        _inlinePromptResolver = function(result) {
+            if (result === undefined) return;
+            closeInlinePrompt();
+            if (opts.onSave) opts.onSave(result);
+        };
+
+        newSave.addEventListener('click', function() {
+            _inlinePromptResolver(input.value);
+        });
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') { e.preventDefault(); _inlinePromptResolver(input.value); }
+            else if (e.key === 'Escape') { e.preventDefault(); _inlinePromptResolver(null); }
+        });
+    }
+    function closeInlinePrompt() {
+        document.getElementById('inlinePromptOverlay').style.display = 'none';
+        _inlinePromptResolver = null;
+        // Reset display tweaks from inlineConfirm
+        var input = document.getElementById('inlinePromptInput');
+        if (input) input.style.display = '';
+        var label = document.getElementById('inlinePromptLabel');
+        if (label) { label.style.whiteSpace = ''; label.style.fontSize = '13px'; label.style.lineHeight = ''; }
+        var saveBtn = document.getElementById('inlinePromptSave');
+        if (saveBtn) saveBtn.textContent = 'Save';
+        unlockBodyScroll();
+    }
+
+    function inlineConfirm(opts) {
+        openInlinePrompt({
+            title: opts.title || 'Confirm',
+            label: opts.message || 'Are you sure?',
+            value: '',
+            placeholder: '(not used for confirm)',
+            onSave: function() { if (opts.onConfirm) opts.onConfirm(); }
+        });
+        // Hide the input for confirm-style — it's just a prompt with no text field
+        var input = document.getElementById('inlinePromptInput');
+        if (input) { input.style.display = 'none'; }
+        var label = document.getElementById('inlinePromptLabel');
+        if (label) { label.style.whiteSpace = 'pre-wrap'; label.style.fontSize = '13.5px'; label.style.lineHeight = '1.5'; }
+        var saveBtn = document.getElementById('inlinePromptSave');
+        if (saveBtn) saveBtn.textContent = opts.confirmLabel || 'Confirm';
+    }
+
     var allOrders = [];
-    var allRepairServices = []; // includes inactive for admin
-    var currentStatusFilter = 'ALL';
+    var allRepairServices = [];
+    var currentStatusFilter = 'NEEDS'; // default view: action-needed
     var currentCatalogFilter = 'ALL';
-    var currentModalGames = [];
-    var currentModalRepairs = [];
     var currentModalOrderId = null;
     var currentRemarksOrderId = null;
+    var currentModalOrder = null;
     var orderCountByPhone = {};
     var bulkSelectedIds = {};
-    var currentEditingRepairId = null; // null = adding new
+    var expandedChecklists = {}; // orderId -> bool
 
-    var PROGRESS_STAGES = (APP_CONFIG.progressStages) || ['Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'];
+    var PROGRESS_STAGES = (APP_CONFIG.progressStages) || ['Order Received', 'Confirmed', 'In Progress', 'Ready', 'Completed'];
     var STAGE_TO_STATUS = {
         'Order Received':   'Pending',
         'Confirmed':        'Pending',
         'In Progress':      'In Progress',
-        'Ready':            'In Progress',
+        'Ready':            'Ready',
         'Completed':        'Completed'
     };
     var STAGE_ICONS = {
@@ -930,13 +1137,28 @@
         'Completed':        '\u2705'
     };
 
+    const COURIERS = {
+        'jnt':       { label: 'J&T Express',   pattern: 'https://www.jtexpress.my/tracking/{n}' },
+        'poslaju':   { label: 'Pos Laju',      pattern: 'https://tracking.pos.com.my/tracking?trackingNumber={n}' },
+        'gdex':      { label: 'GDEX',          pattern: 'https://www.gdexpress.com/malaysia/e-tracking/?tracking_no={n}' },
+        'citylink':  { label: 'City-Link',     pattern: 'https://www.citylinkexpress.com/track/?tracking_no={n}' },
+        'dhl':       { label: 'DHL eCommerce', pattern: 'https://www.dhl.com/my-en/home/tracking.html?tracking-id={n}' },
+        'ninjavan':  { label: 'Ninja Van',     pattern: 'https://www.ninjavan.co/en-my/tracking?id={n}' },
+        'other':     { label: 'Courier',       pattern: '' }
+    };
+
+    function openTrackingFromModal() {
+        if (!currentModalOrder) return;
+        var url = buildTrackLink(currentModalOrder);
+        window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
     function login() {
         var emailEl = document.getElementById('adminEmail');
         var passEl = document.getElementById('adminPassword');
         var email = emailEl ? emailEl.value.trim() : '';
         var password = passEl ? passEl.value : '';
         if (!email || !password) { alert('Please enter both email and password.'); return; }
-
         supabaseClient.auth.signInWithPassword({ email: email, password: password })
             .then(function(result) {
                 if (result.error) { alert('Login failed: ' + result.error.message); return; }
@@ -945,10 +1167,7 @@
             })
             .catch(function(err) { alert('Login exception: ' + (err && err.message ? err.message : String(err))); });
     }
-
-    function logout() {
-        supabaseClient.auth.signOut().then(function() { location.reload(); });
-    }
+    function logout() { supabaseClient.auth.signOut().then(function() { location.reload(); }); }
 
     document.addEventListener('DOMContentLoaded', function() {
         var loginBtn = document.getElementById('loginBtn');
@@ -956,25 +1175,29 @@
         var passEl = document.getElementById('adminPassword');
         if (passEl) passEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); login(); } });
 
-        document.addEventListener('click', function(e) {
-            if (!e.target || !e.target.classList) return;
-            var t = e.target;
-            var id = t.getAttribute ? t.getAttribute('data-order-id') : null;
-
-            if (t.classList.contains('view-btn')) openOrderModal(id);
-            else if (t.classList.contains('delete-btn')) deleteOrder(id);
-            else if (t.classList.contains('edit-wa-btn')) editWhatsappUsername(id);
-            else if (t.classList.contains('edit-remarks-btn')) {
-                if (id) openRemarksModal(id);
-                else if (currentRemarksOrderId) openRemarksModal(currentRemarksOrderId);
+    document.addEventListener('click', function(e) {
+        if (!e.target || !e.target.classList) return;
+        var t = e.target;
+        var id = t.getAttribute ? t.getAttribute('data-order-id') : null;
+        if (t.classList.contains('view-btn')) openOrderModal(id);
+        else if (t.classList.contains('delete-btn')) deleteOrder(id);
+        else if (t.classList.contains('order-copy-btn')) copyOrderNo(id, t);
+        else if (t.closest && t.closest('.checklist-toggle')) {
+            var tog = t.closest('.checklist-toggle');
+            toggleChecklist(tog.getAttribute('data-order-id'));
+        }
+        else if (!t.classList.contains('bulk-checkbox') && !t.closest('.card-select-wrap')) {
+            var clItem = t.closest ? t.closest('.checklist-item') : null;
+            if (clItem) {
+                var clOrderId = clItem.getAttribute('data-order-id');
+                var clStep = clItem.getAttribute('data-step');
+                if (clOrderId && clStep) {
+                    toggleChecklistItem(clOrderId, clStep);
+                    return;
+                }
             }
-            else if (t.classList.contains('copy-main-btn')) copyGamesForScriptMain(id, t);
-            else if (t.classList.contains('more-games-link')) openOrderModal(id);
-            else if (t.classList.contains('notify-btn')) notifyCustomer(id);
-            else if (t.classList.contains('copy-track-btn')) copyTrackingLink(id, t);
-            else if (t.classList.contains('copy-repairs-main-btn')) copyRepairsMain(id, t);
-            else if (t.classList.contains('set-price-btn')) setRepairPriceFromCard(id);
-        });
+        }
+    });
 
         document.addEventListener('change', function(e) {
             if (!e.target || !e.target.classList) return;
@@ -1001,8 +1224,8 @@
     });
 
     async function loadAll() {
-        await loadRepairServices(supabaseClient); // populates window.REPAIR_SERVICES (active only)
-        await loadRepairsAdmin(); // populates allRepairServices (incl. inactive)
+        await loadRepairServices(supabaseClient);
+        await loadRepairsAdmin();
         loadOrders();
     }
 
@@ -1027,7 +1250,7 @@
     function loadRepairsAdmin() {
         return supabaseClient.from('repair_services').select('*').order('sort_order', { ascending: true })
             .then(function(res) {
-                if (res.error) { console.warn('Failed to load repair services:', res.error); allRepairServices = []; return; }
+                if (res.error) { allRepairServices = []; return; }
                 allRepairServices = res.data || [];
                 return allRepairServices;
             });
@@ -1035,56 +1258,39 @@
 
     function refreshCurrentTab() {
         var ordersTab = document.getElementById('tabOrders');
-        if (ordersTab && ordersTab.classList.contains('active')) {
-            loadOrders();
-        } else {
-            Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]).then(function() {
-                renderCatalog();
-            });
-        }
+        if (ordersTab && ordersTab.classList.contains('active')) loadOrders();
+        else Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]).then(renderCatalog);
     }
 
     function switchTab(name, btn) {
         document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
         document.querySelectorAll('.tab-view').forEach(function(v) { v.classList.remove('active'); });
         btn.classList.add('active');
-        if (name === 'orders') {
-            document.getElementById('tabOrders').classList.add('active');
-        } else if (name === 'repairs') {
-            document.getElementById('tabRepairs').classList.add('active');
-            renderCatalog();
+        if (name === 'orders') document.getElementById('tabOrders').classList.add('active');
+        else if (name === 'repairs') { document.getElementById('tabRepairs').classList.add('active'); renderCatalog(); }
+    }
+
+    // ===== HELPERS =====
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function findOrder(orderId) {
+        var target = String(orderId);
+        for (var i = 0; i < allOrders.length; i++) {
+            var o = allOrders[i];
+            if (String(o.id) === target || String(o.order_id) === target) return o;
         }
+        return null;
     }
-
-    function updateStats() {
-        document.getElementById('statTotal').innerText = allOrders.length;
-        var pending = 0, inProg = 0, revenue = 0;
-        allOrders.forEach(function(o) {
-            var s = o.status || 'Pending';
-            if (s === 'Pending') pending++;
-            if (s === 'In Progress') inProg++;
-            if (s !== 'Cancelled') revenue += (Number(o.estimated_price) || 0);
-        });
-        document.getElementById('statPending').innerText = pending;
-        document.getElementById('statInProgress').innerText = inProg;
-        document.getElementById('statRevenue').innerText = 'RM' + Math.round(revenue);
+    function gameListOf(order) {
+        var list = [];
+        if (Array.isArray(order.games)) list = order.games;
+        else if (typeof order.games === 'string') {
+            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
+        }
+        return list;
     }
-
-    function setStatusFilter(status, btn) {
-        currentStatusFilter = status;
-        document.querySelectorAll('.filter-btn[data-status]').forEach(function(b) { b.classList.remove('active'); });
-        if (btn) btn.classList.add('active');
-        filterAndRenderOrders();
-    }
-
-    function setCatalogFilter(filter, btn) {
-        currentCatalogFilter = filter;
-        document.querySelectorAll('.filter-btn[data-catfilter]').forEach(function(b) { b.classList.remove('active'); });
-        if (btn) btn.classList.add('active');
-        renderCatalog();
-    }
-
-    // ===== REPAIR HELPERS =====
     function getRepairsOfOrder(order) {
         var raw = Array.isArray(order && order.repairs) ? order.repairs : [];
         return raw.map(function(r) {
@@ -1097,7 +1303,6 @@
             return { id: svc.id, name: svc.name, category: svc.category || '', price: p.amount, isQuote: p.isQuote, note: svc.note || '' };
         });
     }
-
     function sumOrderRepairs(repairs) {
         var total = 0, quoteCount = 0;
         (repairs || []).forEach(function(r) {
@@ -1106,212 +1311,772 @@
         });
         return { total: total, quoteCount: quoteCount };
     }
-
-    const COURIERS = {
-        'jnt':       { label: 'J&T Express',   pattern: 'https://www.jtexpress.my/tracking/{n}' },
-        'poslaju':   { label: 'Pos Laju',      pattern: 'https://tracking.pos.com.my/tracking?trackingNumber={n}' },
-        'gdex':      { label: 'GDEX',          pattern: 'https://www.gdexpress.com/malaysia/e-tracking/?tracking_no={n}' },
-        'citylink':  { label: 'City-Link',     pattern: 'https://www.citylinkexpress.com/track/?tracking_no={n}' },
-        'dhl':       { label: 'DHL eCommerce', pattern: 'https://www.dhl.com/my-en/home/tracking.html?tracking-id={n}' },
-        'ninjavan':  { label: 'Ninja Van',     pattern: 'https://www.ninjavan.co/en-my/tracking?id={n}' },
-        'other':     { label: 'Courier',       pattern: '' }
-    };
-
-    function buildShippingEditor(order) {
-        var inboundCourier  = order.tracking_inbound_courier  || '';
-        var inboundNumber   = order.tracking_inbound_number   || '';
-        var outboundCourier = order.tracking_outbound_courier || '';
-        var outboundNumber  = order.tracking_outbound_number  || '';
-        var orderId = order.id || order.order_id;
-
-        var courierOptions = function(selected) {
-            var opts = '<option value="">— Courier —</option>';
-            for (var key in COURIERS) {
-                if (!COURIERS.hasOwnProperty(key)) continue;
-                var sel = (selected === key) ? ' selected' : '';
-                opts += '<option value="' + key + '"' + sel + '>' + COURIERS[key].label + '</option>';
-            }
-            return opts;
+    function serviceLabel(order) {
+        var labels = {
+            'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
+            'system_setup': 'System Setup',
+            'games_only': 'Games Only',
+            'repair_only': 'Repair Only' + (order.console_model ? ' (' + order.console_model + ')' : '')
         };
-
-        var html = '<div class="shipping-editor">';
-        html += '<div class="shipping-editor-title">&#128230; Shipping Tracking</div>';
-
-        html += '<div class="shipping-editor-row">';
-        html += '<span class="shipping-field-label">Inbound (Customer &rarr; You)</span>';
-        html += '<select class="shipping-select" id="ship_in_' + orderId + '">' + courierOptions(inboundCourier) + '</select>';
-        html += '<input class="shipping-input" id="shipnum_in_' + orderId + '" placeholder="Tracking number" value="' + escapeHtml(inboundNumber) + '">';
-        html += '<button class="shipping-save-btn" onclick="saveShipping(\'' + orderId + '\', \'inbound\')">Save</button>';
-        if (inboundNumber) html += '<button class="shipping-clear-btn" onclick="clearShipping(\'' + orderId + '\', \'inbound\')">Clear</button>';
-        html += '</div>';
-
-        html += '<div class="shipping-editor-row">';
-        html += '<span class="shipping-field-label">Outbound (You &rarr; Customer)</span>';
-        html += '<select class="shipping-select" id="ship_out_' + orderId + '">' + courierOptions(outboundCourier) + '</select>';
-        html += '<input class="shipping-input" id="shipnum_out_' + orderId + '" placeholder="Tracking number" value="' + escapeHtml(outboundNumber) + '">';
-        html += '<button class="shipping-save-btn" onclick="saveShipping(\'' + orderId + '\', \'outbound\')">Save</button>';
-        if (outboundNumber) html += '<button class="shipping-clear-btn" onclick="clearShipping(\'' + orderId + '\', \'outbound\')">Clear</button>';
-        html += '</div>';
-
-        html += '</div>';
-        return html;
+        return labels[order.service_type] || 'Order';
     }
-
-    async function saveShipping(orderId, direction) {
-        var order = findOrder(orderId);
-        if (!order) return;
-
-        var prefix = (direction === 'inbound') ? 'in' : 'out';
-        var courierEl = document.getElementById('ship_' + prefix + '_' + orderId);
-        var numberEl  = document.getElementById('shipnum_' + prefix + '_' + orderId);
-        var courierVal = courierEl ? courierEl.value : '';
-        var numberVal  = numberEl ? numberEl.value.trim() : '';
-
-        if (numberVal && !courierVal) { alert('Please choose a courier before saving.'); courierEl && courierEl.focus(); return; }
-        if (courierVal && !numberVal) { alert('Please enter a tracking number.'); numberEl && numberEl.focus(); return; }
-
-        var payload = {};
-        if (direction === 'inbound') {
-            payload.tracking_inbound_courier = courierVal || null;
-            payload.tracking_inbound_number  = numberVal  || null;
+    function sortGameList(gameList) {
+        var masterList = (APP_CONFIG.gamesList || []);
+        var names = masterList.map(function(g) { return typeof g === 'string' ? g : g.name; });
+        if (names.length > 0) {
+            gameList.sort(function(a, b) {
+                var ia = names.indexOf(a), ib = names.indexOf(b);
+                if (ia !== -1 && ib !== -1) return ia - ib;
+                if (ia === -1 && ib !== -1) return 1;
+                if (ia !== -1 && ib === -1) return -1;
+                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
+            });
         } else {
-            payload.tracking_outbound_courier = courierVal || null;
-            payload.tracking_outbound_number  = numberVal  || null;
+            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
         }
-
-        var idField = order.id ? 'id' : 'order_id';
-        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
-        if (res.error) { alert('Failed to save tracking: ' + res.error.message); return; }
-
-        if (direction === 'inbound') {
-            order.tracking_inbound_courier = courierVal || null;
-            order.tracking_inbound_number  = numberVal  || null;
-        } else {
-            order.tracking_outbound_courier = courierVal || null;
-            order.tracking_outbound_number  = numberVal  || null;
-        }
-        alert('Tracking saved.');
-        filterAndRenderOrders();
+        return gameList;
     }
 
-    async function clearShipping(orderId, direction) {
-        if (!confirm('Clear ' + direction + ' tracking?')) return;
-        var order = findOrder(orderId);
-        if (!order) return;
+    // ===== CHECKLIST LOGIC =====
+    // Build the ordered checklist for an order, based on:
+    //   - service_type
+    //   - has repairs
+    //   - games count
+    // Steps marked autoStage are the ones that set progress_stage.
+    // Steps marked autoSub are the ones that set progress_substage.
+    function buildChecklist(order) {
+        var serviceType = order.service_type || 'jailbreak';
+        var repairs = getRepairsOfOrder(order);
+        var repairCount = repairs.length;
+        var games = gameListOf(order);
+        var gameCount = games.length;
 
-        var payload = {};
-        if (direction === 'inbound') {
-            payload.tracking_inbound_courier = null;
-            payload.tracking_inbound_number  = null;
-        } else {
-            payload.tracking_outbound_courier = null;
-            payload.tracking_outbound_number  = null;
+        var items = [];
+        items.push({ key: 'confirmed',  label: 'Order confirmed',          autoStage: 'Confirmed' });
+        items.push({ key: 'received',   label: 'Console received',         autoStage: null });
+
+        if (serviceType === 'jailbreak') {
+            items.push({ key: 'modchip',  label: 'Modchip installed',       autoSub: 'Modchip Installation' });
+            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'System setup',            autoSub: 'System Setup' });
+            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+        } else if (serviceType === 'system_setup') {
+            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'System setup',            autoSub: 'System Setup' });
+            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+        } else if (serviceType === 'games_only') {
+            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+        } else if (serviceType === 'repair_only') {
+            items.push({ key: 'diagnosis', label: 'Diagnosis done',         autoSub: 'Diagnosis' });
+            items.push({ key: 'repair',    label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done', autoSub: 'Repair' });
+            items.push({ key: 'testing',   label: 'Testing passed',         autoSub: 'Testing' });
         }
 
-        var idField = order.id ? 'id' : 'order_id';
-        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
-        if (res.error) { alert('Failed to clear tracking: ' + res.error.message); return; }
+        items.push({ key: 'ready',     label: 'Ready for pickup / shipping', autoStage: 'Ready' });
+        items.push({ key: 'handed',    label: 'Handed over to customer',     autoStage: 'Completed' });
 
-        if (direction === 'inbound') {
-            order.tracking_inbound_courier = null;
-            order.tracking_inbound_number  = null;
-        } else {
-            order.tracking_outbound_courier = null;
-            order.tracking_outbound_number  = null;
-        }
-        filterAndRenderOrders();
-    }
-    
-    function buildRepairsDisplay(repairs) {
-        if (!repairs || repairs.length === 0) return { line: '', mini: '' };
-        var sum = sumOrderRepairs(repairs);
-        var names = repairs.map(function(r) { return r.name; });
-        var preview = names.slice(0, 2).join(', ') + (names.length > 2 ? ' +' + (names.length - 2) + ' more' : '');
-        var line = '<strong>' + repairs.length + '</strong> repair' + (repairs.length === 1 ? '' : 's') +
-                   ' · <strong>RM' + sum.total + '</strong>' +
-                   (sum.quoteCount > 0 ? ' <span class="quote-pill">+' + sum.quoteCount + ' quote</span>' : '');
-        var mini = preview;
-        return { line: line, mini: mini };
+        return items;
     }
 
-    function updateStatus(orderId, newStatus) {
-        var order = findOrder(orderId);
-        if (!order) return;
-        var oldStatus = order.status;
-        order.status = newStatus;
-        var idField = order.id ? 'id' : 'order_id';
-        supabaseClient.from('orders').update({ status: newStatus }).eq(idField, orderId).then(function(res) {
-            if (res.error) { alert('Failed to update status: ' + res.error.message); order.status = oldStatus; }
-            updateStats();
-            filterAndRenderOrders();
-        });
-    }
-
-    function updateProgress(orderId, newStage) {
-        var order = findOrder(orderId);
-        if (!order) return;
-        var oldStage = order.progress_stage;
-        var oldSub = order.progress_substage;
-        var oldStatus = order.status;
-
-        order.progress_stage = newStage;
-
-        var newSub = null;
-        if (newStage === 'In Progress') {
-            var merged = getEffectiveSubStages(order);
-            newSub = merged[0] || null;
-        }
-        order.progress_substage = newSub;
-        order.progress_updated_at = new Date().toISOString();
-
-        var derivedStatus = STAGE_TO_STATUS[newStage];
-        var statusChanged = derivedStatus && derivedStatus !== order.status;
-        if (statusChanged) order.status = derivedStatus;
-
-        var idField = order.id ? 'id' : 'order_id';
-        var payload = { progress_stage: newStage, progress_substage: newSub, progress_updated_at: order.progress_updated_at };
-        if (statusChanged) payload.status = derivedStatus;
-
-        supabaseClient.from('orders').update(payload).eq(idField, orderId).then(function(res) {
-            if (res.error) {
-                alert('Failed to update progress: ' + res.error.message);
-                order.progress_stage = oldStage;
-                order.progress_substage = oldSub;
-                order.status = oldStatus;
-                return;
+    // Current ticked items for an order.
+    // Prefers the stored checklist_state; falls back to inference for legacy orders.
+    function deriveTickedSteps(order) {
+        var raw = order.checklist_state;
+        if (raw && typeof raw === 'object' && !Array.isArray(raw)) {
+            // Only trust checklist_state if it has at least one key.
+            // Empty {} means "never ticked" → fall back to inference.
+            for (var k in raw) {
+                if (raw.hasOwnProperty(k)) return raw;
             }
-            updateStats();
-            filterAndRenderOrders();
-        });
+        }
+        return inferTickedFromStage(order);
     }
 
-    function updateSubstage(orderId, newSub) {
+    // Legacy inference — used only for orders that don't have checklist_state yet.
+    function inferTickedFromStage(order) {
+        var stage = order.progress_stage || 'Order Received';
+        var sub = order.progress_substage || '';
+        var ticked = {};
+        if (stage === 'Order Received') return ticked;
+
+        ticked.confirmed = true;
+        if (stage === 'In Progress' || stage === 'Ready' || stage === 'Completed') {
+            ticked.received = true;
+        }
+
+        if (stage === 'In Progress') {
+            var list = getEffectiveSubStages(order);
+            var idx = list.indexOf(sub);
+            if (idx >= 0) {
+                for (var i = 0; i <= idx; i++) {
+                    var step = list[i];
+                    if (step === 'Modchip Installation') ticked.modchip = true;
+                    else if (step === 'Device Repair' || step === 'Repair') ticked.repair = true;
+                    else if (step === 'Diagnosis') ticked.diagnosis = true;
+                    else if (step === 'Testing') ticked.testing = true;
+                    else if (step === 'System Setup') ticked.setup = true;
+                    else if (step === 'Game Installation') ticked.games = true;
+                }
+            }
+        } else if (stage === 'Ready') {
+            ticked.modchip = true;
+            ticked.repair = true;
+            ticked.setup = true;
+            ticked.games = true;
+            ticked.diagnosis = true;
+            ticked.testing = true;
+            ticked.ready = true;
+        } else if (stage === 'Completed') {
+            ticked.modchip = true;
+            ticked.repair = true;
+            ticked.setup = true;
+            ticked.games = true;
+            ticked.diagnosis = true;
+            ticked.testing = true;
+            ticked.ready = true;
+            ticked.handed = true;
+        }
+        return ticked;
+    }
+
+    function toggleChecklist(orderId) {
+        expandedChecklists[String(orderId)] = !expandedChecklists[String(orderId)];
+        filterAndRenderOrders();
+    }
+
+    async function toggleChecklistItem(orderId, stepKey) {
         var order = findOrder(orderId);
         if (!order) return;
-        var oldSub = order.progress_substage;
-        order.progress_substage = newSub;
-        order.progress_updated_at = new Date().toISOString();
+
+        var checklist = buildChecklist(order);
+        var ticked = deriveTickedSteps(order);
+        var nowTicked = !ticked[stepKey];
+
+        var newTicked = Object.assign({}, ticked);
+        newTicked[stepKey] = nowTicked;
+
+        var foundIdx = -1;
+        for (var i = 0; i < checklist.length; i++) {
+            if (checklist[i].key === stepKey) { foundIdx = i; break; }
+        }
+        if (foundIdx === -1) return;
+
+        // No skipping: tick everything before, untick everything after
+        if (nowTicked) {
+            for (var k = 0; k < foundIdx; k++) newTicked[checklist[k].key] = true;
+        } else {
+            for (var j = foundIdx + 1; j < checklist.length; j++) {
+                newTicked[checklist[j].key] = false;
+            }
+        }
+
+        // Derive stage + substage from the furthest ticked item
+        var newStage = 'Order Received';
+        var newSub = null;
+        for (var m = checklist.length - 1; m >= 0; m--) {
+            var item = checklist[m];
+            if (!newTicked[item.key]) continue;
+            if (item.autoStage) { newStage = item.autoStage; break; }
+            if (item.autoSub) { newStage = 'In Progress'; newSub = item.autoSub; break; }
+            if (newStage === 'Order Received') newStage = 'Confirmed';
+        }
+
+        var nowIso = new Date().toISOString();
+        var payload = {
+            checklist_state: newTicked,
+            progress_stage: newStage,
+            progress_substage: newSub,
+            progress_updated_at: nowIso,
+            status: STAGE_TO_STATUS[newStage] || 'Pending',
+            updated_at: nowIso
+        };
         var idField = order.id ? 'id' : 'order_id';
-        supabaseClient.from('orders').update({ progress_substage: newSub, progress_updated_at: order.progress_updated_at }).eq(idField, orderId).then(function(res) {
-            if (res.error) { alert('Failed to update substage: ' + res.error.message); order.progress_substage = oldSub; return; }
-            filterAndRenderOrders();
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        if (res.error) { alert('Failed to update: ' + res.error.message); return; }
+
+        order.checklist_state = newTicked;
+        order.progress_stage = newStage;
+        order.progress_substage = newSub;
+        order.progress_updated_at = nowIso;
+        order.status = payload.status;
+        order.updated_at = nowIso;
+
+        updateStats();
+        filterAndRenderOrders();
+    }
+
+    // ===== STATS =====
+    function updateStats() {
+        document.getElementById('statTotal').innerText = allOrders.length;
+
+        var queue = 0, needs = 0, revenue = 0;
+        allOrders.forEach(function(o) {
+            var s = o.progress_stage || 'Order Received';
+            var status = o.status || 'Pending';
+            if (status === 'Cancelled') return;
+            revenue += Number(o.estimated_price) || 0;
+            if (s !== 'Completed' && s !== 'Cancelled') {
+                if (s === 'Confirmed' || s === 'In Progress') queue++;
+                needs++;
+            }
+        });
+        document.getElementById('statQueue').innerText = queue;
+        document.getElementById('statNeeds').innerText = needs;
+        document.getElementById('statRevenue').innerText = 'RM' + Math.round(revenue);
+    }
+
+    function setStatusFilter(status, btn) {
+        currentStatusFilter = status;
+        document.querySelectorAll('.filter-btn[data-status]').forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        filterAndRenderOrders();
+    }
+    function setCatalogFilter(filter, btn) {
+        currentCatalogFilter = filter;
+        document.querySelectorAll('.filter-btn[data-catfilter]').forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderCatalog();
+    }
+
+    // ===== ORDER CARD =====
+    function filterAndRenderOrders() {
+        var input = document.getElementById('adminSearchInput');
+        var query = input ? input.value.toLowerCase().trim() : '';
+        var container = document.getElementById('ordersContainer');
+
+        var filtered = [];
+        for (var i = 0; i < allOrders.length; i++) {
+            var order = allOrders[i];
+            var stage = order.progress_stage || 'Order Received';
+            var status = order.status || 'Pending';
+
+            if (currentStatusFilter === 'NEEDS') {
+                if (status === 'Cancelled' || status === 'Completed' || stage === 'Completed') continue;
+            } else if (currentStatusFilter !== 'ALL') {
+                if (currentStatusFilter === 'Pending') {
+                    if (status !== 'Pending') continue;
+                } else if (currentStatusFilter === 'In Progress') {
+                    if (status !== 'In Progress') continue;
+                } else if (currentStatusFilter === 'Ready') {
+                    if (stage !== 'Ready') continue;
+                } else if (currentStatusFilter !== status) {
+                    continue;
+                }
+            }
+
+            if (query) {
+                var phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().indexOf(query) !== -1;
+                var waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().indexOf(query) !== -1;
+                var remarksMatch = order.remarks && order.remarks.toLowerCase().indexOf(query) !== -1;
+                var stageMatch = stage.toLowerCase().indexOf(query) !== -1;
+                var gameList = gameListOf(order);
+                var gameMatch = false;
+                for (var j = 0; j < gameList.length; j++) if (String(gameList[j]).toLowerCase().indexOf(query) !== -1) { gameMatch = true; break; }
+                var repairList = getRepairsOfOrder(order);
+                var repairMatch = false;
+                for (var k = 0; k < repairList.length; k++) if (String(repairList[k].name).toLowerCase().indexOf(query) !== -1) { repairMatch = true; break; }
+                if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !repairMatch) continue;
+            }
+            filtered.push(order);
+        }
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="no-orders">' +
+                (currentStatusFilter === 'NEEDS' ? 'No active work right now. &#127881;' : 'No orders match.') +
+                '</div>';
+            updateBulkBarUI();
+            return;
+        }
+
+        container.innerHTML = '';
+        for (var m = 0; m < filtered.length; m++) {
+            (function(order) {
+                container.appendChild(buildOrderCard(order));
+            })(filtered[m]);
+        }
+        updateBulkBarUI();
+    }
+
+    function buildOrderCard(order) {
+        var card = document.createElement('div');
+        var orderId = order.id || order.order_id;
+        var status = order.status || 'Pending';
+        var stage = order.progress_stage || 'Order Received';
+        var statusClass = status.replace(/\s+/g, '-');
+
+        card.className = 'order-card status-' + statusClass;
+        card.setAttribute('data-order-id', orderId);
+        if (bulkSelectedIds[String(orderId)]) card.classList.add('selected-for-bulk');
+
+        var gameList = gameListOf(order);
+        var repairs = getRepairsOfOrder(order);
+        var phoneCount = orderCountByPhone[order.phone_ending] || 1;
+        var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
+
+        // Summary line
+        var summaryParts = [];
+        summaryParts.push(serviceLabel(order));
+        if (order.service_type !== 'repair_only') summaryParts.push('<strong>' + gameList.length + '</strong> game' + (gameList.length === 1 ? '' : 's'));
+        if (repairs.length > 0) summaryParts.push('<strong>' + repairs.length + '</strong> repair' + (repairs.length === 1 ? '' : 's'));
+        var summaryLine = summaryParts.join(' <span class="muted">·</span> ');
+
+        // Meta line
+        var waDisplay = order.whatsapp_username
+            ? '<span class="order-meta-wa">' + escapeHtml(order.whatsapp_username) + '</span>'
+            : '<span class="order-meta-wa empty">No WA</span>';
+        var dateStr = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) : '—';
+        var metaLine = waDisplay + '<span class="order-meta-sep">·</span>' + dateStr;
+        if (phoneCount > 1) {
+            metaLine += '<span class="order-meta-sep">·</span><span style="color:#ffb74d;">' + phoneCount + ' orders</span>';
+        }
+
+        // Checklist
+        var checklist = buildChecklist(order);
+        var ticked = deriveTickedSteps(order);
+        var isExpanded = !!expandedChecklists[String(orderId)];
+        var doneCount = 0;
+        checklist.forEach(function(item) { if (ticked[item.key]) doneCount++; });
+
+        var checklistHtml = '';
+        var firstPendingSeen = false;
+        checklist.forEach(function(item) {
+            var isDone = !!ticked[item.key];
+            var isCurrent = false;
+            if (!isDone && !firstPendingSeen) { isCurrent = true; firstPendingSeen = true; }
+            var cls = 'checklist-item' + (isDone ? ' done' : '') + (isCurrent ? ' current' : '');
+            var badge = isDone ? 'Done' : (isCurrent ? 'Next' : '');
+            var boxContent = isDone ? '&#10003;' : '';
+            checklistHtml +=
+                '<div class="' + cls + '" data-order-id="' + orderId + '" data-step="' + item.key + '">' +
+                    '<div class="checklist-box">' + boxContent + '</div>' +
+                    '<div class="checklist-name">' + escapeHtml(item.label) + '</div>' +
+                    (badge ? '<div class="checklist-badge">' + badge + '</div>' : '') +
+                '</div>';
+        });
+
+        var stagePillClass = stage.replace(/\s+/g, '-');
+        card.innerHTML =
+            '<div class="card-select-wrap"><input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '></div>' +
+            '<div class="order-card-header">' +
+                '<div class="order-card-header-left">' +
+                    '<div class="order-id-row">' +
+                        '<span class="order-id">Order #' + escapeHtml(order.phone_ending || 'N/A') + '</span>' +
+                        '<button class="order-copy-btn" data-order-id="' + orderId + '" title="Copy order number">Copy #</button>' +
+                        '<span class="stage-pill ' + stagePillClass + '">' + escapeHtml(stage) + '</span>' +
+                    '</div>' +
+                    '<div class="order-meta">' + metaLine + '</div>' +
+                    '<div class="order-summary-line">' + summaryLine + '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="checklist-toggle' + (isExpanded ? ' open' : '') + '" data-order-id="' + orderId + '">' +
+                '<span>Work checklist</span>' +
+                '<span class="progress-text">' + doneCount + '/' + checklist.length + ' done</span>' +
+                '<span class="chev">▼</span>' +
+            '</div>' +
+            '<div class="checklist-body' + (isExpanded ? ' open' : '') + '">' + checklistHtml + '</div>' +
+            '<div class="order-card-footer">' +
+                '<div class="order-card-footer-left">' +
+                    '<button class="view-btn" data-order-id="' + orderId + '">View Full Order</button>' +
+                    '<a class="view-btn track-btn" href="' + buildTrackLink(order) + '" target="_blank" rel="noopener noreferrer">View Tracking</a>' +
+                '</div>' +
+                '<div class="order-card-footer-right">' +
+                    '<button class="delete-btn" data-order-id="' + orderId + '">Delete</button>' +
+                '</div>' +
+            '</div>';
+
+        return card;
+    }
+
+    function copyOrderNo(orderId, btnElement) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var num = order.phone_ending || '';
+        if (!num) return;
+        navigator.clipboard.writeText(num).then(function() {
+            var orig = btnElement.textContent;
+            btnElement.textContent = 'Copied';
+            btnElement.style.background = '#00e676';
+            btnElement.style.color = '#14110a';
+            btnElement.style.borderColor = '#00e676';
+            setTimeout(function() {
+                btnElement.textContent = orig;
+                btnElement.style.background = '';
+                btnElement.style.color = '';
+                btnElement.style.borderColor = '';
+            }, 1600);
+        }).catch(function(err) { alert('Copy failed: ' + err); });
+    }
+
+    // ===== BULK =====
+    function bulkCount() { var n = 0; for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) n++; return n; }
+    function bulkKeys() { var arr = []; for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) arr.push(k); return arr; }
+
+    function clearBulkSelection() {
+        bulkSelectedIds = {};
+        document.querySelectorAll('.bulk-checkbox').forEach(function(cb) {
+            cb.checked = false;
+            var card = cb.closest ? cb.closest('.order-card') : null;
+            if (card) card.classList.remove('selected-for-bulk');
+        });
+        updateBulkBarUI();
+    }
+
+    function updateBulkBarUI() {
+        var n = bulkCount();
+        var bar = document.getElementById('bulkBar');
+        if (bar) bar.style.display = n > 0 ? 'block' : 'none';
+        document.getElementById('bulkCount').innerText = n;
+        document.getElementById('bulkCountPlural').textContent = n === 1 ? '' : 's';
+    }
+
+    function bulkDeleteOrders() {
+        var n = bulkCount();
+        if (n === 0) return;
+        var ids = bulkKeys();
+        inlineConfirm({
+            title: 'Delete Orders',
+            message: 'Delete ' + n + ' order' + (n === 1 ? '' : 's') + '?\n\nThis cannot be undone.',
+            confirmLabel: 'Delete All',
+            onConfirm: function() {
+                supabaseClient.from('orders').delete().in('id', ids).then(function(res) {
+                    if (res.error) {
+                        supabaseClient.from('orders').delete().in('order_id', ids).then(function(res2) {
+                            if (res2.error) { alert('Bulk delete failed: ' + res2.error.message); return; }
+                            clearBulkSelection(); loadOrders();
+                        });
+                        return;
+                    }
+                    clearBulkSelection(); loadOrders();
+                });
+            }
         });
     }
 
-    function findOrder(orderId) {
-        var target = String(orderId);
-        for (var i = 0; i < allOrders.length; i++) {
-            var o = allOrders[i];
-            if (String(o.id) === target || String(o.order_id) === target) return o;
+    function deleteOrder(orderId) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var orderNum = order.phone_ending || '';
+        inlineConfirm({
+            title: 'Delete Order',
+            message: 'Delete order #' + orderNum + '?\n\nThis cannot be undone.',
+            confirmLabel: 'Delete',
+            onConfirm: function() {
+                var idField = order.id ? 'id' : 'order_id';
+                supabaseClient.from('orders').delete().eq(idField, orderId).then(function(res) {
+                    if (res.error) { alert('Delete failed: ' + res.error.message); return; }
+                    allOrders = allOrders.filter(function(o) { return String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId); });
+                    delete bulkSelectedIds[String(orderId)];
+                    updateStats();
+                    filterAndRenderOrders();
+                });
+            }
+        });
+    }
+
+    function deleteOrderFromModal() {
+        if (!currentModalOrder) return;
+        var order = currentModalOrder;
+        var orderId = order.id || order.order_id;
+        var orderNum = order.phone_ending || '';
+        inlineConfirm({
+            title: 'Delete Order',
+            message: 'Delete order #' + orderNum + '?\n\nThis cannot be undone.',
+            confirmLabel: 'Delete',
+            onConfirm: function() {
+                var idField = order.id ? 'id' : 'order_id';
+                supabaseClient.from('orders').delete().eq(idField, order.id).then(function(res) {
+                    if (res.error) { alert('Delete failed: ' + res.error.message); return; }
+                    allOrders = allOrders.filter(function(o) { return String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId); });
+                    delete bulkSelectedIds[String(orderId)];
+                    closeOrderModal();
+                    updateStats();
+                    filterAndRenderOrders();
+                });
+            }
+        });
+    }
+
+    // ===== FULL ORDER MODAL =====
+    function openOrderModal(orderId) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        currentModalOrder = order;
+        currentModalOrderId = orderId;
+        currentRemarksOrderId = orderId;
+
+        var stage = order.progress_stage || 'Order Received';
+        var stagePillClass = stage.replace(/\s+/g, '-');
+
+        document.getElementById('modalTitle').innerText = 'Order #' + (order.phone_ending || 'N/A');
+        document.getElementById('modalStagePill').className = 'stage-pill ' + stagePillClass;
+        document.getElementById('modalStagePill').innerText = stage;
+        document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
+        var waEl = document.getElementById('modalWaVal');
+        waEl.innerText = order.whatsapp_username || 'Not assigned';
+        waEl.className = 'val' + (order.whatsapp_username ? ' wa' : ' muted');
+        var remarksEl = document.getElementById('modalRemarksVal');
+        if (order.remarks && String(order.remarks).trim() !== '') {
+            remarksEl.innerText = order.remarks;
+            remarksEl.className = 'val';
+        } else {
+            remarksEl.innerText = 'None';
+            remarksEl.className = 'val muted';
         }
-        return null;
+        document.getElementById('modalServiceVal').innerText = serviceLabel(order);
+        document.getElementById('modalStorageVal').innerText = (order.sd_card_size || order.free_storage_gb || 0) + ' GB';
+        document.getElementById('modalPriceVal').innerText = 'RM' + Math.round(order.estimated_price || 0);
+        document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
+        var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
+        document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
+
+        document.getElementById('modalEditWaBtn').onclick = function() { editWhatsappUsername(orderId); };
+        document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(orderId); };
+
+        // Repairs
+        renderModalRepairs(order);
+
+        // Games
+        renderModalGames(order);
+
+        // Shipping
+        renderModalShipping(order);
+
+        // Notify button state
+        var notifyBtn = document.getElementById('modalNotifyBtn');
+        notifyBtn.disabled = !order.whatsapp_username;
+
+        document.getElementById('orderModalOverlay').style.display = 'flex';
+        lockBodyScroll();
+    }
+
+    function closeOrderModal() {
+        document.getElementById('orderModalOverlay').style.display = 'none';
+        currentModalOrderId = null;
+        currentModalOrder = null;
+        unlockBodyScroll();
+    }
+    function closeModalOnBackdrop(event) {
+        if (event.target.id === 'orderModalOverlay') closeOrderModal();
+    }
+
+    function renderModalRepairs(order) {
+        var container = document.getElementById('modalRepairsContainer');
+        var repairs = getRepairsOfOrder(order);
+        if (repairs.length === 0) { container.innerHTML = ''; return; }
+
+        var sum = sumOrderRepairs(repairs);
+        var html = '<div class="modal-section">';
+        html += '<div class="modal-section-title"><span>Repairs (' + repairs.length + (sum.quoteCount > 0 ? ' · ' + sum.quoteCount + ' quote' : '') + ')</span></div>';
+        repairs.forEach(function(r) {
+            html += '<div class="modal-repair-item">';
+            html += '<div class="modal-repair-info">';
+            html += '<div class="modal-repair-name">' + escapeHtml(r.name) + '</div>';
+            if (r.note) html += '<div class="modal-repair-note">' + escapeHtml(r.note) + '</div>';
+            html += '</div>';
+            html += '<div class="modal-repair-right">';
+            if (r.isQuote) {
+                html += '<div class="modal-repair-price quote">TBC</div>';
+                html += '<button class="set-price-btn" onclick="setRepairPrice(\'' + escapeHtml(r.id) + '\')">Set Price</button>';
+            } else {
+                html += '<div class="modal-repair-price">RM' + r.price + '</div>';
+            }
+            html += '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function renderModalGames(order) {
+        var grid = document.getElementById('modalGameGrid');
+        var gameList = gameListOf(order);
+        sortGameList(gameList);
+        var sourceGames = typeof games !== 'undefined' ? games : [];
+        var sizeMap = {};
+        sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
+
+        document.getElementById('modalGameCount').textContent = '(' + gameList.length + ')';
+        grid.innerHTML = '';
+        if (gameList.length === 0) {
+            grid.innerHTML = '<div style="color:#6a6357; padding:10px; font-style:italic;">No games selected.</div>';
+            return;
+        }
+        gameList.forEach(function(name, idx) {
+            var item = document.createElement('div');
+            item.className = 'modal-game-item';
+            var size = sizeMap[name] ? sizeMap[name] + ' GB' : '';
+            item.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
+            grid.appendChild(item);
+        });
+    }
+
+    function renderModalShipping(order) {
+        ['in', 'out'].forEach(function(dir) {
+            var sel = document.getElementById('modalShip' + (dir === 'in' ? 'In' : 'Out') + 'Select');
+            var input = document.getElementById('modalShip' + (dir === 'in' ? 'In' : 'Out') + 'Input');
+            var clearBtn = document.getElementById('modalShip' + (dir === 'in' ? 'In' : 'Out') + 'ClearBtn');
+            var courierKey = dir === 'in' ? order.tracking_inbound_courier : order.tracking_outbound_courier;
+            var number = dir === 'in' ? order.tracking_inbound_number : order.tracking_outbound_number;
+
+            sel.innerHTML = '<option value="">— Courier —</option>';
+            Object.keys(COURIERS).forEach(function(key) {
+                var o = document.createElement('option');
+                o.value = key;
+                o.textContent = COURIERS[key].label;
+                if (key === courierKey) o.selected = true;
+                sel.appendChild(o);
+            });
+            input.value = number || '';
+            clearBtn.style.display = number ? 'inline-flex' : 'none';
+        });
+    }
+
+    async function saveShipping(direction) {
+        if (!currentModalOrder) return;
+        var order = currentModalOrder;
+        var prefix = direction === 'inbound' ? 'In' : 'Out';
+        var courierKey = document.getElementById('modalShip' + prefix + 'Select').value;
+        var number = document.getElementById('modalShip' + prefix + 'Input').value.trim();
+
+        if (number && !courierKey) { alert('Please select a courier.'); return; }
+        if (courierKey && !number) { alert('Please enter a tracking number.'); return; }
+
+        var payload = {};
+        if (direction === 'inbound') {
+            payload.tracking_inbound_courier = courierKey || null;
+            payload.tracking_inbound_number = number || null;
+        } else {
+            payload.tracking_outbound_courier = courierKey || null;
+            payload.tracking_outbound_number = number || null;
+        }
+        var idField = order.id ? 'id' : 'order_id';
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        if (res.error) { alert('Failed: ' + res.error.message); return; }
+
+        if (direction === 'inbound') {
+            order.tracking_inbound_courier = courierKey || null;
+            order.tracking_inbound_number = number || null;
+        } else {
+            order.tracking_outbound_courier = courierKey || null;
+            order.tracking_outbound_number = number || null;
+        }
+        document.getElementById('modalShip' + prefix + 'ClearBtn').style.display = number ? 'inline-flex' : 'none';
+        alert('Saved.');
+    }
+
+    function clearShipping(direction) {
+        if (!currentModalOrder) return;
+        var order = currentModalOrder;
+        inlineConfirm({
+            title: 'Clear Tracking',
+            message: 'Clear ' + direction + ' tracking for this order?',
+            confirmLabel: 'Clear',
+            onConfirm: function() {
+                var payload = {};
+                if (direction === 'inbound') {
+                    payload.tracking_inbound_courier = null;
+                    payload.tracking_inbound_number = null;
+                } else {
+                    payload.tracking_outbound_courier = null;
+                    payload.tracking_outbound_number = null;
+                }
+                var idField = order.id ? 'id' : 'order_id';
+                supabaseClient.from('orders').update(payload).eq(idField, order.id).then(function(res) {
+                    if (res.error) { alert('Failed: ' + res.error.message); return; }
+                    if (direction === 'inbound') {
+                        order.tracking_inbound_courier = null;
+                        order.tracking_inbound_number = null;
+                    } else {
+                        order.tracking_outbound_courier = null;
+                        order.tracking_outbound_number = null;
+                    }
+                    renderModalShipping(order);
+                });
+            }
+        });
+    }
+
+    function copyGamesFromModal(btn) {
+        var order = currentModalOrder;
+        if (!order) return;
+        var gameList = gameListOf(order);
+        if (gameList.length === 0) { alert('No games to copy.'); return; }
+        sortGameList(gameList);
+        navigator.clipboard.writeText(gameList.join('\n')).then(function() {
+            var orig = btn.textContent;
+            btn.textContent = 'Copied';
+            btn.style.background = '#ffc000';
+            btn.style.color = '#14110a';
+            btn.style.borderColor = '#ffc000';
+            setTimeout(function() { btn.textContent = orig; btn.style.background = ''; btn.style.color = ''; btn.style.borderColor = ''; }, 1600);
+        });
+    }
+
+    function copyModalOrderNo() {
+        if (!currentModalOrder) return;
+        var num = currentModalOrder.phone_ending || '';
+        navigator.clipboard.writeText(num).then(function() { alert('Order number copied.'); });
+    }
+
+    function setRepairPrice(repairId) {
+        if (!currentModalOrder) return;
+        var order = currentModalOrder;
+        var repairs = Array.isArray(order.repairs) ? order.repairs.slice() : [];
+        var idx = -1;
+        for (var i = 0; i < repairs.length; i++) {
+            if (repairs[i] && typeof repairs[i] === 'object' && repairs[i].id === repairId) { idx = i; break; }
+        }
+        if (idx === -1) { alert('Repair not found.'); return; }
+        var existing = repairs[idx];
+
+        openInlinePrompt({
+            title: 'Set Repair Price',
+            label: existing.name + ' — amount in RM:',
+            value: existing.price ? String(existing.price) : '',
+            placeholder: 'e.g. 350',
+            inputmode: 'numeric',
+            onSave: function(input) {
+                if (input === null) return;
+                var price = parseFloat(input);
+                if (isNaN(price) || price < 0) { alert('Please enter a valid non-negative number.'); return; }
+
+                repairs[idx] = { id: existing.id, name: existing.name, category: existing.category || '', price: price, is_quote: false, note: existing.note || '' };
+                var oldEstimated = Number(order.estimated_price) || 0;
+                var newEstimated = oldEstimated + price;
+                var idField = order.id ? 'id' : 'order_id';
+                supabaseClient.from('orders').update({
+                    repairs: repairs,
+                    estimated_price: newEstimated,
+                    updated_at: new Date().toISOString()
+                }).eq(idField, order.id).then(function(res) {
+                    if (res.error) { alert('Failed: ' + res.error.message); return; }
+                    order.repairs = repairs;
+                    order.estimated_price = newEstimated;
+                    renderModalRepairs(order);
+                    filterAndRenderOrders();
+                    updateStats();
+                });
+            }
+        });
+    }
+
+    function notifyCustomerFromModal() {
+        if (!currentModalOrder) return;
+        notifyCustomer(currentModalOrder.id || currentModalOrder.order_id);
     }
 
     function notifyCustomer(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
         var waUsername = (order.whatsapp_username || '').trim();
-        if (!waUsername) { alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.'); return; }
+        if (!waUsername) {
+            inlineConfirm({
+                title: 'No WhatsApp',
+                message: 'This order has no WhatsApp saved.\n\nClick "Edit WhatsApp" first to add a contact.',
+                confirmLabel: 'OK'
+            });
+            return;
+        }
 
         var stage = order.progress_stage || 'Order Received';
         var sub = order.progress_substage;
@@ -1323,7 +2088,6 @@
             msg += '\nRepairs (' + repairs.length + '):\n';
             repairs.forEach(function(r) { msg += '• ' + r.name + ' — ' + (r.isQuote ? 'TBC' : 'RM' + r.price) + '\n'; });
         }
-
         var trackLines = [];
         if (order.tracking_inbound_number) {
             var cin = COURIERS[order.tracking_inbound_courier] || COURIERS['other'];
@@ -1333,10 +2097,7 @@
             var cout = COURIERS[order.tracking_outbound_courier] || COURIERS['other'];
             trackLines.push('• Outbound (' + cout.label + '): ' + order.tracking_outbound_number);
         }
-        if (trackLines.length > 0) {
-            msg += '\nParcel Tracking:\n' + trackLines.join('\n') + '\n';
-        }
-
+        if (trackLines.length > 0) msg += '\nParcel Tracking:\n' + trackLines.join('\n') + '\n';
         msg += '\nTrack live here: ' + buildTrackingUrl(order.phone_ending);
 
         var encoded = encodeURIComponent(msg);
@@ -1349,704 +2110,93 @@
         } else {
             waUrl = 'https://wa.me/?text=' + encoded;
         }
-        try {
-            var a = document.createElement('a');
-            a.href = waUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
-            a.style.display = 'none';
-            document.body.appendChild(a); a.click();
-            setTimeout(function() { if (a.parentNode) document.body.removeChild(a); }, 100);
-        } catch (err) { window.open(waUrl, '_blank'); }
+        window.open(waUrl, '_blank');
     }
 
     function buildTrackingUrl(phoneEnding) {
         if (!phoneEnding) return '';
-        var base = window.location.origin + window.location.pathname.replace('admin.html', 'track.html');
-        return base + '?phone=' + encodeURIComponent(phoneEnding);
+        return window.location.origin + window.location.pathname.replace('admin.html', 'track.html') + '?phone=' + encodeURIComponent(phoneEnding);
     }
 
-    function copyTrackingLink(orderId, btnElement) {
-        var order = findOrder(orderId);
-        if (!order) return;
-        var url = buildTrackingUrl(order.phone_ending);
-        if (!url) { alert('This order has no Order ID to track.'); return; }
-        navigator.clipboard.writeText(url).then(function() {
-            var originalText = btnElement.innerHTML;
-            btnElement.innerHTML = 'Copied';
-            btnElement.style.background = '#7dd3fc';
-            btnElement.style.color = '#14110a';
-            btnElement.style.borderColor = '#7dd3fc';
-            setTimeout(function() {
-                btnElement.innerHTML = originalText;
-                btnElement.style.background = '#2e2716';
-                btnElement.style.color = '#7dd3fc';
-                btnElement.style.borderColor = '#3a3018';
-            }, 2000);
-        }).catch(function(err) { alert('Failed to copy link: ' + err); });
-    }
-
-    function copyRepairsMain(orderId, btnElement) {
-        var order = findOrder(orderId);
-        if (!order) return;
-        var repairs = getRepairsOfOrder(order);
-        if (repairs.length === 0) { alert('No repairs in this order to copy!'); return; }
-        var lines = repairs.map(function(r) {
-            return '• ' + r.name + ' — ' + (r.isQuote ? 'TBC after inspection' : 'RM' + r.price);
-        });
-        var text = 'Repairs for Order #' + (order.phone_ending || '') + ':\n' + lines.join('\n');
-        navigator.clipboard.writeText(text).then(function() {
-            var originalText = btnElement.innerText;
-            btnElement.innerText = 'Copied';
-            btnElement.style.background = '#ffb74d';
-            btnElement.style.color = '#14110a';
-            setTimeout(function() {
-                btnElement.innerText = originalText;
-                btnElement.style.background = '#2e2716';
-                btnElement.style.color = '#ffb74d';
-            }, 2000);
-        }).catch(function(err) { alert('Failed to copy text: ' + err); });
-    }
-
-    function copyRepairsFromModal(btnElement) {
-        if (!currentModalRepairs || currentModalRepairs.length === 0) { alert('No repairs to copy!'); return; }
-        var lines = currentModalRepairs.map(function(r) {
-            return '• ' + r.name + ' — ' + (r.isQuote ? 'TBC after inspection' : 'RM' + r.price);
-        });
-        var text = lines.join('\n');
-        navigator.clipboard.writeText(text).then(function() {
-            var originalText = btnElement.innerText;
-            btnElement.innerText = 'Copied';
-            btnElement.style.background = '#ffb74d';
-            btnElement.style.color = '#14110a';
-            setTimeout(function() {
-                btnElement.innerText = originalText;
-                btnElement.style.background = '#2e2716';
-                btnElement.style.color = '#ffb74d';
-            }, 2000);
-        }).catch(function(err) { alert('Failed to copy: ' + err); });
-    }
-
-    // Set price for a quote repair (from order modal)
-    async function setRepairPrice(repairId) {
-        if (!currentModalOrderId) return;
-        var order = findOrder(currentModalOrderId);
-        if (!order) return;
-
-        var repairs = Array.isArray(order.repairs) ? order.repairs.slice() : [];
-        var idx = -1;
-        for (var i = 0; i < repairs.length; i++) {
-            var r = repairs[i];
-            if (r && typeof r === 'object' && r.id === repairId) { idx = i; break; }
-        }
-        if (idx === -1) { alert('Repair not found in this order.'); return; }
-
-        var existing = repairs[idx];
-        var input = prompt(
-            'Set final price for:\n\n' + existing.name + '\n\nEnter amount in RM (numbers only):',
-            existing.price ? String(existing.price) : ''
-        );
-        if (input === null) return;
-        var price = parseFloat(input);
-        if (isNaN(price) || price < 0) { alert('Please enter a valid non-negative number.'); return; }
-
-        repairs[idx] = {
-            id: existing.id,
-            name: existing.name,
-            category: existing.category || '',
-            price: price,
-            is_quote: false,
-            note: existing.note || ''
-        };
-
-        // Update order.estimated_price: subtract old price, add new. Old was 0 (quote), so just add.
-        var oldEstimated = Number(order.estimated_price) || 0;
-        var newEstimated = oldEstimated + price;
-
-        var idField = order.id ? 'id' : 'order_id';
-        var res = await supabaseClient.from('orders').update({
-            repairs: repairs,
-            estimated_price: newEstimated,
-            updated_at: new Date().toISOString()
-        }).eq(idField, order.id);
-
-        if (res.error) { alert('Failed to save price: ' + res.error.message); return; }
-
-        order.repairs = repairs;
-        order.estimated_price = newEstimated;
-        alert('Price saved: RM' + price + '\n\nNew order total: RM' + Math.round(newEstimated));
-        // Re-render modal & card
-        renderModalRepairs(order);
-        filterAndRenderOrders();
-        updateStats();
-    }
-
-    function setRepairPriceFromCard(orderId) {
-        // Legacy: not used anymore, but safe fallback
-        openOrderModal(orderId);
+    function buildTrackLink(order) {
+        var phone = order.phone_ending || '';
+        if (!phone) return 'track.html';
+        var id = order.id || order.order_id || '';
+        var url = 'track.html?phone=' + encodeURIComponent(phone);
+        if (order.id) url += '&id=' + encodeURIComponent(order.id);
+        return url;
     }
 
     function editWhatsappUsername(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
-        var currentWa = order.whatsapp_username || '';
-        var newWa = prompt('Enter WhatsApp contact name OR phone number (e.g. 60123456789):', currentWa);
-        if (newWa === null) return;
-        var trimmedWa = newWa.trim();
-        var oldWa = order.whatsapp_username;
-        order.whatsapp_username = trimmedWa;
-        var idField = order.id ? 'id' : 'order_id';
-        supabaseClient.from('orders').update({ whatsapp_username: trimmedWa }).eq(idField, orderId).then(function(res) {
-            if (res.error) { alert('Failed to update WhatsApp username: ' + res.error.message); order.whatsapp_username = oldWa; }
-            filterAndRenderOrders();
-        });
-    }
-
-    function bulkCount() {
-        var n = 0;
-        for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) n++;
-        return n;
-    }
-    function bulkKeys() {
-        var arr = [];
-        for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) arr.push(k);
-        return arr;
-    }
-
-    function toggleSelectAll(checked) {
-        var checkboxes = document.querySelectorAll('.bulk-checkbox');
-        for (var i = 0; i < checkboxes.length; i++) {
-            var cb = checkboxes[i];
-            var id = String(cb.getAttribute('data-order-id'));
-            if (checked) bulkSelectedIds[id] = true;
-            else delete bulkSelectedIds[id];
-            cb.checked = checked;
-            var card = cb.closest ? cb.closest('.order-card') : null;
-            if (card) {
-                if (checked) card.classList.add('selected-for-bulk');
-                else card.classList.remove('selected-for-bulk');
-            }
-        }
-        updateBulkBarUI();
-    }
-
-    function clearBulkSelection() {
-        bulkSelectedIds = {};
-        var checkboxes = document.querySelectorAll('.bulk-checkbox');
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].checked = false;
-            var card = checkboxes[i].closest ? checkboxes[i].closest('.order-card') : null;
-            if (card) card.classList.remove('selected-for-bulk');
-        }
-        var selAll = document.getElementById('selectAllCheckbox');
-        if (selAll) { selAll.checked = false; selAll.indeterminate = false; }
-        updateBulkBarUI();
-    }
-
-    function updateBulkBarUI() {
-        var n = bulkCount();
-        var bar = document.getElementById('bulkBar');
-        var counter = document.getElementById('selectionCount');
-        var bulkCountEl = document.getElementById('bulkCount');
-        var bulkCountPlural = document.getElementById('bulkCountPlural');
-        var selAll = document.getElementById('selectAllCheckbox');
-
-        if (counter) counter.innerText = n + ' selected';
-        if (bar) bar.style.display = n > 0 ? 'block' : 'none';
-        if (bulkCountEl) bulkCountEl.innerText = n;
-        if (bulkCountPlural) bulkCountPlural.textContent = n === 1 ? '' : 's';
-
-        if (selAll) {
-            var checkboxes = document.querySelectorAll('.bulk-checkbox');
-            var total = checkboxes.length;
-            var selected = 0;
-            for (var i = 0; i < checkboxes.length; i++) {
-                if (bulkSelectedIds[String(checkboxes[i].getAttribute('data-order-id'))]) selected++;
-            }
-            if (total === 0 || selected === 0) { selAll.checked = false; selAll.indeterminate = false; }
-            else if (selected === total) { selAll.checked = true; selAll.indeterminate = false; }
-            else { selAll.checked = false; selAll.indeterminate = true; }
-        }
-    }
-
-    function bulkUpdateStatus() {
-        var n = bulkCount();
-        if (n === 0) return;
-        var word = n === 1 ? 'order' : 'orders';
-        var choiceMsg = 'Update ' + n + ' ' + word + ' to which status?\n\n1 = Pending\n2 = In Progress\n3 = Completed\n4 = Cancelled\n\nType the number (1-4):';
-        var choice = prompt(choiceMsg);
-        if (choice === null) return;
-
-        var statusMap = { '1': 'Pending', '2': 'In Progress', '3': 'Completed', '4': 'Cancelled' };
-        var newStatus = statusMap[String(choice).trim()];
-        if (!newStatus) { alert('Invalid choice. Please enter 1, 2, 3, or 4.'); return; }
-        if (!confirm('Set ' + n + ' ' + word + ' to "' + newStatus + '"?')) return;
-
-        var ids = bulkKeys();
-        for (var i = 0; i < ids.length; i++) {
-            var o = findOrder(ids[i]);
-            if (o) o.status = newStatus;
-        }
-        supabaseClient.from('orders').update({ status: newStatus }).in('id', ids).then(function(res) {
-            if (res.error) {
-                supabaseClient.from('orders').update({ status: newStatus }).in('order_id', ids).then(function(res2) {
-                    if (res2.error) { alert('Bulk update failed: ' + res2.error.message); loadOrders(); return; }
-                    clearBulkSelection();
-                    loadOrders();
+        openInlinePrompt({
+            title: 'Edit WhatsApp',
+            label: 'WhatsApp name or number:',
+            value: order.whatsapp_username || '',
+            placeholder: 'e.g. 60123456789',
+            inputmode: 'tel',
+            onSave: function(newWa) {
+                if (newWa === null) return;
+                var trimmed = newWa.trim();
+                var idField = order.id ? 'id' : 'order_id';
+                supabaseClient.from('orders').update({ whatsapp_username: trimmed }).eq(idField, orderId).then(function(res) {
+                    if (res.error) { alert('Failed: ' + res.error.message); return; }
+                    order.whatsapp_username = trimmed;
+                    var modalId = currentModalOrder ? (currentModalOrder.id || currentModalOrder.order_id) : null;
+                    if (modalId && String(modalId) === String(orderId)) {
+                        var waEl = document.getElementById('modalWaVal');
+                        if (waEl) {
+                            waEl.innerText = trimmed || 'Not assigned';
+                            waEl.className = 'val' + (trimmed ? ' wa' : ' muted');
+                        }
+                        var notifyBtn = document.getElementById('modalNotifyBtn');
+                        if (notifyBtn) notifyBtn.disabled = !trimmed;
+                    }
+                    filterAndRenderOrders();
                 });
-                return;
             }
-            clearBulkSelection();
-            loadOrders();
         });
     }
 
-    function bulkDeleteOrders() {
-        var n = bulkCount();
-        if (n === 0) return;
-        var word = n === 1 ? 'order' : 'orders';
-        if (!confirm('Delete ' + n + ' ' + word + '?\n\nThis cannot be undone.')) return;
-        var ids = bulkKeys();
-        supabaseClient.from('orders').delete().in('id', ids).then(function(res) {
-            if (res.error) {
-                supabaseClient.from('orders').delete().in('order_id', ids).then(function(res2) {
-                    if (res2.error) { alert('Bulk delete failed: ' + res2.error.message); return; }
-                    clearBulkSelection();
-                    loadOrders();
-                });
-                return;
-            }
-            clearBulkSelection();
-            loadOrders();
-        });
-    }
-
+    // ===== REMARKS =====
     function openRemarksModal(orderId) {
         var order = findOrder(orderId);
-        if (!order) { alert('Order not found.'); return; }
+        if (!order) return;
         currentRemarksOrderId = orderId;
-        var ta = document.getElementById('remarksEditTextarea');
-        ta.value = order.remarks || '';
+        document.getElementById('remarksEditTextarea').value = order.remarks || '';
         document.getElementById('remarksModalOverlay').style.display = 'flex';
-        setTimeout(function() { try { ta.focus(); } catch(e) {} }, 100);
+        setTimeout(function() { document.getElementById('remarksEditTextarea').focus(); }, 100);
+        lockBodyScroll();
     }
-
     function closeRemarksModal() {
         document.getElementById('remarksModalOverlay').style.display = 'none';
         currentRemarksOrderId = null;
+        unlockBodyScroll();
     }
-    function closeRemarksModalOnBackdrop(event) {
-        if (event.target.id === 'remarksModalOverlay') closeRemarksModal();
-    }
-
+    function closeRemarksModalOnBackdrop(e) { if (e.target.id === 'remarksModalOverlay') closeRemarksModal(); }
     function saveRemarksEdit() {
         if (!currentRemarksOrderId) return;
         var order = findOrder(currentRemarksOrderId);
-        if (!order) { alert('Order not found.'); return; }
+        if (!order) return;
         var newRemarks = document.getElementById('remarksEditTextarea').value.trim();
-        var oldRemarks = order.remarks;
-        var saveBtn = document.getElementById('saveRemarksBtn');
-        saveBtn.disabled = true;
-        saveBtn.innerText = 'Saving...';
         var idField = order.id ? 'id' : 'order_id';
+        var btn = document.getElementById('saveRemarksBtn');
+        btn.disabled = true; btn.innerText = 'Saving...';
         supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, currentRemarksOrderId).then(function(res) {
-            if (res.error) {
-                alert('Failed to save remarks: ' + res.error.message);
-                order.remarks = oldRemarks;
-                saveBtn.disabled = false;
-                saveBtn.innerText = 'Save Remarks';
-                return;
-            }
+            btn.disabled = false; btn.innerText = 'Save Remarks';
+            if (res.error) { alert('Failed: ' + res.error.message); return; }
             order.remarks = newRemarks;
-            saveBtn.disabled = false;
-            saveBtn.innerText = 'Save Remarks';
             closeRemarksModal();
             filterAndRenderOrders();
+            if (currentModalOrder && String(currentModalOrder.id) === String(currentRemarksOrderId)) openOrderModal(currentRemarksOrderId);
         });
     }
 
-    function sortGameList(gameList) {
-        var masterList = [];
-        if (typeof APP_CONFIG !== 'undefined') masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
-        var names = masterList.map(function(g) { return typeof g === 'string' ? g : g.name; });
-        if (names.length > 0) {
-            gameList.sort(function(a, b) {
-                var ia = names.indexOf(a);
-                var ib = names.indexOf(b);
-                if (ia !== -1 && ib !== -1) return ia - ib;
-                if (ia === -1 && ib !== -1) return 1;
-                if (ia !== -1 && ib === -1) return -1;
-                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-            });
-        } else {
-            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
-        }
-        return gameList;
-    }
-
-    function gameListOf(order) {
-        var list = [];
-        if (Array.isArray(order.games)) list = order.games;
-        else if (typeof order.games === 'string') {
-            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
-        }
-        return list;
-    }
-
-    function filterAndRenderOrders() {
-        var input = document.getElementById('adminSearchInput');
-        var query = input ? input.value.toLowerCase().trim() : '';
-        var container = document.getElementById('ordersContainer');
-
-        var filtered = [];
-        for (var i = 0; i < allOrders.length; i++) {
-            var order = allOrders[i];
-            var orderStatus = order.status || 'Pending';
-
-            if (currentStatusFilter === 'WITH_REPAIRS') {
-                var rList = getRepairsOfOrder(order);
-                if (rList.length === 0) continue;
-            } else if (currentStatusFilter !== 'ALL' && orderStatus !== currentStatusFilter) {
-                continue;
-            }
-
-            if (query) {
-                var phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().indexOf(query) !== -1;
-                var waMatch = order.whatsapp_username && order.whatsapp_username.toLowerCase().indexOf(query) !== -1;
-                var remarksMatch = order.remarks && order.remarks.toLowerCase().indexOf(query) !== -1;
-                var stageMatch = order.progress_stage && order.progress_stage.toLowerCase().indexOf(query) !== -1;
-                var substageMatch = order.progress_substage && order.progress_substage.toLowerCase().indexOf(query) !== -1;
-                var gameList = gameListOf(order);
-                var gameMatch = false;
-                for (var j = 0; j < gameList.length; j++) {
-                    if (String(gameList[j]).toLowerCase().indexOf(query) !== -1) { gameMatch = true; break; }
-                }
-                var repairList = getRepairsOfOrder(order);
-                var repairMatch = false;
-                for (var k = 0; k < repairList.length; k++) {
-                    if (String(repairList[k].name).toLowerCase().indexOf(query) !== -1 || String(repairList[k].id).toLowerCase().indexOf(query) !== -1) { repairMatch = true; break; }
-                }
-                if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !substageMatch && !repairMatch) continue;
-            }
-
-            filtered.push(order);
-        }
-
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="no-orders">No matching orders found.</div>';
-            updateBulkBarUI();
-            return;
-        }
-
-        container.innerHTML = '';
-        for (var m = 0; m < filtered.length; m++) {
-            (function(order) {
-                var card = document.createElement('div');
-                var orderId = order.id || order.order_id;
-                card.setAttribute('data-order-id', orderId);
-
-                var currentStatus = order.status || 'Pending';
-                var statusClass = currentStatus.replace(/\s+/g, '-');
-                card.className = 'order-card status-' + statusClass;
-                if (bulkSelectedIds[String(orderId)]) card.classList.add('selected-for-bulk');
-
-                var gameList = gameListOf(order);
-                sortGameList(gameList);
-
-                var gamesPreview = '<em>No games selected</em>';
-                if (gameList.length > 0) {
-                    var lines = [];
-                    var shown = Math.min(3, gameList.length);
-                    for (var n = 0; n < shown; n++) lines.push('<div>' + (n + 1) + '. ' + gameList[n] + '</div>');
-                    if (gameList.length > 3) lines.push('<div><button class="more-games-link" data-order-id="' + orderId + '">+ ' + (gameList.length - 3) + ' more games...</button></div>');
-                    gamesPreview = lines.join('');
-                }
-
-                var waDisplay = order.whatsapp_username
-                    ? '<span style="color:#25D366; word-break:break-word;">WA: ' + order.whatsapp_username + '</span>'
-                    : '<span style="color:#6a6357; font-style:italic;">WA: Not assigned</span>';
-
-                var remarksDisplay = (order.remarks && order.remarks.trim() !== '') ? order.remarks : '<span style="color:#6a6357; font-style:italic;">None</span>';
-
-                var phoneCount = orderCountByPhone[order.phone_ending] || 1;
-                var multiBadge = phoneCount > 1
-                    ? '<span class="order-number-badge multi">' + phoneCount + ' orders from this customer</span>'
-                    : '<span class="order-number-badge">1st order</span>';
-
-                var currentProgress = order.progress_stage || 'Order Received';
-                var currentSub = order.progress_substage || '';
-
-                var progressOptions = '';
-                for (var p = 0; p < PROGRESS_STAGES.length; p++) {
-                    var s = PROGRESS_STAGES[p];
-                    var sel = (currentProgress === s) ? ' selected' : '';
-                    progressOptions += '<option value="' + s + '"' + sel + '>' + (STAGE_ICONS[s] || '') + ' ' + s + '</option>';
-                }
-
-                var mergedSubs = getEffectiveSubStages(order);
-                var isInProgress = (currentProgress === 'In Progress');
-                var subOptions = '<option value="">-- Select --</option>';
-                for (var q = 0; q < mergedSubs.length; q++) {
-                    var sb = mergedSubs[q];
-                    var sSel = (currentSub === sb) ? ' selected' : '';
-                    subOptions += '<option value="' + sb + '"' + sSel + '>' + sb + '</option>';
-                }
-
-                var notifyVisible = order.whatsapp_username ? ' visible' : '';
-                var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
-
-                var repairs = getRepairsOfOrder(order);
-                var repairsDisplay = buildRepairsDisplay(repairs);
-                var repairsLineHtml = repairs.length > 0
-                    ? '<div class="order-repair-line"><span class="icon">&#128295;</span><div class="text">' + repairsDisplay.line + (repairsDisplay.mini ? '<div class="order-repair-list-mini">' + repairsDisplay.mini + '</div>' : '') + '</div>' + (repairs.some(function(r){return r.isQuote;}) ? '<button class="set-price-btn copy-repairs-main-btn" data-order-id="' + orderId + '">Copy Repairs</button>' : '<button class="set-price-btn copy-repairs-main-btn" data-order-id="' + orderId + '">Copy Repairs</button>') + '</div>'
-                    : '';
-
-                card.innerHTML =
-                    '<div class="card-select-wrap"><input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '></div>' +
-                    '<div class="order-header">' +
-                        '<div class="customer-info">' +
-                            '<div>Order ID: ' + (order.phone_ending || 'N/A') + ' ' + multiBadge + '</div>' +
-                            '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' + waDisplay + '<button class="edit-wa-btn" data-order-id="' + orderId + '">Edit WA</button></div>' +
-                        '</div>' +
-                        '<div class="order-date">' + (order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A') + '</div>' +
-                    '</div>' +
-                    repairsLineHtml +
-                    '<div class="order-body">' +
-                        '<div>' +
-                            '<strong>Service:</strong> ' + (order.service_type || 'N/A') + '<br>' +
-                            '<strong>Storage:</strong> ' + (order.sd_card_size || order.free_storage_gb || 0) + ' GB<br>' +
-                            '<div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-top:6px; flex-wrap:wrap;">' +
-                                '<div style="flex:1; min-width:0;">' +
-                                    '<strong>Remarks:</strong>' +
-                                    '<div style="font-size:12px; color:#b8b0a0; margin-top:2px; word-break:break-word;">' + remarksDisplay + '</div>' +
-                                '</div>' +
-                                '<button class="edit-remarks-btn" data-order-id="' + orderId + '" style="flex-shrink:0;">Edit</button>' +
-                            '</div>' +
-                        '</div>' +
-                        '<div>' +
-                            '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;">' +
-                                '<strong>Games (' + gameList.length + '):</strong>' +
-                                '<button class="copy-txt-btn copy-main-btn" data-order-id="' + orderId + '">Copy Game List</button>' +
-                            '</div>' +
-                            '<div style="max-height:90px; overflow-y:auto; font-size:12px;">' + gamesPreview + '</div>' +
-                        '</div>' +
-                    '</div>' +
-                    '<div class="progress-controls">' +
-                        '<div class="progress-controls-row"><label>Progress:</label><select class="progress-select" onchange="updateProgress(\'' + orderId + '\', this.value)">' + progressOptions + '</select></div>' +
-                        '<div class="progress-controls-row"><label>Substage:</label><select class="progress-select" onchange="updateSubstage(\'' + orderId + '\', this.value)"' + (isInProgress ? '' : ' disabled') + '>' + subOptions + '</select></div>' +
-                        '<div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">' +
-                            '<button class="copy-track-btn" data-order-id="' + orderId + '" title="Copy tracking link">Copy Tracking Link</button>' +
-                            '<button class="notify-btn' + notifyVisible + '" data-order-id="' + orderId + '">Notify Customer</button>' +
-                        '</div>' +
-                    '</div>' +
-                    buildShippingEditor(order) +
-                    '<div class="order-actions-row">' +
-                        '<div>' +
-                            '<span style="font-size:12px; color:#8a8272; align-self:center;">Status: </span>' +
-                            '<select class="status-select" onchange="updateStatus(\'' + orderId + '\', this.value)">' +
-                                '<option value="Pending"' + (currentStatus === 'Pending' ? ' selected' : '') + '>Pending</option>' +
-                                '<option value="In Progress"' + (currentStatus === 'In Progress' ? ' selected' : '') + '>In Progress</option>' +
-                                '<option value="Completed"' + (currentStatus === 'Completed' ? ' selected' : '') + '>Completed</option>' +
-                                '<option value="Cancelled"' + (currentStatus === 'Cancelled' ? ' selected' : '') + '>Cancelled</option>' +
-                            '</select>' +
-                        '</div>' +
-                        '<div>' +
-                            '<button class="view-btn" data-order-id="' + orderId + '">View Full Order</button>' +
-                            '<button class="delete-btn" data-order-id="' + orderId + '">Delete</button>' +
-                        '</div>' +
-                    '</div>';
-
-                container.appendChild(card);
-            })(filtered[m]);
-        }
-        updateBulkBarUI();
-    }
-
-    function openOrderModal(orderId) {
-        var order = findOrder(orderId);
-        if (!order) {
-            supabaseClient.from('orders').select('*').eq('id', orderId).limit(1).then(function(res) {
-                if (res.data && res.data.length > 0) showOrderModal(res.data[0]);
-                else {
-                    supabaseClient.from('orders').select('*').eq('order_id', orderId).limit(1).then(function(res2) {
-                        if (res2.data && res2.data.length > 0) showOrderModal(res2.data[0]);
-                        else alert('Could not load order details.');
-                    });
-                }
-            });
-            return;
-        }
-        showOrderModal(order);
-    }
-
-    function showOrderModal(order) {
-        var orderId = order.id || order.order_id;
-        currentRemarksOrderId = orderId;
-        currentModalOrderId = orderId;
-
-        document.getElementById('modalTitle').innerText = 'Order Details - Customer ' + (order.phone_ending || 'N/A');
-        document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
-        document.getElementById('modalWaVal').innerText = order.whatsapp_username || 'Not assigned';
-        document.getElementById('modalServiceVal').innerText = order.service_type || 'N/A';
-        document.getElementById('modalStorageVal').innerText = (order.sd_card_size || order.free_storage_gb || 0) + ' GB';
-        document.getElementById('modalPriceVal').innerText = 'RM' + Math.round(order.estimated_price || 0);
-        document.getElementById('modalProgressVal').innerText = order.progress_stage || 'Order Received';
-        document.getElementById('modalSubstageVal').innerText = order.progress_substage || '-';
-        document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
-
-        var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
-        document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
-
-        var remarksDisplay = (order.remarks && order.remarks.trim() !== '') ? order.remarks : '<span style="color:#6a6357; font-style:italic;">None</span>';
-        document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
-        document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(currentRemarksOrderId); };
-
-        // Repairs
-        currentModalRepairs = getRepairsOfOrder(order);
-        renderModalRepairs(order);
-
-        // Games
-        var gameGrid = document.getElementById('modalGameGrid');
-        gameGrid.innerHTML = '';
-        var gameList = gameListOf(order);
-        sortGameList(gameList);
-        currentModalGames = gameList;
-
-        if (gameList.length > 0) {
-            document.getElementById('modalGameCount').innerText = gameList.length + ' Games Total';
-            for (var i = 0; i < gameList.length; i++) {
-                var item = document.createElement('div');
-                item.className = 'game-item';
-                item.innerHTML = '<span class="game-num">' + (i + 1) + '</span> <span>' + gameList[i] + '</span>';
-                gameGrid.appendChild(item);
-            }
-        } else {
-            document.getElementById('modalGameCount').innerText = '0 Games';
-            gameGrid.innerHTML = '<div style="color:#6a6357; padding: 10px;">No games selected for this order.</div>';
-        }
-
-        document.getElementById('orderModalOverlay').style.display = 'flex';
-    }
-
-    function renderModalRepairs(order) {
-        var container = document.getElementById('modalRepairsContainer');
-        if (!container) return;
-        var repairs = getRepairsOfOrder(order);
-        currentModalRepairs = repairs;
-
-        if (repairs.length === 0) { container.innerHTML = ''; return; }
-
-        var sum = sumOrderRepairs(repairs);
-        var html = '<div class="modal-repairs-container">';
-        html += '<div class="modal-repairs-header">';
-        html += '<h3>&#128295; Repairs (' + repairs.length + ')</h3>';
-        html += '<div class="modal-repairs-header-actions">';
-        if (sum.quoteCount > 0) {
-            html += '<span style="font-size:11.5px; color:#ffb74d; font-weight:600;">' + sum.quoteCount + ' awaiting quote</span>';
-        }
-        html += '<button class="copy-txt-btn" onclick="copyRepairsFromModal(this)">Copy Repair List</button>';
-        html += '</div>';
-        html += '</div>';
-
-        repairs.forEach(function(r) {
-            html += '<div class="modal-repair-item">';
-            html += '<div class="modal-repair-info">';
-            html += '<div class="modal-repair-name">' + escapeHtml(r.name) + '</div>';
-            if (r.category) html += '<div class="modal-repair-cat">' + escapeHtml(r.category) + '</div>';
-            if (r.note) html += '<div class="modal-repair-note">' + escapeHtml(r.note) + '</div>';
-            html += '</div>';
-            html += '<div class="modal-repair-right">';
-            if (r.isQuote) {
-                html += '<div class="modal-repair-price quote">TBC after inspection</div>';
-                html += '<button class="set-price-btn" onclick="setRepairPrice(\'' + escapeHtml(r.id) + '\')">Set Price</button>';
-            } else {
-                html += '<div class="modal-repair-price">RM' + r.price + '</div>';
-            }
-            html += '</div>';
-            html += '</div>';
-        });
-
-        html += '<div class="modal-repairs-summary">';
-        html += '<span>Repairs subtotal' + (sum.quoteCount > 0 ? ' (excludes ' + sum.quoteCount + ' quote)' : '') + '</span>';
-        html += '<strong>RM' + sum.total + (sum.quoteCount > 0 ? ' + TBC' : '') + '</strong>';
-        html += '</div>';
-
-        html += '</div>';
-        container.innerHTML = html;
-    }
-
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function copyGamesForScript() {
-        if (!currentModalGames || currentModalGames.length === 0) { alert('No games to copy!'); return; }
-        var textToCopy = currentModalGames.join('\n');
-        navigator.clipboard.writeText(textToCopy).then(function() {
-            var btn = document.querySelector('.modal-copy-btn');
-            var originalText = btn.innerText;
-            btn.innerText = 'Copied';
-            btn.style.background = '#ffc000';
-            btn.style.color = '#14110a';
-            setTimeout(function() { btn.innerText = originalText; btn.style.background = '#2e2716'; btn.style.color = '#e8dcc0'; }, 2000);
-        }).catch(function(err) { alert('Failed to copy text: ' + err); });
-    }
-
-    function copyGamesForScriptMain(orderId, btnElement) {
-        var order = findOrder(orderId);
-        if (!order) return;
-        var gameList = gameListOf(order);
-        sortGameList(gameList);
-        if (gameList.length === 0) { alert('No games in this order to copy!'); return; }
-        var textToCopy = gameList.join('\n');
-        navigator.clipboard.writeText(textToCopy).then(function() {
-            var originalText = btnElement.innerText;
-            btnElement.innerText = 'Copied';
-            btnElement.style.background = '#ffc000';
-            btnElement.style.color = '#14110a';
-            setTimeout(function() { btnElement.innerText = originalText; btnElement.style.background = '#2e2716'; btnElement.style.color = '#e8dcc0'; }, 2000);
-        }).catch(function(err) { alert('Failed to copy text: ' + err); });
-    }
-
-    function closeOrderModal() {
-        document.getElementById('orderModalOverlay').style.display = 'none';
-        currentModalOrderId = null;
-    }
-    function closeModalOnBackdrop(event) {
-        if (event.target.id === 'orderModalOverlay') closeOrderModal();
-    }
-
-    function deleteOrder(orderId) {
-        if (!confirm('Are you sure you want to delete this order?')) return;
-        var order = findOrder(orderId);
-        var idField = (order && order.id) ? 'id' : 'order_id';
-        supabaseClient.from('orders').delete().eq(idField, orderId).then(function(res) {
-            if (res.error) { alert('Delete failed: ' + res.error.message); return; }
-            var newList = [];
-            for (var i = 0; i < allOrders.length; i++) {
-                var o = allOrders[i];
-                if (String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId)) newList.push(o);
-            }
-            allOrders = newList;
-            delete bulkSelectedIds[String(orderId)];
-            orderCountByPhone = {};
-            for (var j = 0; j < allOrders.length; j++) {
-                var p = allOrders[j].phone_ending || '';
-                orderCountByPhone[p] = (orderCountByPhone[p] || 0) + 1;
-            }
-            updateStats();
-            filterAndRenderOrders();
-        });
-    }
-
-    // ========================================================================
-    // REPAIR CATALOG (admin)
-    // ========================================================================
-
+    // ===== REPAIR CATALOG =====
     function renderCatalog() {
         var container = document.getElementById('catalogContainer');
-        if (!container) return;
         var query = (document.getElementById('catalogSearchInput').value || '').toLowerCase().trim();
-
         var filtered = allRepairServices.filter(function(s) {
             if (currentCatalogFilter === 'ACTIVE' && !s.active) return false;
             if (currentCatalogFilter === 'INACTIVE' && s.active) return false;
@@ -2056,71 +2206,41 @@
             }
             return true;
         });
+        if (filtered.length === 0) { container.innerHTML = '<div class="no-orders">No repairs match.</div>'; return; }
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<div class="no-orders">No repair services match your filters.</div>';
-            return;
-        }
-
-        // Group by category
         var grouped = {};
         filtered.forEach(function(s) {
             var cat = s.category || 'General';
             if (!grouped[cat]) grouped[cat] = [];
             grouped[cat].push(s);
         });
-
-        // Order categories: use configured list order if available, else alphabetical
         var order = (APP_CONFIG.repairCategories || []).slice();
         Object.keys(grouped).forEach(function(c) { if (order.indexOf(c) === -1) order.push(c); });
-
         container.innerHTML = '';
         order.forEach(function(cat) {
             if (!grouped[cat]) return;
             var group = document.createElement('div');
             group.className = 'catalog-group';
-
             var header = document.createElement('div');
             header.className = 'catalog-group-header';
             header.innerHTML = '<span>' + escapeHtml(cat) + ' &nbsp;·&nbsp; ' + grouped[cat].length + '</span><span class="chev">▼</span>';
             header.onclick = function() { group.classList.toggle('collapsed'); };
             group.appendChild(header);
-
             var body = document.createElement('div');
             body.className = 'catalog-group-body';
-
             grouped[cat].forEach(function(s) {
                 var row = document.createElement('div');
                 row.className = 'catalog-row' + (s.active ? '' : ' inactive');
-
                 var priceHtml = '';
                 if (s.pricing_model === 'quote') priceHtml = '<div class="catalog-row-price quote">Quote on inspection</div>';
                 else if (s.pricing_model === 'flat') priceHtml = '<div class="catalog-row-price">RM' + (Number(s.price_flat) || 0) + '</div>';
                 else if (s.pricing_model === 'per_model') {
                     var p = s.price_by_model || {};
-                    priceHtml = '<div class="catalog-row-price-multi">' +
-                        '<span><span class="m">OLED</span>RM' + (Number(p.OLED) || 0) + '</span>' +
-                        '<span><span class="m">V1/V2</span>RM' + (Number(p.V1_V2) || 0) + '</span>' +
-                        '<span><span class="m">LITE</span>RM' + (Number(p.LITE) || 0) + '</span>' +
-                        '</div>';
+                    priceHtml = '<div class="catalog-row-price-multi"><span><span class="m">OLED</span>RM' + (Number(p.OLED) || 0) + '</span><span><span class="m">V1/V2</span>RM' + (Number(p.V1_V2) || 0) + '</span><span><span class="m">LITE</span>RM' + (Number(p.LITE) || 0) + '</span></div>';
                 }
-
-                row.innerHTML =
-                    '<div class="catalog-row-main">' +
-                        '<div class="catalog-row-name">' + escapeHtml(s.name) + '</div>' +
-                        '<div class="catalog-row-id">id: ' + escapeHtml(s.id) + ' &nbsp;·&nbsp; sort: ' + (s.sort_order || 0) + '</div>' +
-                        (s.note ? '<div class="catalog-row-note">' + escapeHtml(s.note) + '</div>' : '') +
-                    '</div>' +
-                    priceHtml +
-                    '<div class="catalog-row-actions">' +
-                        '<button class="catalog-toggle-btn ' + (s.active ? 'on' : '') + '" onclick="toggleRepairActive(\'' + escapeHtml(s.id) + '\')">' + (s.active ? 'Active' : 'Inactive') + '</button>' +
-                        '<button class="catalog-edit-btn" onclick="openRepairForm(\'' + escapeHtml(s.id) + '\')">Edit</button>' +
-                        '<button class="catalog-delete-btn" onclick="deleteRepairService(\'' + escapeHtml(s.id) + '\')">Delete</button>' +
-                    '</div>';
-
+                row.innerHTML = '<div class="catalog-row-main"><div class="catalog-row-name">' + escapeHtml(s.name) + '</div><div class="catalog-row-id">id: ' + escapeHtml(s.id) + ' &nbsp;·&nbsp; sort: ' + (s.sort_order || 0) + '</div>' + (s.note ? '<div class="catalog-row-note">' + escapeHtml(s.note) + '</div>' : '') + '</div>' + priceHtml + '<div class="catalog-row-actions"><button class="catalog-toggle-btn ' + (s.active ? 'on' : '') + '" onclick="toggleRepairActive(\'' + escapeHtml(s.id) + '\')">' + (s.active ? 'Active' : 'Inactive') + '</button><button class="catalog-edit-btn" onclick="openRepairForm(\'' + escapeHtml(s.id) + '\')">Edit</button><button class="catalog-delete-btn" onclick="deleteRepairService(\'' + escapeHtml(s.id) + '\')">Delete</button></div>';
                 body.appendChild(row);
             });
-
             group.appendChild(body);
             container.appendChild(group);
         });
@@ -2128,7 +2248,6 @@
 
     function populateCategorySelect() {
         var sel = document.getElementById('rfCategory');
-        if (!sel) return;
         var current = sel.value;
         sel.innerHTML = '';
         (APP_CONFIG.repairCategories || []).forEach(function(c) {
@@ -2138,22 +2257,16 @@
         });
         if (current) sel.value = current;
     }
-
     function suggestRepairId(name) {
         var idField = document.getElementById('rfId');
         if (!idField || idField.dataset.touched === '1') return;
-        var slug = (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-        idField.value = slug;
+        idField.value = (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
     }
-
     function sanitizeRepairId() {
         var idField = document.getElementById('rfId');
-        if (!idField) return;
         idField.dataset.touched = '1';
-        var v = idField.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
-        idField.value = v;
+        idField.value = idField.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
     }
-
     function onPricingModelChange() {
         var selected = document.querySelector('input[name="rfPricing"]:checked');
         var val = selected ? selected.value : '';
@@ -2164,10 +2277,7 @@
     }
 
     function openRepairForm(id) {
-        currentEditingRepairId = id || null;
         populateCategorySelect();
-
-        var title = document.getElementById('repairFormTitle');
         var nameField = document.getElementById('rfName');
         var idField = document.getElementById('rfId');
         var catField = document.getElementById('rfCategory');
@@ -2179,70 +2289,54 @@
         var sortField = document.getElementById('rfSortOrder');
         var activeField = document.getElementById('rfActive');
         var saveBtn = document.getElementById('rfSaveBtn');
-
-        // Reset ID touched flag
         idField.dataset.touched = '0';
 
         if (id) {
             var svc = allRepairServices.find(function(s) { return s.id === id; });
-            if (!svc) { alert('Repair service not found.'); return; }
-            title.textContent = 'Edit Repair Service';
+            if (!svc) return;
+            document.getElementById('repairFormTitle').textContent = 'Edit Repair Service';
             saveBtn.textContent = 'Save Changes';
             nameField.value = svc.name || '';
             idField.value = svc.id || '';
-            idField.dataset.touched = '1'; // don't override existing id on name change
+            idField.dataset.touched = '1';
             idField.readOnly = true;
             catField.value = svc.category || (APP_CONFIG.repairCategories[0] || 'General');
             noteField.value = svc.note || '';
             sortField.value = (svc.sort_order !== undefined && svc.sort_order !== null) ? svc.sort_order : 100;
             activeField.checked = !!svc.active;
-
-            // Pricing
             var pm = svc.pricing_model || 'flat';
             document.querySelectorAll('input[name="rfPricing"]').forEach(function(r) { r.checked = (r.value === pm); });
-            if (pm === 'flat') {
-                flatField.value = (svc.price_flat != null) ? svc.price_flat : '';
-                oledField.value = ''; v1v2Field.value = ''; liteField.value = '';
-            } else if (pm === 'per_model') {
+            if (pm === 'flat') flatField.value = svc.price_flat != null ? svc.price_flat : '';
+            else if (pm === 'per_model') {
                 var bm = svc.price_by_model || {};
-                oledField.value = (bm.OLED != null) ? bm.OLED : '';
-                v1v2Field.value = (bm.V1_V2 != null) ? bm.V1_V2 : '';
-                liteField.value = (bm.LITE != null) ? bm.LITE : '';
-                flatField.value = '';
-            } else {
-                flatField.value = ''; oledField.value = ''; v1v2Field.value = ''; liteField.value = '';
+                oledField.value = bm.OLED != null ? bm.OLED : '';
+                v1v2Field.value = bm.V1_V2 != null ? bm.V1_V2 : '';
+                liteField.value = bm.LITE != null ? bm.LITE : '';
             }
         } else {
-            title.textContent = 'Add Repair Service';
+            document.getElementById('repairFormTitle').textContent = 'Add Repair Service';
             saveBtn.textContent = 'Add Repair';
-            nameField.value = '';
-            idField.value = '';
-            idField.readOnly = false;
+            nameField.value = ''; idField.value = ''; idField.readOnly = false;
             catField.value = APP_CONFIG.repairCategories[0] || 'General';
-            flatField.value = '';
-            oledField.value = '';
-            v1v2Field.value = '';
-            liteField.value = '';
-            noteField.value = '';
-            sortField.value = 100;
-            activeField.checked = true;
-            // Default to flat pricing
+            flatField.value = ''; oledField.value = ''; v1v2Field.value = ''; liteField.value = '';
+            noteField.value = ''; sortField.value = 100; activeField.checked = true;
             document.querySelectorAll('input[name="rfPricing"]').forEach(function(r) { r.checked = (r.value === 'flat'); });
         }
-
         onPricingModelChange();
         document.getElementById('repairFormOverlay').style.display = 'flex';
+        document.getElementById('repairFormOverlay').dataset.editingId = id || '';
+        lockBodyScroll();
     }
 
     function closeRepairForm() {
         document.getElementById('repairFormOverlay').style.display = 'none';
-        currentEditingRepairId = null;
+        document.getElementById('repairFormOverlay').dataset.editingId = '';
+        unlockBodyScroll();
     }
-    function closeRepairFormOnBackdrop(event) {
-        if (event.target.id === 'repairFormOverlay') closeRepairForm();
-    }
+    function closeRepairFormOnBackdrop(e) { if (e.target.id === 'repairFormOverlay') closeRepairForm(); }
 
     async function saveRepairForm() {
+        var editingId = document.getElementById('repairFormOverlay').dataset.editingId || null;
         var name = (document.getElementById('rfName').value || '').trim();
         var id = (document.getElementById('rfId').value || '').trim().toLowerCase();
         var category = document.getElementById('rfCategory').value || 'General';
@@ -2252,106 +2346,86 @@
         if (isNaN(sortOrder)) sortOrder = 100;
         var active = !!document.getElementById('rfActive').checked;
 
-        if (!name) { alert('Please enter a name.'); return; }
-        if (!id) { alert('Please enter a unique ID.'); return; }
-        if (!/^[a-z0-9_]+$/.test(id)) { alert('ID can only contain lowercase letters, numbers, and underscores.'); return; }
-        if (!pricing) { alert('Please choose a pricing model.'); return; }
+        if (!name) return alert('Please enter a name.');
+        if (!id) return alert('Please enter an ID.');
+        if (!/^[a-z0-9_]+$/.test(id)) return alert('ID must be lowercase letters, numbers, underscores.');
+        if (!pricing) return alert('Please choose a pricing model.');
 
         var priceFlat = null, priceByModel = null;
         if (pricing === 'flat') {
             var pf = parseFloat(document.getElementById('rfPriceFlat').value);
-            if (isNaN(pf) || pf < 0) { alert('Please enter a valid flat price.'); return; }
+            if (isNaN(pf) || pf < 0) return alert('Enter a valid flat price.');
             priceFlat = pf;
         } else if (pricing === 'per_model') {
             var oled = parseFloat(document.getElementById('rfPriceOled').value);
             var v1v2 = parseFloat(document.getElementById('rfPriceV1V2').value);
             var lite = parseFloat(document.getElementById('rfPriceLite').value);
-            if (isNaN(oled) || isNaN(v1v2) || isNaN(lite)) { alert('Please enter prices for all three console models.'); return; }
-            if (oled < 0 || v1v2 < 0 || lite < 0) { alert('Prices cannot be negative.'); return; }
+            if (isNaN(oled) || isNaN(v1v2) || isNaN(lite)) return alert('Enter prices for all 3 models.');
             priceByModel = { OLED: oled, V1_V2: v1v2, LITE: lite };
         }
-
-        var payload = {
-            name: name,
-            category: category,
-            pricing_model: pricing,
-            price_flat: priceFlat,
-            price_by_model: priceByModel,
-            note: note,
-            sort_order: sortOrder,
-            active: active
-        };
+        var payload = { name: name, category: category, pricing_model: pricing, price_flat: priceFlat, price_by_model: priceByModel, note: note, sort_order: sortOrder, active: active };
 
         var saveBtn = document.getElementById('rfSaveBtn');
         saveBtn.disabled = true;
-        var originalLabel = saveBtn.textContent;
+        var orig = saveBtn.textContent;
         saveBtn.textContent = 'Saving...';
-
         try {
-            if (currentEditingRepairId) {
-                // Update (id not changeable)
-                var res = await supabaseClient.from('repair_services').update(payload).eq('id', currentEditingRepairId);
+            if (editingId) {
+                var res = await supabaseClient.from('repair_services').update(payload).eq('id', editingId);
                 if (res.error) throw res.error;
             } else {
-                // Insert
                 payload.id = id;
-                // Check for existing id
-                var existing = allRepairServices.find(function(s) { return s.id === id; });
-                if (existing) throw new Error('A repair with this ID already exists. Please choose a different ID.');
+                if (allRepairServices.find(function(s) { return s.id === id; })) throw new Error('ID already exists.');
                 var res2 = await supabaseClient.from('repair_services').insert([payload]);
                 if (res2.error) throw res2.error;
             }
-
-            // Reload
             await Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]);
-            closeRepairForm();
-            renderCatalog();
-            alert(currentEditingRepairId ? 'Repair updated.' : 'Repair added.');
+            closeRepairForm(); renderCatalog();
+            alert(editingId ? 'Updated.' : 'Added.');
         } catch (err) {
-            console.error(err);
-            alert('Failed to save: ' + (err.message || 'Unknown error'));
+            alert('Failed: ' + (err.message || err));
         } finally {
             saveBtn.disabled = false;
-            saveBtn.textContent = originalLabel;
+            saveBtn.textContent = orig;
         }
     }
 
     async function toggleRepairActive(id) {
         var svc = allRepairServices.find(function(s) { return s.id === id; });
         if (!svc) return;
-        var newActive = !svc.active;
-        var res = await supabaseClient.from('repair_services').update({ active: newActive }).eq('id', id);
-        if (res.error) { alert('Failed to toggle: ' + res.error.message); return; }
-        svc.active = newActive;
+        var res = await supabaseClient.from('repair_services').update({ active: !svc.active }).eq('id', id);
+        if (res.error) return alert('Failed: ' + res.error.message);
+        svc.active = !svc.active;
         await loadRepairServices(supabaseClient);
         renderCatalog();
     }
 
-    async function deleteRepairService(id) {
+    function deleteRepairService(id) {
         var svc = allRepairServices.find(function(s) { return s.id === id; });
         if (!svc) return;
-
-        // Check if this repair is used in any order (client-side over loaded orders; not exhaustive but helpful)
         var usedIn = 0;
         allOrders.forEach(function(o) {
-            var rlist = Array.isArray(o.repairs) ? o.repairs : [];
-            rlist.forEach(function(r) {
+            (Array.isArray(o.repairs) ? o.repairs : []).forEach(function(r) {
                 if (typeof r === 'string' && r === id) usedIn++;
                 else if (r && typeof r === 'object' && r.id === id) usedIn++;
             });
         });
-
-        var msg = 'Delete "' + svc.name + '" (id: ' + id + ')?\n\nThis cannot be undone.';
+        var msg = 'Delete "' + svc.name + '"?';
         if (usedIn > 0) {
-            msg = '"' + svc.name + '" is used in ' + usedIn + ' loaded order(s).\n\nHistorical orders keep their own snapshot, so deleting will not break them — but the repair will disappear from the customer form.\n\nConsider marking it Inactive instead.\n\nDelete anyway?';
+            msg = '"' + svc.name + '" is in ' + usedIn + ' order(s).\n\nConsider marking Inactive instead.\n\nDelete anyway?';
         }
-        if (!confirm(msg)) return;
-
-        var res = await supabaseClient.from('repair_services').delete().eq('id', id);
-        if (res.error) { alert('Failed to delete: ' + res.error.message); return; }
-        allRepairServices = allRepairServices.filter(function(s) { return s.id !== id; });
-        await loadRepairServices(supabaseClient);
-        renderCatalog();
+        inlineConfirm({
+            title: 'Delete Repair',
+            message: msg,
+            confirmLabel: 'Delete',
+            onConfirm: function() {
+                supabaseClient.from('repair_services').delete().eq('id', id).then(function(res) {
+                    if (res.error) { alert('Failed: ' + res.error.message); return; }
+                    allRepairServices = allRepairServices.filter(function(s) { return s.id !== id; });
+                    loadRepairServices(supabaseClient).then(renderCatalog);
+                });
+            }
+        });
     }
     </script>
 </body>
