@@ -1497,15 +1497,31 @@
         const serviceType = valOf('serviceTypeSelect');
         const consoleModel = valOf('consoleModelSelect');
         const sdSource = valOf('sdSourceSelect');
-        const { usable, baseOverhead, partition, realCapacity } = computeUsableStorage();
-        state.usableStorageLimit = usable;
 
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
 
-        if (serviceType === 'games_only') {
-            return `Service: Games Only | Stated Free Storage: ${usable} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usable - gSize).toFixed(1)} GB</strong>`;
+        // ===== SYSTEM UPDATE: no SD config, just free space + games =====
+        if (serviceType === 'system_update') {
+            const userSpace = parseFloat(valOf('userFreeStorageInput')) || 0;
+            state.usableStorageLimit = userSpace;
+            if (userSpace <= 0) {
+                return 'Service: System Update | <span style="color:#8a8272;">Enter free GB above to add games, or leave blank for update only.</span>';
+            }
+            return `Service: System Update | Stated Free Storage: ${userSpace} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(userSpace - gSize).toFixed(1)} GB</strong>`;
         }
+
+        // ===== GAMES ONLY =====
+        if (serviceType === 'games_only') {
+            const userSpace = parseFloat(valOf('userFreeStorageInput'));
+            state.usableStorageLimit = (isNaN(userSpace) || userSpace <= 0) ? 0 : userSpace;
+            return `Service: Games Only | Stated Free Storage: ${state.usableStorageLimit} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(state.usableStorageLimit - gSize).toFixed(1)} GB</strong>`;
+        }
+
+        // ===== JAILBREAK / SYSTEM SETUP (SD-card based) =====
+        const { usable, baseOverhead, partition, realCapacity } = computeUsableStorage();
+        state.usableStorageLimit = usable;
+
         const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
         const sourceLabel = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
         const serviceLabel = serviceType === 'jailbreak' ? `Full Jailbreak (${consoleModel})` : 'System Setup';

@@ -1488,7 +1488,7 @@
             updated_at: nowIso
         };
         var idField = order.id ? 'id' : 'order_id';
-        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id);
         if (res.error) { alert('Failed to update: ' + res.error.message); return; }
 
         order.checklist_state = newTicked;
@@ -1849,7 +1849,7 @@
             stVal = order.free_storage_gb + ' GB (free space)';
         }
         document.getElementById('modalStorageVal').innerText = stVal;
-        
+
         var sdSourceEl = document.getElementById('modalSdSourceVal');
         if (needsSd && order.sd_source) {
             sdSourceEl.innerText = order.sd_source === 'buy' ? 'Purchase New SD Card' : 'Bring Own SD Card';
@@ -1984,7 +1984,7 @@
             payload.tracking_outbound_number = number || null;
         }
         var idField = order.id ? 'id' : 'order_id';
-        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id);
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id);
         if (res.error) { alert('Failed: ' + res.error.message); return; }
 
         if (direction === 'inbound') {
@@ -2015,7 +2015,7 @@
                     payload.tracking_outbound_number = null;
                 }
                 var idField = order.id ? 'id' : 'order_id';
-                supabaseClient.from('orders').update(payload).eq(idField, order.id).then(function(res) {
+                supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id).then(function(res) {
                     if (res.error) { alert('Failed: ' + res.error.message); return; }
                     if (direction === 'inbound') {
                         order.tracking_inbound_courier = null;
@@ -2082,7 +2082,7 @@
                     repairs: repairs,
                     estimated_price: newEstimated,
                     updated_at: new Date().toISOString()
-                }).eq(idField, order.id).then(function(res) {
+                }).eq(idField, order.id || order.order_id).then(function(res) {
                     if (res.error) { alert('Failed: ' + res.error.message); return; }
                     order.repairs = repairs;
                     order.estimated_price = newEstimated;
@@ -2175,20 +2175,20 @@
                 var trimmed = newWa.trim();
                 var idField = order.id ? 'id' : 'order_id';
                 supabaseClient.from('orders').update({ whatsapp_username: trimmed }).eq(idField, orderId).then(function(res) {
-                    if (res.error) { alert('Failed: ' + res.error.message); return; }
-                    order.whatsapp_username = trimmed;
-                    var modalId = currentModalOrder ? (currentModalOrder.id || currentModalOrder.order_id) : null;
-                    if (modalId && String(modalId) === String(orderId)) {
-                        var waEl = document.getElementById('modalWaVal');
-                        if (waEl) {
-                            waEl.innerText = trimmed || 'Not assigned';
-                            waEl.className = 'val' + (trimmed ? ' wa' : ' muted');
-                        }
-                        var notifyBtn = document.getElementById('modalNotifyBtn');
-                        if (notifyBtn) notifyBtn.disabled = !trimmed;
+                if (res.error) { alert('Failed: ' + res.error.message); return; }
+                order.whatsapp_username = trimmed;
+                var modalId = currentModalOrder ? (currentModalOrder.id || currentModalOrder.order_id) : null;
+                if (modalId && String(modalId) === String(orderId)) {
+                    var waEl = document.getElementById('modalWaVal');
+                    if (waEl) {
+                        waEl.innerText = trimmed || 'Not assigned';
+                        waEl.className = 'val' + (trimmed ? ' wa' : ' muted');
                     }
-                    filterAndRenderOrders();
-                });
+                    var notifyBtn = document.getElementById('modalNotifyBtn');
+                    if (notifyBtn) notifyBtn.disabled = !trimmed;
+                }
+                filterAndRenderOrders();
+            });
             }
         });
     }
