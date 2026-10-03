@@ -27,6 +27,9 @@ const APP_CONFIG = {
     // System Setup flat base price (RM)
     systemSetupPrice: 50,
 
+    // System Update flat base price (RM)
+    systemUpdatePrice: 30,
+
     // Repair Only — base diagnostic / bench fee (RM).
     // Waived if the customer selects any paid repair.
     repairOnlyBaseFee: 30,
@@ -68,6 +71,7 @@ const APP_CONFIG = {
     subStagesByService: {
         'jailbreak':    ['Modchip Installation', 'System Setup', 'Game Installation'],
         'system_setup': ['System Setup', 'Game Installation'],
+        'system_update':['System Update', 'Game Installation'],
         'games_only':   ['Game Installation'],
         'repair_only':  ['Diagnosis', 'Repair', 'Testing']
     },
@@ -76,6 +80,7 @@ const APP_CONFIG = {
     subStageDescriptions: {
         'Modchip Installation': "Installing the modchip hardware into your console.",
         'System Setup':         "Configuring bootloader, firmware, and system software.",
+        'System Update':        "Refreshing your console's firmware and homebrew to the latest version.",
         'Game Installation':    "Copying your selected games onto the SD card.",
         'Diagnosis':            "Inspecting the issue and confirming what needs to be repaired.",
         'Repair':               "Performing the repair work.",
@@ -88,6 +93,7 @@ const APP_CONFIG = {
     subStageEstimatedTimes: {
         'Modchip Installation': "~1 day",
         'System Setup':         "~2 hours",
+        'System Update':        "~1 hour",
         'Game Installation':    "~1–2 hours",
         'Diagnosis':            "~1 hour",
         'Repair':               "~1 day",

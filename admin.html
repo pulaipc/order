@@ -1306,6 +1306,7 @@
         var labels = {
             'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
             'system_setup': 'System Setup',
+            'system_update': 'System Update',
             'games_only': 'Games Only',
             'repair_only': 'Repair Only' + (order.console_model ? ' (' + order.console_model + ')' : '')
         };
@@ -1354,6 +1355,10 @@
         } else if (serviceType === 'system_setup') {
             if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
             items.push({ key: 'setup',    label: 'System setup',            autoSub: 'System Setup' });
+            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+        } else if (serviceType === 'system_update') {
+            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'System updated',          autoSub: 'System Update' });
             if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
         } else if (serviceType === 'games_only') {
             if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
@@ -1839,8 +1844,12 @@
                 var sdSizeVal = order.sd_card_size || order.free_storage_gb || 0;
         var sdSizeLabel = sdSizeVal >= 1024 ? (sdSizeVal / 1024).toFixed(0) + ' TB' : sdSizeVal + ' GB';
         var needsSd = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
-        document.getElementById('modalStorageVal').innerText = needsSd ? sdSizeLabel : (order.free_storage_gb ? order.free_storage_gb + ' GB (free space)' : 'N/A');
-
+        var stVal = (order.sd_card_size || order.free_storage_gb || 0) + ' GB';
+        if (order.service_type === 'system_update' && order.free_storage_gb) {
+            stVal = order.free_storage_gb + ' GB (free space)';
+        }
+        document.getElementById('modalStorageVal').innerText = stVal;
+        
         var sdSourceEl = document.getElementById('modalSdSourceVal');
         if (needsSd && order.sd_source) {
             sdSourceEl.innerText = order.sd_source === 'buy' ? 'Purchase New SD Card' : 'Bring Own SD Card';

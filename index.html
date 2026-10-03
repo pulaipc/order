@@ -604,10 +604,11 @@
                             <option value="" disabled selected>— Please select service —</option>
                             <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
                             <option value="system_setup">System Setup</option>
+                            <option value="system_update">System Update (Console already modded)</option>
                             <option value="games_only">Games Only</option>
                             <option value="repair_only">Repair Only (No jailbreak/games)</option>
                         </select>
-                        <span class="field-hint">Choose full jailbreak, system setup, games-only install, or repairs only</span>
+                        <span class="field-hint">Choose a service type — update, setup, jailbreak, games, or repairs</span>
                     </div>
                     <div class="field-group" id="consoleModelGroup">
                         <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
@@ -634,8 +635,7 @@
                     <div id="freeStorageContainer" class="free-storage-container">
                         <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
                         <button type="button" class="guide-btn" onclick="toggleStorageGuide()">How to check free storage?</button>
-                        <span class="field-hint">Remaining GB available on your Switch SD card</span>
-                    </div>
+                        <span class="field-hint" id="freeStorageHint">Remaining GB available on your Switch SD card</span>                    </div>
                 </div>
 
                 <div id="storageGuideBox" class="storage-guide-box">
@@ -1233,6 +1233,7 @@
         const serviceLabels = {
             'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
             'system_setup': 'System Setup',
+            'system_update': 'System Update',
             'games_only': 'Games Only',
             'repair_only': 'Repair Only'
         };
@@ -1737,6 +1738,28 @@
             return;
         }
 
+        // System Update: no model, no SD config, no addons. Just free space + games.
+        if (serviceType === 'system_update') {
+            $('consoleModelGroup').style.display = 'none';
+            $('sdSourceGroup').style.display = 'none';
+            $('sdCardGroup').style.display = 'none';
+            $('freeStorageContainer').style.display = 'flex';
+            var fsh = $('freeStorageHint');
+            if (fsh) fsh.textContent = 'Only required if you\'re adding games. Leave blank for update only.';
+            $('jailbreakModesContainer').style.display = 'none';
+            $('androidModeCheck').checked = false;
+            $('linuxModeCheck').checked = false;
+            $('jailbreakNoticeCard').style.display = 'none';
+            $('gameSectionWrapper').style.display = 'block';
+
+            var suHint = $('consoleModelHint');
+            if (suHint) suHint.textContent = 'Select your Nintendo Switch model variant';
+
+            renderRepairSection();
+            updateSdLimit();
+            return;
+        }
+
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (isJbOrSetup) {
@@ -1744,6 +1767,8 @@
             $('sdSourceGroup').style.display = 'flex';
             $('sdCardGroup').style.display = 'flex';
             $('freeStorageContainer').style.display = 'none';
+            var fsh = $('freeStorageHint');
+            if (fsh) fsh.textContent = 'Remaining GB available on your Switch SD card';
             $('jailbreakModesContainer').style.display = 'flex';
 
             const label = (serviceType === 'jailbreak') ? 'Full Jailbreak' : 'System Setup';
@@ -1803,6 +1828,57 @@
         const serviceType = valOf('serviceTypeSelect');
         const consoleModel = valOf('consoleModelSelect');
         const sdSource = valOf('sdSourceSelect');
+
+        // System Update: free space optional. Needed only to pick games.
+        if (serviceType === 'system_update') {
+            const freeInput = $('userFreeStorageInput');
+            let userSpace = parseFloat(freeInput.value);
+            if (!isNaN(userSpace) && userSpace > 2048) { userSpace = 2048; freeInput.value = 2048; }
+
+            const hasFreeSpace = !isNaN(userSpace) && userSpace > 0;
+            const gamesCount = state.selectedGames.size;
+
+            state.usableStorageLimit = hasFreeSpace ? userSpace : 0;
+            // isStorageConfigured gates the game picker.
+            state.isStorageConfigured = hasFreeSpace;
+
+            if (hasFreeSpace) {
+                freeInput.classList.remove('required-missing');
+                $('storageWarningBanner').style.display = 'none';
+                $('gameSectionWrapper').classList.remove('locked');
+                let gSize = 0;
+                state.selectedGames.forEach(s => gSize += s);
+                $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
+            } else {
+                // No free space → cannot pick games. Fine to save update-only.
+                freeInput.classList.remove('required-missing');
+                $('storageWarningBanner').style.display = 'none';
+                $('gameSectionWrapper').classList.remove('locked'); // still visible, but picker will refuse
+                $('storageBreakdown').innerHTML = '<span>Service: System Update | <span style="color:#8a8272;">Enter free GB above to add games. Or leave blank for update only.</span></span>';
+            }
+
+            // Trim if over
+            if (hasFreeSpace && state.usableStorageLimit > 0) {
+                let gSize = 0;
+                state.selectedGames.forEach(s => gSize += s);
+                if (gSize > state.usableStorageLimit) {
+                    alert(`Your storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB). Excess games will be automatically removed.`);
+                    let acc = 0;
+                    const toRemove = [];
+                    state.selectedGames.forEach((sz, name) => { acc += sz; if (acc > state.usableStorageLimit) toRemove.push(name); });
+                    toRemove.forEach(n => state.selectedGames.delete(n));
+                }
+            }
+
+            // Submit button state: enabled unless games are picked without free space
+            // (we allow submit if zero games even with zero free space)
+            $('mainSubmitBtn').disabled = false;
+
+            if ($('gameSectionWrapper').style.display !== 'none') scheduleGamesRerender();
+            refreshRepairPrices();
+            updateCartSummary();
+            return;
+        }
         const warning = $('storageWarningBanner');
         const warningText = $('storageWarningText');
         const freeInput = $('userFreeStorageInput');
@@ -2116,6 +2192,7 @@
 
         if (serviceType === 'jailbreak') basePrice = (APP_CONFIG.jailbreakPrices && APP_CONFIG.jailbreakPrices[consoleModel]) || 190;
         else if (serviceType === 'system_setup') basePrice = APP_CONFIG.systemSetupPrice || 50;
+        else if (serviceType === 'system_update') basePrice = APP_CONFIG.systemUpdatePrice || 30;
         else if (serviceType === 'repair_only') basePrice = APP_CONFIG.repairOnlyBaseFee || 30;
 
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
@@ -2540,6 +2617,7 @@
         let servicePrice = details.serviceBasePrice;
         if (serviceType === 'jailbreak') { serviceLabel = `Full Jailbreak (${consoleModel})`; serviceSub = 'Console modification + 3 games included'; }
         else if (serviceType === 'system_setup') { serviceLabel = 'System Setup'; serviceSub = 'Console modding & configuration + 3 games included'; }
+        else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod — no SD config needed'; }
         else if (serviceType === 'repair_only') {
             serviceLabel = 'Repair Service';
             const hasPaid = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
@@ -2702,6 +2780,7 @@
         let html = '';
         if (serviceType === 'jailbreak') html += `<div class="price-breakdown-row"><span>Full Jailbreak (${consoleModel})</span><span>RM${details.serviceBasePrice}</span></div>`;
         else if (serviceType === 'system_setup') html += `<div class="price-breakdown-row"><span>System Setup Service</span><span>RM${details.serviceBasePrice}</span></div>`;
+        else if (serviceType === 'system_update') html += `<div class="price-breakdown-row"><span>System Update Service</span><span>RM${details.serviceBasePrice}</span></div>`;
         else if (serviceType === 'repair_only') {
             if (details.serviceBasePrice > 0) html += `<div class="price-breakdown-row"><span>Diagnostic / bench fee</span><span>RM${details.serviceBasePrice}</span></div>`;
             else html += `<div class="price-breakdown-row"><span>Diagnostic fee</span><span style="color:#00e676;">Waived</span></div>`;
@@ -2834,6 +2913,7 @@
         const serviceType = valOf('serviceTypeSelect');
         if (!serviceType) return alert('Please select a Service Type first.');
         const isRepairOnly = serviceType === 'repair_only';
+        const isSystemUpdate = serviceType === 'system_update';
 
         if (serviceType === 'jailbreak' && !valOf('consoleModelSelect')) return alert('Please select your Console Model.');
         if (isRepairOnly && !valOf('consoleModelSelect')) return alert('Please select your Console Model (needed for repair pricing).');
@@ -2863,6 +2943,12 @@
         } else if (serviceType === 'games_only') {
             const fs = valOf('userFreeStorageInput');
             if (!fs || parseFloat(fs) <= 0) { alert('Please enter your remaining free SD card storage space before submitting!'); $('userFreeStorageInput').focus(); return; }
+        } else if (isSystemUpdate) {
+            // Free space only required if games were picked
+            if (state.selectedGames.size > 0) {
+                const fs = valOf('userFreeStorageInput');
+                if (!fs || parseFloat(fs) <= 0) { alert('Please enter your free SD card storage space so we can check your games will fit.'); $('userFreeStorageInput').focus(); return; }
+            }
         }
 
         if (state.currentEditingOrderId) {
@@ -2906,7 +2992,9 @@
                 repairs: repairsSnapshot,
                 remarks: remarksText,
                 sd_card_size: isJbOrSetup ? state.maxSdSize : null,
-                free_storage_gb: serviceType === 'games_only' ? parseFloat(freeStorage) : null,
+                free_storage_gb: (serviceType === 'games_only') ? parseFloat(freeStorage)
+                : (isSystemUpdate && freeStorage && parseFloat(freeStorage) > 0) ? parseFloat(freeStorage)
+                : null,
                 sd_source: sdSource,
                 service_type: serviceType,
                 console_model: (serviceType === 'jailbreak' || isRepairOnly) ? consoleModel : null,
@@ -2974,6 +3062,7 @@
         let label = 'Games Only';
         if (serviceType === 'jailbreak') label = `Full Jailbreak (${consoleModel})`;
         else if (serviceType === 'system_setup') label = 'System Setup';
+        else if (serviceType === 'system_update') label = 'System Update';
         else if (serviceType === 'repair_only') label = `Repair Only (${consoleModel})`;
         msg += `Service Type: ${label}\n`;
 
@@ -2984,6 +3073,9 @@
             if (linux) msg += `Addon: Linux Mode\n`;
         } else if (serviceType === 'games_only') {
             msg += `Free Storage: ${valOf('userFreeStorageInput') || 0} GB\n`;
+        } else if (serviceType === 'system_update') {
+            const fs = valOf('userFreeStorageInput');
+            if (fs && parseFloat(fs) > 0) msg += `Free Storage: ${fs} GB\n`;
         }
 
         if (state.selectedRepairs.size > 0) {
