@@ -612,12 +612,11 @@
                     <div class="field-group" id="consoleModelGroup">
                         <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
                             <option value="" disabled selected>— Please select model —</option>
-                            <option value="OLED">OLED (RM300)</option>
-                            <option value="V1_V2">V1/V2 (RM190)</option>
-                            <option value="LITE">LITE (RM230)</option>
+                            <option value="OLED">OLED</option>
+                            <option value="V1_V2">V1/V2</option>
+                            <option value="LITE">LITE</option>
                         </select>
-                        <span class="field-hint">Select your Nintendo Switch model variant</span>
-                    </div>
+                            <span class="field-hint" id="consoleModelHint">Select your Nintendo Switch model variant</span></div>
                     <div class="field-group" id="sdSourceGroup">
                         <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
                             <option value="" disabled selected>— Please select —</option>
@@ -1757,6 +1756,19 @@
             $('linuxModeCheck').checked = false;
             $('jailbreakNoticeCard').style.display = 'none';
             $('gameSectionWrapper').style.display = 'block';
+        }
+        // Update the console-model hint based on service type
+        var modelHint = $('consoleModelHint');
+        if (modelHint) {
+            if (isRepairOnly) {
+                modelHint.textContent = 'Select your Switch model — repair prices vary by model';
+            } else if (serviceType === 'jailbreak') {
+                modelHint.textContent = 'Select your Switch model variant (affects jailbreak + repair pricing)';
+            } else if (serviceType === 'system_setup') {
+                modelHint.textContent = 'Select your Nintendo Switch model variant';
+            } else {
+                modelHint.textContent = 'Select your Nintendo Switch model variant';
+            }
         }
 
         renderRepairSection();
