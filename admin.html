@@ -898,6 +898,10 @@
                         <span class="val" id="modalStorageVal">—</span>
                     </div>
                     <div class="modal-info-row">
+                        <span class="lbl">SD Source:</span>
+                        <span class="val" id="modalSdSourceVal">—</span>
+                    </div>
+                    <div class="modal-info-row">
                         <span class="lbl">Estimated total:</span>
                         <span class="val" id="modalPriceVal" style="color:#ffc000;font-weight:bold;">—</span>
                     </div>
@@ -1612,6 +1616,13 @@
         // Summary line
         var summaryParts = [];
         summaryParts.push(serviceLabel(order));
+        // SD info (only for services that use one)
+        if (order.service_type === 'jailbreak' || order.service_type === 'system_setup') {
+            var sdSize = order.sd_card_size || 0;
+            var sdSizeLabel = sdSize >= 1024 ? (sdSize / 1024).toFixed(0) + 'TB' : sdSize + 'GB';
+            var sdSourceLabel = order.sd_source === 'buy' ? 'New SD' : 'Own SD';
+            if (sdSize > 0) summaryParts.push(sdSourceLabel + ' <strong>' + sdSizeLabel + '</strong>');
+        }
         if (order.service_type !== 'repair_only') summaryParts.push('<strong>' + gameList.length + '</strong> game' + (gameList.length === 1 ? '' : 's'));
         if (repairs.length > 0) summaryParts.push('<strong>' + repairs.length + '</strong> repair' + (repairs.length === 1 ? '' : 's'));
         var summaryLine = summaryParts.join(' <span class="muted">·</span> ');
@@ -1825,7 +1836,19 @@
             remarksEl.className = 'val muted';
         }
         document.getElementById('modalServiceVal').innerText = serviceLabel(order);
-        document.getElementById('modalStorageVal').innerText = (order.sd_card_size || order.free_storage_gb || 0) + ' GB';
+                var sdSizeVal = order.sd_card_size || order.free_storage_gb || 0;
+        var sdSizeLabel = sdSizeVal >= 1024 ? (sdSizeVal / 1024).toFixed(0) + ' TB' : sdSizeVal + ' GB';
+        var needsSd = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
+        document.getElementById('modalStorageVal').innerText = needsSd ? sdSizeLabel : (order.free_storage_gb ? order.free_storage_gb + ' GB (free space)' : 'N/A');
+
+        var sdSourceEl = document.getElementById('modalSdSourceVal');
+        if (needsSd && order.sd_source) {
+            sdSourceEl.innerText = order.sd_source === 'buy' ? 'Purchase New SD Card' : 'Bring Own SD Card';
+            sdSourceEl.className = 'val' + (order.sd_source === 'buy' ? ' wa' : '');
+        } else {
+            sdSourceEl.innerText = '—';
+            sdSourceEl.className = 'val muted';
+        }
         document.getElementById('modalPriceVal').innerText = 'RM' + Math.round(order.estimated_price || 0);
         document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
         var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
