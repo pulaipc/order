@@ -1243,9 +1243,25 @@
         const updated = order.progress_updated_at || order.updated_at;
         const updatedStr = updated ? new Date(updated).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true }) : created;
 
-        const storageLabel = order.sd_card_size
-            ? (order.sd_card_size >= 1000 ? (order.sd_card_size / 1024).toFixed(0) + ' TB' : order.sd_card_size + ' GB')
-            : (order.free_storage_gb ? order.free_storage_gb + ' GB free' : 'N/A');
+        let storageLabel;
+        if (order.service_type === 'jailbreak' || order.service_type === 'system_setup') {
+            // SD-card based services: show size + source
+            const sizeStr = order.sd_card_size
+                ? (order.sd_card_size >= 1000
+                    ? (order.sd_card_size / 1024).toFixed(0) + ' TB'
+                    : order.sd_card_size + ' GB')
+                : 'N/A';
+            const sourceStr = order.sd_source === 'buy'
+                ? '<span style="color:#ffc000;">New card from us</span>'
+                : (order.sd_source === 'own' ? 'Customer\'s own card' : '');
+            storageLabel = sourceStr ? (sizeStr + ' · ' + sourceStr) : sizeStr;
+        } else if (order.service_type === 'system_update' && order.free_storage_gb) {
+            storageLabel = order.free_storage_gb + ' GB free space';
+        } else if (order.free_storage_gb) {
+            storageLabel = order.free_storage_gb + ' GB free';
+        } else {
+            storageLabel = 'N/A';
+        }
 
         let html = '';
         html += '<div class="summary-card">';
