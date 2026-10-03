@@ -28,479 +28,501 @@
             background: #14110a; display: flex; justify-content: center; align-items: center;
             z-index: 9999; padding: 16px; box-sizing: border-box;
         }
-        .login-card {
-            background: #1f190e; border: 1px solid #3a3018; padding: 24px;
-            border-radius: 12px; width: 100%; max-width: 340px; text-align: center;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); box-sizing: border-box;
-        }
+        .login-card { background: #1f190e; border: 1px solid #3a3018; padding: 24px; border-radius: 12px; width: 100%; max-width: 340px; text-align: center; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); box-sizing: border-box; }
         .login-card h2 { color: #e8dcc0; margin-top: 0; margin-bottom: 6px; font-size: 22px; }
         .login-card p { font-size: 13px; color: #8a8272; margin-top: 0; margin-bottom: 16px; }
-        .login-card input {
-            width: 100%; padding: 14px; margin: 6px 0; box-sizing: border-box;
-            background: #221c10; border: 1px solid #3a3018; color: #f0e9d8;
-            border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.2s;
-        }
+        .login-card input { width: 100%; padding: 14px; margin: 6px 0; box-sizing: border-box; background: #221c10; border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.2s; }
         .login-card input:focus { border-color: #ffc000; }
-        .login-card button {
-            width: 100%; padding: 14px; background: #ffc000; border: none;
-            color: #14110a; font-weight: bold; font-size: 16px; border-radius: 6px;
-            cursor: pointer; margin-top: 12px; transition: background 0.2s;
-        }
+        .login-card button { width: 100%; padding: 14px; background: #ffc000; border: none; color: #14110a; font-weight: bold; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 12px; transition: background 0.2s; }
         .login-card button:hover { background: #e6ac00; }
 
-        .header-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #3a3018; padding-bottom: 15px;
-            margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
-        }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
         .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .header-left .site-logo { margin: 0; width: 48px; height: 48px; flex-shrink: 0; }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
 
-        .stats-overview {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px; margin-bottom: 16px;
+        /* ===== TABS ===== */
+        .admin-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 18px;
+            background: #1a1814;
+            border: 1px solid #2e2716;
+            border-radius: 8px;
+            padding: 5px;
         }
-        .stat-card {
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
-            padding: 12px; text-align: center;
+        .admin-tab {
+            flex: 1;
+            background: transparent;
+            color: #b8b0a0;
+            border: none;
+            padding: 11px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13.5px;
+            font-weight: 700;
+            font-family: inherit;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
+        .admin-tab:hover { color: #f0e9d8; background: #221c10; }
+        .admin-tab.active { background: #ffc000; color: #14110a; }
+        .tab-view { display: none; }
+        .tab-view.active { display: block; }
+
+        .stats-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px; text-align: center; }
         .stat-card .val { font-size: 20px; font-weight: bold; color: #ffc000; margin-top: 4px; }
         .stat-card .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; }
 
         .controls-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-        .search-box {
-            width: 100%; padding: 12px; background: #1f190e;
-            border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px;
-            font-size: 16px; outline: none; transition: border-color 0.2s; box-sizing: border-box;
-        }
+        .search-box { width: 100%; padding: 12px; background: #1f190e; border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px; font-size: 16px; outline: none; transition: border-color 0.2s; box-sizing: border-box; }
         .search-box:focus { border-color: #ffc000; }
         .search-box::placeholder { color: #6a6357; }
 
-        .filter-buttons-wrapper {
-            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
-            -webkit-overflow-scrolling: touch; scrollbar-width: none;
-        }
+        .filter-buttons-wrapper { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .filter-buttons-wrapper::-webkit-scrollbar { display: none; }
-        .filter-btn {
-            background: #1f190e; color: #b8b0a0; border: 1px solid #3a3018;
-            padding: 8px 14px; border-radius: 6px; cursor: pointer;
-            font-size: 13px; font-weight: 600; transition: all 0.2s;
-            white-space: nowrap; flex-shrink: 0;
-        }
+        .filter-btn { background: #1f190e; color: #b8b0a0; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; white-space: nowrap; flex-shrink: 0; }
         .filter-btn:hover { border-color: #ffc000; color: #e8dcc0; }
         .filter-btn.active { background: #ffc000; color: #14110a; border-color: #ffc000; font-weight: bold; }
 
-        .btn-action {
-            background: #2e2716; color: #ffc000; border: 1px solid #3a3018;
-            padding: 8px 14px; border-radius: 6px; cursor: pointer;
-            font-weight: bold; text-decoration: none; display: inline-block;
-            font-size: 12.5px; line-height: normal; transition: all 0.2s;
-            white-space: nowrap;
-        }
+        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; }
         .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
         .btn-logout { border-color: #4a2525; color: #e57373; }
         .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-        .selection-toolbar {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 10px; flex-wrap: wrap;
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
-            padding: 10px 14px; margin-bottom: 12px;
-        }
+        .selection-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 10px 14px; margin-bottom: 12px; }
         .selection-toolbar-left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .select-all-label {
-            display: flex; align-items: center; gap: 8px;
-            font-size: 13px; color: #b8b0a0; cursor: pointer; user-select: none;
-        }
-        .select-all-label input[type="checkbox"] {
-            transform: scale(1.3); accent-color: #ffc000; cursor: pointer;
-        }
-        .selection-count {
-            font-size: 12.5px; color: #e8dcc0; font-weight: 600;
-        }
+        .select-all-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #b8b0a0; cursor: pointer; user-select: none; }
+        .select-all-label input[type="checkbox"] { transform: scale(1.3); accent-color: #ffc000; cursor: pointer; }
+        .selection-count { font-size: 12.5px; color: #e8dcc0; font-weight: 600; }
 
         .orders-grid { display: flex; flex-direction: column; gap: 12px; }
-        .order-card {
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
-            padding: 14px; display: flex; flex-direction: column; gap: 12px;
-            border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s, background-color 0.2s;
-            position: relative;
-        }
+        .order-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; gap: 12px; border-left: 4px solid #8a8272; transition: transform 0.1s, border-color 0.2s, background-color 0.2s; position: relative; }
         .order-card:hover { border-color: #5a4a20; }
         .order-card.status-Pending { border-left-color: #ffb74d; }
         .order-card.status-In-Progress { border-left-color: #7dd3fc; }
         .order-card.status-Completed { border-left-color: #00e676; }
         .order-card.status-Cancelled { border-left-color: #e57373; }
-        .order-card.selected-for-bulk {
-            background: #232a1a;
-            border-color: #00e676;
-        }
+        .order-card.selected-for-bulk { background: #232a1a; border-color: #00e676; }
 
-        .card-select-wrap {
-            position: absolute;
-            top: 12px; right: 12px;
-            display: flex; align-items: center; justify-content: center;
-            width: 32px; height: 32px;
-            background: #14110a; border: 1px solid #3a3018; border-radius: 6px;
-            z-index: 3;
-        }
-        .card-select-wrap input[type="checkbox"] {
-            transform: scale(1.4); accent-color: #00e676; cursor: pointer;
-        }
-        .order-card.selected-for-bulk .card-select-wrap {
-            background: #00e676; border-color: #00e676;
-        }
-        .order-card.selected-for-bulk .card-select-wrap input[type="checkbox"] {
-            accent-color: #14110a;
-        }
+        .card-select-wrap { position: absolute; top: 12px; right: 12px; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #14110a; border: 1px solid #3a3018; border-radius: 6px; z-index: 3; }
+        .card-select-wrap input[type="checkbox"] { transform: scale(1.4); accent-color: #00e676; cursor: pointer; }
+        .order-card.selected-for-bulk .card-select-wrap { background: #00e676; border-color: #00e676; }
+        .order-card.selected-for-bulk .card-select-wrap input[type="checkbox"] { accent-color: #14110a; }
 
-        .order-header {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            flex-wrap: wrap; gap: 8px;
-            padding-right: 44px;
-        }
-        .customer-info {
-            font-size: 14px; font-weight: bold; display: flex; flex-direction: column;
-            gap: 6px; min-width: 0; flex: 1;
-        }
+        .order-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px; padding-right: 44px; }
+        .customer-info { font-size: 14px; font-weight: bold; display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
         .customer-info > div:first-child { word-break: break-word; color: #f0e9d8; }
         .order-date { font-size: 11px; color: #8a8272; white-space: nowrap; }
-        .order-number-badge {
-            background: #2e2716; color: #b8b0a0; border: 1px solid #3a3018;
-            padding: 2px 8px; border-radius: 10px; font-size: 10.5px;
-            font-weight: 600; letter-spacing: 0.3px;
-        }
+        .order-number-badge { background: #2e2716; color: #b8b0a0; border: 1px solid #3a3018; padding: 2px 8px; border-radius: 10px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.3px; }
         .order-number-badge.multi { background: #2d1a08; color: #ffb74d; border-color: #7a5420; }
 
-        .order-body {
-            display: grid; grid-template-columns: 1fr; gap: 12px;
-            background: #17120a; padding: 12px; border-radius: 6px;
-            border: 1px solid #241e12;
-        }
+        .order-body { display: grid; grid-template-columns: 1fr; gap: 12px; background: #17120a; padding: 12px; border-radius: 6px; border: 1px solid #241e12; }
         .order-body > div { min-width: 0; word-break: break-word; color: #b8b0a0; }
         .order-body strong { color: #e8dcc0; }
 
-        .progress-controls {
-            display: grid; grid-template-columns: 1fr; gap: 10px;
-            background: #191309; border: 1px solid #2e2716;
-            border-radius: 6px; padding: 12px;
-        }
-        .progress-controls-row {
-            display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
-        }
-        .progress-controls-row label {
-            font-size: 11.5px; color: #8a8272; text-transform: uppercase;
-            letter-spacing: 0.5px; font-weight: 700; min-width: 70px;
-        }
-        .progress-select {
-            padding: 9px 12px; border-radius: 6px; background: #221c10;
-            color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer;
-            font-size: 13px; outline: none; min-width: 180px; flex: 1;
-            font-family: inherit;
-        }
+        .progress-controls { display: grid; grid-template-columns: 1fr; gap: 10px; background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px; }
+        .progress-controls-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .progress-controls-row label { font-size: 11.5px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; min-width: 70px; }
+        .progress-select { padding: 9px 12px; border-radius: 6px; background: #221c10; color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer; font-size: 13px; outline: none; min-width: 180px; flex: 1; font-family: inherit; }
         .progress-select:focus { border-color: #ffc000; }
         .progress-select:disabled { opacity: 0.45; cursor: not-allowed; }
 
-        .notify-btn,
-        .copy-track-btn {
-            border: none;
-            padding: 8px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            font-family: inherit;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s;
-        }
-        .notify-btn {
-            background: #25D366; color: #fff;
-            display: none;
-        }
+        .notify-btn, .copy-track-btn { border: none; padding: 8px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: opacity 0.2s, background 0.2s, color 0.2s, border-color 0.2s; }
+        .notify-btn { background: #25D366; color: #fff; display: none; }
         .notify-btn.visible { display: inline-flex; }
         .notify-btn:hover { opacity: 0.85; }
+        .copy-track-btn { background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; }
+        .copy-track-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
 
-        .copy-track-btn {
-            background: #2e2716;
-            color: #7dd3fc;
-            border: 1px solid #3a3018;
-        }
-        .copy-track-btn:hover {
-            background: #7dd3fc;
-            color: #14110a;
-            border-color: #7dd3fc;
-        }
-
-        .status-select {
-            padding: 10px; border-radius: 6px; background: #221c10;
-            color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer;
-            font-size: 14px; outline: none; min-width: 140px;
-        }
+        .status-select { padding: 10px; border-radius: 6px; background: #221c10; color: #f0e9d8; border: 1px solid #3a3018; cursor: pointer; font-size: 14px; outline: none; min-width: 140px; }
         .status-select:focus { border-color: #ffc000; }
-        .delete-btn {
-            background: transparent; color: #e57373; border: 1px solid #4a2525;
-            padding: 9px 14px; border-radius: 5px; cursor: pointer;
-            font-weight: 600; font-size: 13px; transition: all 0.2s;
-        }
+        .delete-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: 9px 14px; border-radius: 5px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; }
         .delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
-        .view-btn {
-            background: #ffc000; color: #14110a; border: none;
-            padding: 9px 16px; border-radius: 5px; cursor: pointer;
-            font-weight: bold; font-size: 13px; transition: background 0.2s;
-        }
+        .view-btn { background: #ffc000; color: #14110a; border: none; padding: 9px 16px; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; transition: background 0.2s; }
         .view-btn:hover { background: #e6ac00; }
-        .edit-wa-btn {
-            background: #25D366; border: none; color: #fff;
-            font-size: 11px; padding: 5px 10px; border-radius: 4px;
-            cursor: pointer; font-weight: bold; transition: opacity 0.2s;
-        }
+        .edit-wa-btn { background: #25D366; border: none; color: #fff; font-size: 11px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
         .edit-wa-btn:hover { opacity: 0.85; }
-        .edit-remarks-btn {
-            background: #7dd3fc; border: none; color: #14110a;
-            font-size: 11px; padding: 5px 10px; border-radius: 4px;
-            cursor: pointer; font-weight: bold; transition: opacity 0.2s;
-        }
+        .edit-remarks-btn { background: #7dd3fc; border: none; color: #14110a; font-size: 11px; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; transition: opacity 0.2s; }
         .edit-remarks-btn:hover { opacity: 0.85; }
-        .no-orders {
-            text-align: center; padding: 40px 20px; color: #8a8272;
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 8px;
-        }
+        .no-orders { text-align: center; padding: 40px 20px; color: #8a8272; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; }
 
-        .order-actions-row {
-            display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 10px;
-        }
+        .order-actions-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .order-actions-row > div { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        .bulk-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #1a2433;
-            border-top: 2px solid #7dd3fc;
-            padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px));
-            z-index: 500;
-            box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6);
-            animation: bulkBarSlide 0.25s ease-out;
+        /* ===== REPAIR BADGE ON ORDER CARD ===== */
+        .order-repair-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2a1e0a;
+            border: 1px solid #7a5420;
+            border-left: 3px solid #ffb74d;
+            border-radius: 5px;
+            padding: 8px 11px;
+            font-size: 12px;
+            color: #ffd9a0;
+            line-height: 1.4;
+            margin-top: 4px;
         }
-        @keyframes bulkBarSlide {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
+        .order-repair-line .icon { font-size: 14px; flex-shrink: 0; }
+        .order-repair-line .text { flex: 1; min-width: 0; }
+        .order-repair-line .text strong { color: #ffb74d; }
+        .order-repair-line .quote-pill {
+            font-size: 10px;
+            padding: 2px 7px;
+            border-radius: 8px;
+            background: rgba(255,183,77,0.15);
+            color: #ffb74d;
+            font-weight: 700;
+            border: 1px solid #7a5420;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
-        .bulk-bar-inner {
-            max-width: 900px;
-            margin: 0 auto;
+        .order-repair-list-mini {
+            font-size: 11.5px;
+            color: #b8b0a0;
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        /* ===== REPAIRS IN MODAL ===== */
+        .modal-repairs-container {
+            background: #17120a;
+            border: 1px solid #241e12;
+            border-left: 3px solid #ffb74d;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        .modal-repairs-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #2e2716;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .modal-repairs-header h3 { margin: 0; font-size: 14px; color: #ffb74d; display: flex; align-items: center; gap: 6px; }
+        .modal-repairs-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .modal-repair-item {
+            display: flex; justify-content: space-between; align-items: flex-start;
+            gap: 10px;
+            background: #221c10;
+            border: 1px solid #2e2716;
+            border-radius: 5px;
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .modal-repair-item:last-child { margin-bottom: 0; }
+        .modal-repair-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .modal-repair-name { color: #f0e9d8; font-weight: 600; word-break: break-word; }
+        .modal-repair-cat { font-size: 11px; color: #8a8272; }
+        .modal-repair-note { font-size: 11.5px; color: #b8b0a0; font-style: italic; line-height: 1.35; }
+        .modal-repair-right {
+            display: flex; flex-direction: column; align-items: flex-end; gap: 5px;
+            flex-shrink: 0;
+        }
+        .modal-repair-price { font-weight: bold; color: #ffc000; white-space: nowrap; font-size: 13px; }
+        .modal-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
+        .set-price-btn {
+            background: #2e2716;
+            color: #ffb74d;
+            border: 1px solid #7a5420;
+            padding: 4px 9px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10.5px;
+            font-weight: 700;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .set-price-btn:hover { background: #ffb74d; color: #14110a; border-color: #ffb74d; }
+
+        .modal-repairs-summary {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #2e2716;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12.5px;
+            color: #b8b0a0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .modal-repairs-summary strong { color: #ffc000; font-size: 14px; }
+
+        /* ===== REPAIR CATALOG TAB ===== */
+        .catalog-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 10px;
             flex-wrap: wrap;
+            margin-bottom: 14px;
         }
-        .bulk-bar-info {
-            font-size: 13px;
-            color: #cfe6ff;
-            font-weight: 600;
-        }
-        .bulk-bar-info strong { color: #7dd3fc; }
-        .bulk-bar-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .bulk-btn {
+        .catalog-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; }
+        .catalog-add-btn {
+            background: #ffc000;
+            color: #14110a;
             border: none;
-            padding: 10px 14px;
+            padding: 10px 16px;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 13px;
-            font-weight: bold;
             font-family: inherit;
+            font-weight: bold;
+            font-size: 13.5px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-            white-space: nowrap;
+            transition: background 0.2s;
             min-height: 42px;
         }
-        .bulk-btn.status {
-            background: #7dd3fc;
-            color: #14110a;
+        .catalog-add-btn:hover { background: #e6ac00; }
+
+        .catalog-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .catalog-search { flex: 1 1 220px; }
+
+        .catalog-group {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
         }
-        .bulk-btn.status:hover { background: #a4e2fc; }
-        .bulk-btn.delete {
+        .catalog-group-header {
+            padding: 11px 14px;
+            background: #2a2108;
+            border-bottom: 1px solid #3a3018;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            color: #ffb74d;
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .catalog-group-header .chev {
+            color: #b8b0a0;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+        .catalog-group.collapsed .catalog-group-header .chev { transform: rotate(-90deg); }
+        .catalog-group.collapsed .catalog-group-body { display: none; }
+        .catalog-group-body { display: flex; flex-direction: column; }
+        .catalog-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            border-bottom: 1px solid #241e12;
+            flex-wrap: wrap;
+        }
+        .catalog-row:last-child { border-bottom: none; }
+        .catalog-row.inactive { opacity: 0.5; }
+        .catalog-row-main { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+        .catalog-row-name { font-size: 14px; font-weight: 600; color: #f0e9d8; word-break: break-word; }
+        .catalog-row-id { font-size: 11px; color: #8a8272; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; }
+        .catalog-row-note { font-size: 11.5px; color: #b8b0a0; font-style: italic; line-height: 1.35; }
+        .catalog-row-price { flex: 0 0 auto; font-size: 13px; font-weight: bold; color: #ffc000; white-space: nowrap; }
+        .catalog-row-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
+        .catalog-row-price-multi { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; }
+        .catalog-row-price-multi span { color: #e8dcc0; font-weight: 600; }
+        .catalog-row-price-multi .m { color: #8a8272; font-weight: 500; margin-right: 4px; }
+        .catalog-row-actions { flex: 0 0 auto; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .catalog-toggle-btn {
+            background: transparent;
+            color: #e8dcc0;
+            border: 1px solid #3a3018;
+            padding: 5px 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 700;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .catalog-toggle-btn:hover { border-color: #ffc000; color: #ffc000; }
+        .catalog-toggle-btn.on { background: rgba(0,230,118,0.1); border-color: #2a4530; color: #00e676; }
+        .catalog-edit-btn {
+            background: #2e2716;
+            color: #7dd3fc;
+            border: 1px solid #3a3018;
+            padding: 5px 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .catalog-edit-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
+        .catalog-delete-btn {
             background: transparent;
             color: #e57373;
             border: 1px solid #4a2525;
+            padding: 5px 11px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 11.5px;
+            font-weight: 700;
+            transition: all 0.2s;
         }
-        .bulk-btn.delete:hover { background: #e57373; color: #14110a; border-color: #e57373; }
-        .bulk-btn.cancel {
-            background: transparent;
-            color: #b8b0a0;
-            border: 1px solid #3a3018;
-        }
-        .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
+        .catalog-delete-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
-        #orderModalOverlay {
+        /* ===== REPAIR FORM MODAL ===== */
+        .repair-form-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); display: none;
-            justify-content: center; align-items: center;
-            z-index: 99999; padding: 12px; box-sizing: border-box;
-        }
-        .modal-card {
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 12px;
-            width: 100%; max-width: 700px; max-height: 92vh;
-            display: flex; flex-direction: column; overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
-        }
-        .modal-header {
-            padding: 14px 16px; background: #2a2108;
-            border-bottom: 1px solid #3a3018;
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-        }
-        .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; word-break: break-word; }
-        .close-modal-btn {
-            background: transparent; border: none; color: #b8b0a0; font-size: 26px;
-            cursor: pointer; line-height: 1; transition: color 0.2s;
-            padding: 0 6px; flex-shrink: 0;
-        }
-        .close-modal-btn:hover { color: #e8dcc0; }
-        .modal-body {
-            padding: 16px; overflow-y: auto; display: flex;
-            flex-direction: column; gap: 14px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .modal-info-grid {
-            display: grid; grid-template-columns: 1fr; gap: 12px;
-            background: #17120a; padding: 14px; border-radius: 8px;
-            border: 1px solid #241e12;
-        }
-        .modal-info-item .lbl {
-            font-size: 11px; color: #8a8272; text-transform: uppercase;
-            margin-bottom: 3px; letter-spacing: 0.3px;
-        }
-        .modal-info-item .val {
-            font-size: 14px; font-weight: 500; color: #f0e9d8; word-break: break-word;
-        }
-        .remarks-header-row {
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 8px; flex-wrap: wrap;
-        }
-
-        .game-list-container {
-            background: #17120a; border: 1px solid #241e12;
-            border-radius: 8px; padding: 12px;
-        }
-        .game-list-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; padding-bottom: 8px;
-            border-bottom: 1px solid #2e2716; flex-wrap: wrap; gap: 8px;
-        }
-        .game-list-header h3 { margin: 0; font-size: 14px; color: #e8dcc0; }
-        .game-list-header-actions {
-            display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-        }
-
-        .copy-txt-btn {
-            background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018;
-            padding: 7px 12px; border-radius: 5px; cursor: pointer;
-            font-size: 12px; font-weight: bold; transition: all 0.2s;
-            white-space: nowrap;
-        }
-        .copy-txt-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-
-        .modal-game-list {
-            display: flex; flex-direction: column; gap: 6px;
-            max-height: 50vh; overflow-y: auto; padding-right: 4px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .game-item {
-            background: #221c10; border: 1px solid #2e2716;
-            padding: 8px 10px; border-radius: 5px; font-size: 13px;
-            display: flex; align-items: flex-start; gap: 8px; word-break: break-word;
-            color: #f0e9d8;
-        }
-        .game-num {
-            background: #ffc000; color: #14110a; font-weight: bold;
-            font-size: 11px; padding: 2px 7px; border-radius: 3px;
-            min-width: 22px; text-align: center; flex-shrink: 0; margin-top: 1px;
-        }
-
-        .more-games-link {
-            color: #e8dcc0; text-decoration: underline;
-            background: none; border: none; padding: 0;
-            font-size: inherit; cursor: pointer;
-            margin-top: 4px; display: inline-block;
-        }
-        .more-games-link:hover { color: #ffc000; }
-
-        #remarksModalOverlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0, 0, 0, 0.85); display: none;
+            background: rgba(0,0,0,0.85); display: none;
             justify-content: center; align-items: center;
             z-index: 100000; padding: 12px; box-sizing: border-box;
+            overflow-y: auto;
         }
-        .remarks-modal-card {
-            background: #1f190e; border: 1px solid #3a3018; border-radius: 12px;
-            width: 100%; max-width: 520px; display: flex;
-            flex-direction: column; overflow: hidden;
+        .repair-form-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-radius: 12px;
+            width: 100%; max-width: 560px;
+            display: flex; flex-direction: column;
+            overflow: hidden;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7);
+            margin: auto;
         }
-        .remarks-modal-header {
-            padding: 14px 16px; background: #2a2108;
+        .repair-form-header {
+            padding: 14px 16px;
+            background: #2a2108;
             border-bottom: 1px solid #3a3018;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .remarks-modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; }
-        .remarks-modal-body {
-            padding: 16px; display: flex; flex-direction: column; gap: 8px;
+        .repair-form-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; }
+        .repair-form-body {
+            padding: 16px;
+            display: flex; flex-direction: column; gap: 12px;
+            max-height: 70vh; overflow-y: auto;
         }
-        .remarks-modal-body label { font-size: 13px; color: #b8b0a0; }
-        .remarks-textarea {
-            width: 100%; padding: 12px; background: #221c10;
+        .form-field { display: flex; flex-direction: column; gap: 5px; }
+        .form-field label { font-size: 11.5px; color: #b8b0a0; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; }
+        .form-field input, .form-field select, .form-field textarea {
+            width: 100%; padding: 11px 12px; background: #221c10;
             border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px;
-            font-size: 16px; box-sizing: border-box; resize: vertical;
-            min-height: 130px; font-family: inherit; outline: none;
-            transition: border-color 0.2s;
+            font-size: 15px; box-sizing: border-box; font-family: inherit;
+            outline: none; transition: border-color 0.2s;
         }
-        .remarks-textarea:focus { border-color: #ffc000; }
-        .remarks-modal-footer {
-            padding: 12px 16px; border-top: 1px solid #3a3018;
-            display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;
+        .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: #ffc000; }
+        .form-field textarea { resize: vertical; min-height: 60px; }
+        .form-field input[readonly] { opacity: 0.65; cursor: not-allowed; }
+        .form-hint { font-size: 11px; color: #8a8272; line-height: 1.35; }
+        .per-model-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 4px; }
+        .per-model-grid input { text-align: center; }
+        .per-model-label { font-size: 10px; color: #8a8272; text-align: center; margin-top: 2px; font-weight: 600; letter-spacing: 0.3px; }
+        .pricing-radio-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pricing-radio-row label {
+            display: inline-flex; align-items: center; gap: 6px;
+            background: #221c10; border: 1px solid #3a3018;
+            padding: 9px 12px; border-radius: 6px; cursor: pointer;
+            font-size: 12.5px; color: #e8dcc0; font-weight: 600;
+            transition: all 0.2s; text-transform: none; letter-spacing: 0;
+            min-height: 40px;
+        }
+        .pricing-radio-row input[type="radio"] { accent-color: #ffb74d; }
+        .pricing-radio-row label:hover { border-color: #ffb74d; }
+        .pricing-radio-row label.checked { background: #2a1e0a; border-color: #ffb74d; color: #ffb74d; }
+        .repair-form-footer {
+            padding: 12px 16px;
+            border-top: 1px solid #3a3018;
+            display: flex; justify-content: flex-end; gap: 10px;
+            flex-wrap: wrap;
+            background: #1a1408;
         }
         .btn-secondary {
             background: transparent; color: #b8b0a0; border: 1px solid #3a3018;
             padding: 10px 18px; border-radius: 6px; cursor: pointer;
             font-weight: 600; font-size: 14px; transition: all 0.2s;
+            font-family: inherit;
         }
         .btn-secondary:hover { border-color: #8a8272; color: #f0e9d8; }
         .btn-primary {
             background: #ffc000; color: #14110a; border: none;
             padding: 10px 18px; border-radius: 6px; cursor: pointer;
             font-weight: bold; font-size: 14px; transition: background 0.2s;
+            font-family: inherit;
         }
         .btn-primary:hover { background: #e6ac00; }
         .btn-primary:disabled { background: #4a4020; color: #8a8272; cursor: not-allowed; }
 
-        .trust-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #2e2716;
-            text-align: center;
-            font-size: 12px;
-            color: #8a8272;
-            line-height: 1.7;
-        }
-        .trust-footer .brand {
-            color: #e8dcc0; font-weight: bold; margin-bottom: 6px;
-            font-size: 13px;
-        }
-        .trust-footer .note {
-            margin-top: 4px; color: #6a6357; font-size: 11px;
-        }
+        .bulk-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1a2433; border-top: 2px solid #7dd3fc; padding: 12px 14px calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 500; box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6); animation: bulkBarSlide 0.25s ease-out; }
+        @keyframes bulkBarSlide { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .bulk-bar-inner { max-width: 900px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bulk-bar-info { font-size: 13px; color: #cfe6ff; font-weight: 600; }
+        .bulk-bar-info strong { color: #7dd3fc; }
+        .bulk-bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .bulk-btn { border: none; padding: 10px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s, color 0.2s, border-color 0.2s; white-space: nowrap; min-height: 42px; }
+        .bulk-btn.status { background: #7dd3fc; color: #14110a; }
+        .bulk-btn.status:hover { background: #a4e2fc; }
+        .bulk-btn.delete { background: transparent; color: #e57373; border: 1px solid #4a2525; }
+        .bulk-btn.delete:hover { background: #e57373; color: #14110a; border-color: #e57373; }
+        .bulk-btn.cancel { background: transparent; color: #b8b0a0; border: 1px solid #3a3018; }
+        .bulk-btn.cancel:hover { border-color: #8a8272; color: #f0e9d8; }
+
+        #orderModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 99999; padding: 12px; box-sizing: border-box; }
+        .modal-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 12px; width: 100%; max-width: 700px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); }
+        .modal-header { padding: 14px 16px; background: #2a2108; border-bottom: 1px solid #3a3018; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; word-break: break-word; }
+        .close-modal-btn { background: transparent; border: none; color: #b8b0a0; font-size: 26px; cursor: pointer; line-height: 1; transition: color 0.2s; padding: 0 6px; flex-shrink: 0; }
+        .close-modal-btn:hover { color: #e8dcc0; }
+        .modal-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; -webkit-overflow-scrolling: touch; }
+
+        .modal-info-grid { display: grid; grid-template-columns: 1fr; gap: 12px; background: #17120a; padding: 14px; border-radius: 8px; border: 1px solid #241e12; }
+        .modal-info-item .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; margin-bottom: 3px; letter-spacing: 0.3px; }
+        .modal-info-item .val { font-size: 14px; font-weight: 500; color: #f0e9d8; word-break: break-word; }
+        .remarks-header-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        .game-list-container { background: #17120a; border: 1px solid #241e12; border-radius: 8px; padding: 12px; }
+        .game-list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #2e2716; flex-wrap: wrap; gap: 8px; }
+        .game-list-header h3 { margin: 0; font-size: 14px; color: #e8dcc0; }
+        .game-list-header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+        .copy-txt-btn { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; padding: 7px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; transition: all 0.2s; white-space: nowrap; }
+        .copy-txt-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+
+        .modal-game-list { display: flex; flex-direction: column; gap: 6px; max-height: 50vh; overflow-y: auto; padding-right: 4px; -webkit-overflow-scrolling: touch; }
+        .game-item { background: #221c10; border: 1px solid #2e2716; padding: 8px 10px; border-radius: 5px; font-size: 13px; display: flex; align-items: flex-start; gap: 8px; word-break: break-word; color: #f0e9d8; }
+        .game-num { background: #ffc000; color: #14110a; font-weight: bold; font-size: 11px; padding: 2px 7px; border-radius: 3px; min-width: 22px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+
+        .more-games-link { color: #e8dcc0; text-decoration: underline; background: none; border: none; padding: 0; font-size: inherit; cursor: pointer; margin-top: 4px; display: inline-block; }
+        .more-games-link:hover { color: #ffc000; }
+
+        #remarksModalOverlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.85); display: none; justify-content: center; align-items: center; z-index: 100000; padding: 12px; box-sizing: border-box; }
+        .remarks-modal-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 12px; width: 100%; max-width: 520px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7); }
+        .remarks-modal-header { padding: 14px 16px; background: #2a2108; border-bottom: 1px solid #3a3018; display: flex; justify-content: space-between; align-items: center; }
+        .remarks-modal-header h2 { margin: 0; color: #e8dcc0; font-size: 16px; }
+        .remarks-modal-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+        .remarks-modal-body label { font-size: 13px; color: #b8b0a0; }
+        .remarks-textarea { width: 100%; padding: 12px; background: #221c10; border: 1px solid #3a3018; color: #f0e9d8; border-radius: 6px; font-size: 16px; box-sizing: border-box; resize: vertical; min-height: 130px; font-family: inherit; outline: none; transition: border-color 0.2s; }
+        .remarks-textarea:focus { border-color: #ffc000; }
+        .remarks-modal-footer { padding: 12px 16px; border-top: 1px solid #3a3018; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+
+        .trust-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #2e2716; text-align: center; font-size: 12px; color: #8a8272; line-height: 1.7; }
+        .trust-footer .brand { color: #e8dcc0; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
+        .trust-footer .note { margin-top: 4px; color: #6a6357; font-size: 11px; }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
@@ -566,45 +588,151 @@
             <div class="header-actions">
                 <a href="index.html" target="_blank" class="btn-action">Main Page</a>
                 <a href="track.html" target="_blank" class="btn-action">Tracker</a>
-                <button class="btn-action" onclick="loadOrders()">Refresh</button>
+                <button class="btn-action" onclick="refreshCurrentTab()">Refresh</button>
                 <button class="btn-action btn-logout" onclick="logout()">Logout</button>
             </div>
         </div>
 
-        <div class="stats-overview">
-            <div class="stat-card"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
-            <div class="stat-card"><div class="lbl">Pending</div><div class="val" id="statPending" style="color:#ffb74d;">0</div></div>
-            <div class="stat-card"><div class="lbl">In Progress</div><div class="val" id="statInProgress" style="color:#7dd3fc;">0</div></div>
-            <div class="stat-card"><div class="lbl">Est. Revenue</div><div class="val" id="statRevenue">RM0</div></div>
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="orders" onclick="switchTab('orders', this)">&#128230; Orders</button>
+            <button class="admin-tab" data-tab="repairs" onclick="switchTab('repairs', this)">&#128295; Repair Catalog</button>
         </div>
 
-        <div class="controls-row">
-            <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, remarks, or stage..." onkeyup="filterAndRenderOrders()">
-            <div class="filter-buttons-wrapper">
-                <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
-                <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
-                <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
-                <button class="filter-btn" data-status="Completed" onclick="setStatusFilter('Completed', this)">Completed</button>
-                <button class="filter-btn" data-status="Cancelled" onclick="setStatusFilter('Cancelled', this)">Cancelled</button>
+        <!-- ===== ORDERS TAB ===== -->
+        <div id="tabOrders" class="tab-view active">
+            <div class="stats-overview">
+                <div class="stat-card"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
+                <div class="stat-card"><div class="lbl">Pending</div><div class="val" id="statPending" style="color:#ffb74d;">0</div></div>
+                <div class="stat-card"><div class="lbl">In Progress</div><div class="val" id="statInProgress" style="color:#7dd3fc;">0</div></div>
+                <div class="stat-card"><div class="lbl">Est. Revenue</div><div class="val" id="statRevenue">RM0</div></div>
             </div>
-        </div>
 
-        <div class="selection-toolbar" id="selectionToolbar">
-            <div class="selection-toolbar-left">
-                <label class="select-all-label">
-                    <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this.checked)">
-                    <span>Select all visible</span>
-                </label>
-                <span class="selection-count" id="selectionCount">0 selected</span>
+            <div class="controls-row">
+                <input type="text" id="adminSearchInput" class="search-box" placeholder="Search phone ID, WhatsApp, game, repair, remarks, or stage..." onkeyup="filterAndRenderOrders()">
+                <div class="filter-buttons-wrapper">
+                    <button class="filter-btn active" data-status="ALL" onclick="setStatusFilter('ALL', this)">All</button>
+                    <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
+                    <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
+                    <button class="filter-btn" data-status="Completed" onclick="setStatusFilter('Completed', this)">Completed</button>
+                    <button class="filter-btn" data-status="Cancelled" onclick="setStatusFilter('Cancelled', this)">Cancelled</button>
+                    <button class="filter-btn" data-status="WITH_REPAIRS" onclick="setStatusFilter('WITH_REPAIRS', this)">With Repairs</button>
+                </div>
             </div>
+
+            <div class="selection-toolbar" id="selectionToolbar">
+                <div class="selection-toolbar-left">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this.checked)">
+                        <span>Select all visible</span>
+                    </label>
+                    <span class="selection-count" id="selectionCount">0 selected</span>
+                </div>
+            </div>
+
+            <div id="ordersContainer" class="orders-grid"></div>
         </div>
 
-        <div id="ordersContainer" class="orders-grid"></div>
+        <!-- ===== REPAIR CATALOG TAB ===== -->
+        <div id="tabRepairs" class="tab-view">
+            <div class="catalog-header">
+                <h2>Repair Services Catalog</h2>
+                <button class="catalog-add-btn" onclick="openRepairForm(null)">+ Add Repair</button>
+            </div>
+            <div class="catalog-filters">
+                <input type="text" id="catalogSearchInput" class="search-box catalog-search" placeholder="Search repairs by name, id, or category..." onkeyup="renderCatalog()">
+                <div class="filter-buttons-wrapper">
+                    <button class="filter-btn active" data-catfilter="ALL" onclick="setCatalogFilter('ALL', this)">All</button>
+                    <button class="filter-btn" data-catfilter="ACTIVE" onclick="setCatalogFilter('ACTIVE', this)">Active</button>
+                    <button class="filter-btn" data-catfilter="INACTIVE" onclick="setCatalogFilter('INACTIVE', this)">Inactive</button>
+                </div>
+            </div>
+            <div id="catalogContainer"></div>
+        </div>
 
         <footer class="trust-footer">
             <div class="brand">Pulai PC — Admin</div>
             <div class="note">Internal dashboard. Not for customer use.</div>
         </footer>
+    </div>
+
+    <!-- ===== REPAIR FORM MODAL ===== -->
+    <div id="repairFormOverlay" class="repair-form-overlay" onclick="closeRepairFormOnBackdrop(event)">
+        <div class="repair-form-card">
+            <div class="repair-form-header">
+                <h2 id="repairFormTitle">Add Repair Service</h2>
+                <button class="close-modal-btn" onclick="closeRepairForm()">&#10005;</button>
+            </div>
+            <div class="repair-form-body">
+                <div class="form-field">
+                    <label for="rfName">Name *</label>
+                    <input type="text" id="rfName" placeholder="e.g. LCD Display Replacement" oninput="suggestRepairId(this.value)">
+                    <div class="form-hint">Shown to customers.</div>
+                </div>
+                <div class="form-field">
+                    <label for="rfId">ID (unique) *</label>
+                    <input type="text" id="rfId" placeholder="e.g. lcd_display" oninput="sanitizeRepairId()">
+                    <div class="form-hint">Lowercase letters, numbers, underscores. Used in the database. Cannot be changed after saving if the repair is used in orders.</div>
+                </div>
+                <div class="form-field">
+                    <label for="rfCategory">Category</label>
+                    <select id="rfCategory"></select>
+                </div>
+                <div class="form-field">
+                    <label>Pricing Model *</label>
+                    <div class="pricing-radio-row">
+                        <label id="rfPricingFlatLabel">
+                            <input type="radio" name="rfPricing" value="flat" onchange="onPricingModelChange()"> Flat price
+                        </label>
+                        <label id="rfPricingPerModelLabel">
+                            <input type="radio" name="rfPricing" value="per_model" onchange="onPricingModelChange()"> Per console model
+                        </label>
+                        <label id="rfPricingQuoteLabel">
+                            <input type="radio" name="rfPricing" value="quote" onchange="onPricingModelChange()"> Quote on inspection
+                        </label>
+                    </div>
+                </div>
+                <div class="form-field" id="rfFlatPriceGroup" style="display:none;">
+                    <label for="rfPriceFlat">Flat Price (RM) *</label>
+                    <input type="number" id="rfPriceFlat" min="0" step="1" placeholder="e.g. 120" inputmode="numeric">
+                </div>
+                <div class="form-field" id="rfPerModelGroup" style="display:none;">
+                    <label>Price per Console Model (RM)</label>
+                    <div class="per-model-grid">
+                        <div>
+                            <input type="number" id="rfPriceOled" min="0" step="1" placeholder="OLED" inputmode="numeric">
+                            <div class="per-model-label">OLED</div>
+                        </div>
+                        <div>
+                            <input type="number" id="rfPriceV1V2" min="0" step="1" placeholder="V1/V2" inputmode="numeric">
+                            <div class="per-model-label">V1/V2</div>
+                        </div>
+                        <div>
+                            <input type="number" id="rfPriceLite" min="0" step="1" placeholder="LITE" inputmode="numeric">
+                            <div class="per-model-label">LITE</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="rfNote">Customer-facing note (optional)</label>
+                    <textarea id="rfNote" placeholder="e.g. We'll quote after inspection on WhatsApp."></textarea>
+                </div>
+                <div class="form-field">
+                    <label for="rfSortOrder">Sort Order</label>
+                    <input type="number" id="rfSortOrder" step="1" value="100" inputmode="numeric">
+                    <div class="form-hint">Smaller numbers appear first within their category.</div>
+                </div>
+                <div class="form-field">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; text-transform:none; letter-spacing:0; font-weight:600; font-size:13.5px;">
+                        <input type="checkbox" id="rfActive" checked style="transform:scale(1.2); accent-color:#00e676; width:auto; padding:0;">
+                        Active (visible to customers)
+                    </label>
+                </div>
+            </div>
+            <div class="repair-form-footer">
+                <button class="btn-secondary" onclick="closeRepairForm()">Cancel</button>
+                <button class="btn-primary" id="rfSaveBtn" onclick="saveRepairForm()">Save</button>
+            </div>
+        </div>
     </div>
 
     <div id="bulkBar" class="bulk-bar" style="display:none;">
@@ -646,6 +774,8 @@
                     </div>
                 </div>
 
+                <div id="modalRepairsContainer"></div>
+
                 <div class="game-list-container">
                     <div class="game-list-header">
                         <h3>Selected Games</h3>
@@ -679,9 +809,7 @@
 
     <script src="gameslist.js"></script>
     <script src="config.js"></script>
-    // =========================================================
-    // SAFETY: catch any runtime error and surface it
-    // =========================================================
+    <script>
     window.addEventListener('error', function(e) {
         if (e && e.message && e.message.indexOf('ResizeObserver') === -1) {
             console.error('JS ERROR:', e.message, 'line', e.lineno);
@@ -691,19 +819,24 @@
     var supabaseClient = supabase.createClient(APP_CONFIG.supabaseUrl, APP_CONFIG.supabaseAnonKey);
 
     var allOrders = [];
+    var allRepairServices = []; // includes inactive for admin
     var currentStatusFilter = 'ALL';
+    var currentCatalogFilter = 'ALL';
     var currentModalGames = [];
+    var currentModalRepairs = [];
+    var currentModalOrderId = null;
     var currentRemarksOrderId = null;
     var orderCountByPhone = {};
     var bulkSelectedIds = {};
+    var currentEditingRepairId = null; // null = adding new
 
-    var PROGRESS_STAGES = (APP_CONFIG.progressStages) || [
-        'Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'
-    ];
-    var SUBSTAGES_BY_SERVICE = (APP_CONFIG.subStagesByService) || {
-        'jailbreak':    ['Modchip Installation', 'System Setup', 'Game Installation'],
-        'system_setup': ['System Setup', 'Game Installation'],
-        'games_only':   ['Game Installation']
+    var PROGRESS_STAGES = (APP_CONFIG.progressStages) || ['Order Received', 'Confirmed', 'In Progress', 'Ready for Pickup', 'Completed'];
+    var STAGE_TO_STATUS = {
+        'Order Received':   'Pending',
+        'Confirmed':        'Pending',
+        'In Progress':      'In Progress',
+        'Ready for Pickup': 'In Progress',
+        'Completed':        'Completed'
     };
     var STAGE_ICONS = {
         'Order Received':   '\u2022',
@@ -712,40 +845,21 @@
         'Ready for Pickup': '\u25D1',
         'Completed':        '\u2713'
     };
-    var STAGE_TO_STATUS = {
-        'Order Received':   'Pending',
-        'Confirmed':        'Pending',
-        'In Progress':      'In Progress',
-        'Ready for Pickup': 'In Progress',
-        'Completed':        'Completed'
-    };
 
     function login() {
         var emailEl = document.getElementById('adminEmail');
         var passEl = document.getElementById('adminPassword');
         var email = emailEl ? emailEl.value.trim() : '';
         var password = passEl ? passEl.value : '';
-
-        if (!email || !password) {
-            alert('Please enter both email and password.');
-            return;
-        }
+        if (!email || !password) { alert('Please enter both email and password.'); return; }
 
         supabaseClient.auth.signInWithPassword({ email: email, password: password })
             .then(function(result) {
-                if (result.error) {
-                    alert('Login failed: ' + result.error.message);
-                    return;
-                }
-                if (!result.data || !result.data.session) {
-                    alert('Login returned no session.');
-                    return;
-                }
+                if (result.error) { alert('Login failed: ' + result.error.message); return; }
+                if (!result.data || !result.data.session) { alert('Login returned no session.'); return; }
                 location.reload();
             })
-            .catch(function(err) {
-                alert('Login exception: ' + (err && err.message ? err.message : String(err)));
-            });
+            .catch(function(err) { alert('Login exception: ' + (err && err.message ? err.message : String(err))); });
     }
 
     function logout() {
@@ -754,18 +868,9 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         var loginBtn = document.getElementById('loginBtn');
-        if (loginBtn) {
-            loginBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                login();
-            });
-        }
+        if (loginBtn) loginBtn.addEventListener('click', function(e) { e.preventDefault(); login(); });
         var passEl = document.getElementById('adminPassword');
-        if (passEl) {
-            passEl.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') { e.preventDefault(); login(); }
-            });
-        }
+        if (passEl) passEl.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); login(); } });
 
         document.addEventListener('click', function(e) {
             if (!e.target || !e.target.classList) return;
@@ -783,6 +888,8 @@
             else if (t.classList.contains('more-games-link')) openOrderModal(id);
             else if (t.classList.contains('notify-btn')) notifyCustomer(id);
             else if (t.classList.contains('copy-track-btn')) copyTrackingLink(id, t);
+            else if (t.classList.contains('copy-repairs-main-btn')) copyRepairsMain(id, t);
+            else if (t.classList.contains('set-price-btn')) setRepairPriceFromCard(id);
         });
 
         document.addEventListener('change', function(e) {
@@ -804,23 +911,23 @@
             if (res && res.data && res.data.session) {
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
-                loadOrders();
+                loadAll();
             }
         });
     });
 
+    async function loadAll() {
+        await loadRepairServices(supabaseClient); // populates window.REPAIR_SERVICES (active only)
+        await loadRepairsAdmin(); // populates allRepairServices (incl. inactive)
+        loadOrders();
+    }
+
     function loadOrders() {
         var container = document.getElementById('ordersContainer');
         container.innerHTML = '<div class="no-orders">Loading orders...</div>';
-        supabaseClient
-            .from('orders')
-            .select('*')
-            .order('created_at', { ascending: false })
+        supabaseClient.from('orders').select('*').order('created_at', { ascending: false })
             .then(function(res) {
-                if (res.error) {
-                    alert('Error loading orders: ' + res.error.message);
-                    return;
-                }
+                if (res.error) { alert('Error loading orders: ' + res.error.message); return; }
                 allOrders = res.data || [];
                 orderCountByPhone = {};
                 allOrders.forEach(function(o) {
@@ -831,6 +938,38 @@
                 updateStats();
                 filterAndRenderOrders();
             });
+    }
+
+    function loadRepairsAdmin() {
+        return supabaseClient.from('repair_services').select('*').order('sort_order', { ascending: true })
+            .then(function(res) {
+                if (res.error) { console.warn('Failed to load repair services:', res.error); allRepairServices = []; return; }
+                allRepairServices = res.data || [];
+                return allRepairServices;
+            });
+    }
+
+    function refreshCurrentTab() {
+        var ordersTab = document.getElementById('tabOrders');
+        if (ordersTab && ordersTab.classList.contains('active')) {
+            loadOrders();
+        } else {
+            Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]).then(function() {
+                renderCatalog();
+            });
+        }
+    }
+
+    function switchTab(name, btn) {
+        document.querySelectorAll('.admin-tab').forEach(function(b) { b.classList.remove('active'); });
+        document.querySelectorAll('.tab-view').forEach(function(v) { v.classList.remove('active'); });
+        btn.classList.add('active');
+        if (name === 'orders') {
+            document.getElementById('tabOrders').classList.add('active');
+        } else if (name === 'repairs') {
+            document.getElementById('tabRepairs').classList.add('active');
+            renderCatalog();
+        }
     }
 
     function updateStats() {
@@ -849,10 +988,51 @@
 
     function setStatusFilter(status, btn) {
         currentStatusFilter = status;
-        var btns = document.querySelectorAll('.filter-btn');
-        for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+        document.querySelectorAll('.filter-btn[data-status]').forEach(function(b) { b.classList.remove('active'); });
         if (btn) btn.classList.add('active');
         filterAndRenderOrders();
+    }
+
+    function setCatalogFilter(filter, btn) {
+        currentCatalogFilter = filter;
+        document.querySelectorAll('.filter-btn[data-catfilter]').forEach(function(b) { b.classList.remove('active'); });
+        if (btn) btn.classList.add('active');
+        renderCatalog();
+    }
+
+    // ===== REPAIR HELPERS =====
+    function getRepairsOfOrder(order) {
+        var raw = Array.isArray(order && order.repairs) ? order.repairs : [];
+        return raw.map(function(r) {
+            if (r && typeof r === 'object' && r.id) {
+                return { id: r.id, name: r.name || r.id, category: r.category || '', price: Number(r.price) || 0, isQuote: !!r.is_quote, note: r.note || '' };
+            }
+            var svc = (window.REPAIR_SERVICES || []).find(function(s) { return s.id === r; }) || null;
+            if (!svc) return { id: String(r), name: String(r), category: '', price: 0, isQuote: false, note: '' };
+            var p = computeRepairPrice(svc, (order && order.console_model) || '');
+            return { id: svc.id, name: svc.name, category: svc.category || '', price: p.amount, isQuote: p.isQuote, note: svc.note || '' };
+        });
+    }
+
+    function sumOrderRepairs(repairs) {
+        var total = 0, quoteCount = 0;
+        (repairs || []).forEach(function(r) {
+            if (r && r.isQuote) quoteCount++;
+            else total += Number(r && r.price) || 0;
+        });
+        return { total: total, quoteCount: quoteCount };
+    }
+
+    function buildRepairsDisplay(repairs) {
+        if (!repairs || repairs.length === 0) return { line: '', mini: '' };
+        var sum = sumOrderRepairs(repairs);
+        var names = repairs.map(function(r) { return r.name; });
+        var preview = names.slice(0, 2).join(', ') + (names.length > 2 ? ' +' + (names.length - 2) + ' more' : '');
+        var line = '<strong>' + repairs.length + '</strong> repair' + (repairs.length === 1 ? '' : 's') +
+                   ' · <strong>RM' + sum.total + '</strong>' +
+                   (sum.quoteCount > 0 ? ' <span class="quote-pill">+' + sum.quoteCount + ' quote</span>' : '');
+        var mini = preview;
+        return { line: line, mini: mini };
     }
 
     function updateStatus(orderId, newStatus) {
@@ -862,10 +1042,7 @@
         order.status = newStatus;
         var idField = order.id ? 'id' : 'order_id';
         supabaseClient.from('orders').update({ status: newStatus }).eq(idField, orderId).then(function(res) {
-            if (res.error) {
-                alert('Failed to update status: ' + res.error.message);
-                order.status = oldStatus;
-            }
+            if (res.error) { alert('Failed to update status: ' + res.error.message); order.status = oldStatus; }
             updateStats();
             filterAndRenderOrders();
         });
@@ -874,7 +1051,6 @@
     function updateProgress(orderId, newStage) {
         var order = findOrder(orderId);
         if (!order) return;
-
         var oldStage = order.progress_stage;
         var oldSub = order.progress_substage;
         var oldStatus = order.status;
@@ -883,8 +1059,8 @@
 
         var newSub = null;
         if (newStage === 'In Progress') {
-            var list = SUBSTAGES_BY_SERVICE[order.service_type] || [];
-            newSub = list[0] || null;
+            var merged = getEffectiveSubStages(order);
+            newSub = merged[0] || null;
         }
         order.progress_substage = newSub;
         order.progress_updated_at = new Date().toISOString();
@@ -894,11 +1070,7 @@
         if (statusChanged) order.status = derivedStatus;
 
         var idField = order.id ? 'id' : 'order_id';
-        var payload = {
-            progress_stage: newStage,
-            progress_substage: newSub,
-            progress_updated_at: order.progress_updated_at
-        };
+        var payload = { progress_stage: newStage, progress_substage: newSub, progress_updated_at: order.progress_updated_at };
         if (statusChanged) payload.status = derivedStatus;
 
         supabaseClient.from('orders').update(payload).eq(idField, orderId).then(function(res) {
@@ -921,15 +1093,8 @@
         order.progress_substage = newSub;
         order.progress_updated_at = new Date().toISOString();
         var idField = order.id ? 'id' : 'order_id';
-        supabaseClient.from('orders').update({
-            progress_substage: newSub,
-            progress_updated_at: order.progress_updated_at
-        }).eq(idField, orderId).then(function(res) {
-            if (res.error) {
-                alert('Failed to update substage: ' + res.error.message);
-                order.progress_substage = oldSub;
-                return;
-            }
+        supabaseClient.from('orders').update({ progress_substage: newSub, progress_updated_at: order.progress_updated_at }).eq(idField, orderId).then(function(res) {
+            if (res.error) { alert('Failed to update substage: ' + res.error.message); order.progress_substage = oldSub; return; }
             filterAndRenderOrders();
         });
     }
@@ -946,46 +1111,38 @@
     function notifyCustomer(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
-
         var waUsername = (order.whatsapp_username || '').trim();
-        if (!waUsername) {
-            alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.');
-            return;
-        }
+        if (!waUsername) { alert('This order has no WhatsApp username saved.\n\nPlease click "Edit WA" to add a contact name or number first.'); return; }
 
         var stage = order.progress_stage || 'Order Received';
         var sub = order.progress_substage;
+        var repairs = getRepairsOfOrder(order);
         var msg = 'Hi! Quick update on your order (#' + (order.phone_ending || '') + ').\n\n';
         msg += 'Current stage: ' + stage + '\n';
         if (sub) msg += 'Substage: ' + sub + '\n';
+        if (repairs.length > 0) {
+            msg += '\nRepairs (' + repairs.length + '):\n';
+            repairs.forEach(function(r) { msg += '• ' + r.name + ' — ' + (r.isQuote ? 'TBC' : 'RM' + r.price) + '\n'; });
+        }
         msg += '\nTrack live here: ' + buildTrackingUrl(order.phone_ending);
 
         var encoded = encodeURIComponent(msg);
         var digitsOnly = waUsername.replace(/[^\d]/g, '');
-
         var waUrl;
         if (digitsOnly.length >= 8) {
             var intl = digitsOnly;
-            if (intl.charAt(0) === '0') {
-                intl = '60' + intl.slice(1);
-            }
+            if (intl.charAt(0) === '0') intl = '60' + intl.slice(1);
             waUrl = 'https://wa.me/' + intl + '?text=' + encoded;
         } else {
             waUrl = 'https://wa.me/?text=' + encoded;
         }
-
         try {
             var a = document.createElement('a');
-            a.href = waUrl;
-            a.target = '_blank';
-            a.rel = 'noopener noreferrer';
+            a.href = waUrl; a.target = '_blank'; a.rel = 'noopener noreferrer';
             a.style.display = 'none';
-            document.body.appendChild(a);
-            a.click();
+            document.body.appendChild(a); a.click();
             setTimeout(function() { if (a.parentNode) document.body.removeChild(a); }, 100);
-        } catch (err) {
-            window.open(waUrl, '_blank');
-        }
+        } catch (err) { window.open(waUrl, '_blank'); }
     }
 
     function buildTrackingUrl(phoneEnding) {
@@ -998,10 +1155,7 @@
         var order = findOrder(orderId);
         if (!order) return;
         var url = buildTrackingUrl(order.phone_ending);
-        if (!url) {
-            alert('This order has no Order ID to track.');
-            return;
-        }
+        if (!url) { alert('This order has no Order ID to track.'); return; }
         navigator.clipboard.writeText(url).then(function() {
             var originalText = btnElement.innerHTML;
             btnElement.innerHTML = 'Copied';
@@ -1014,9 +1168,107 @@
                 btnElement.style.color = '#7dd3fc';
                 btnElement.style.borderColor = '#3a3018';
             }, 2000);
-        }).catch(function(err) {
-            alert('Failed to copy link: ' + err);
+        }).catch(function(err) { alert('Failed to copy link: ' + err); });
+    }
+
+    function copyRepairsMain(orderId, btnElement) {
+        var order = findOrder(orderId);
+        if (!order) return;
+        var repairs = getRepairsOfOrder(order);
+        if (repairs.length === 0) { alert('No repairs in this order to copy!'); return; }
+        var lines = repairs.map(function(r) {
+            return '• ' + r.name + ' — ' + (r.isQuote ? 'TBC after inspection' : 'RM' + r.price);
         });
+        var text = 'Repairs for Order #' + (order.phone_ending || '') + ':\n' + lines.join('\n');
+        navigator.clipboard.writeText(text).then(function() {
+            var originalText = btnElement.innerText;
+            btnElement.innerText = 'Copied';
+            btnElement.style.background = '#ffb74d';
+            btnElement.style.color = '#14110a';
+            setTimeout(function() {
+                btnElement.innerText = originalText;
+                btnElement.style.background = '#2e2716';
+                btnElement.style.color = '#ffb74d';
+            }, 2000);
+        }).catch(function(err) { alert('Failed to copy text: ' + err); });
+    }
+
+    function copyRepairsFromModal(btnElement) {
+        if (!currentModalRepairs || currentModalRepairs.length === 0) { alert('No repairs to copy!'); return; }
+        var lines = currentModalRepairs.map(function(r) {
+            return '• ' + r.name + ' — ' + (r.isQuote ? 'TBC after inspection' : 'RM' + r.price);
+        });
+        var text = lines.join('\n');
+        navigator.clipboard.writeText(text).then(function() {
+            var originalText = btnElement.innerText;
+            btnElement.innerText = 'Copied';
+            btnElement.style.background = '#ffb74d';
+            btnElement.style.color = '#14110a';
+            setTimeout(function() {
+                btnElement.innerText = originalText;
+                btnElement.style.background = '#2e2716';
+                btnElement.style.color = '#ffb74d';
+            }, 2000);
+        }).catch(function(err) { alert('Failed to copy: ' + err); });
+    }
+
+    // Set price for a quote repair (from order modal)
+    async function setRepairPrice(repairId) {
+        if (!currentModalOrderId) return;
+        var order = findOrder(currentModalOrderId);
+        if (!order) return;
+
+        var repairs = Array.isArray(order.repairs) ? order.repairs.slice() : [];
+        var idx = -1;
+        for (var i = 0; i < repairs.length; i++) {
+            var r = repairs[i];
+            if (r && typeof r === 'object' && r.id === repairId) { idx = i; break; }
+        }
+        if (idx === -1) { alert('Repair not found in this order.'); return; }
+
+        var existing = repairs[idx];
+        var input = prompt(
+            'Set final price for:\n\n' + existing.name + '\n\nEnter amount in RM (numbers only):',
+            existing.price ? String(existing.price) : ''
+        );
+        if (input === null) return;
+        var price = parseFloat(input);
+        if (isNaN(price) || price < 0) { alert('Please enter a valid non-negative number.'); return; }
+
+        repairs[idx] = {
+            id: existing.id,
+            name: existing.name,
+            category: existing.category || '',
+            price: price,
+            is_quote: false,
+            note: existing.note || ''
+        };
+
+        // Update order.estimated_price: subtract old price, add new. Old was 0 (quote), so just add.
+        var oldEstimated = Number(order.estimated_price) || 0;
+        var newEstimated = oldEstimated + price;
+
+        var idField = order.id ? 'id' : 'order_id';
+        var res = await supabaseClient.from('orders').update({
+            repairs: repairs,
+            estimated_price: newEstimated,
+            updated_at: new Date().toISOString()
+        }).eq(idField, order.id);
+
+        if (res.error) { alert('Failed to save price: ' + res.error.message); return; }
+
+        order.repairs = repairs;
+        order.estimated_price = newEstimated;
+        alert('Price saved: RM' + price + '\n\nNew order total: RM' + Math.round(newEstimated));
+        // Re-render modal & card
+        renderModalRepairs(order);
+        filterAndRenderOrders();
+        updateStats();
+    }
+
+    function setRepairPriceFromCard(orderId) {
+        // Legacy: not used anymore, but safe fallback
+        openOrderModal(orderId);
     }
 
     function editWhatsappUsername(orderId) {
@@ -1030,10 +1282,7 @@
         order.whatsapp_username = trimmedWa;
         var idField = order.id ? 'id' : 'order_id';
         supabaseClient.from('orders').update({ whatsapp_username: trimmedWa }).eq(idField, orderId).then(function(res) {
-            if (res.error) {
-                alert('Failed to update WhatsApp username: ' + res.error.message);
-                order.whatsapp_username = oldWa;
-            }
+            if (res.error) { alert('Failed to update WhatsApp username: ' + res.error.message); order.whatsapp_username = oldWa; }
             filterAndRenderOrders();
         });
     }
@@ -1043,7 +1292,6 @@
         for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) n++;
         return n;
     }
-
     function bulkKeys() {
         var arr = [];
         for (var k in bulkSelectedIds) if (bulkSelectedIds.hasOwnProperty(k)) arr.push(k);
@@ -1100,13 +1348,9 @@
             for (var i = 0; i < checkboxes.length; i++) {
                 if (bulkSelectedIds[String(checkboxes[i].getAttribute('data-order-id'))]) selected++;
             }
-            if (total === 0 || selected === 0) {
-                selAll.checked = false; selAll.indeterminate = false;
-            } else if (selected === total) {
-                selAll.checked = true; selAll.indeterminate = false;
-            } else {
-                selAll.checked = false; selAll.indeterminate = true;
-            }
+            if (total === 0 || selected === 0) { selAll.checked = false; selAll.indeterminate = false; }
+            else if (selected === total) { selAll.checked = true; selAll.indeterminate = false; }
+            else { selAll.checked = false; selAll.indeterminate = true; }
         }
     }
 
@@ -1114,39 +1358,24 @@
         var n = bulkCount();
         if (n === 0) return;
         var word = n === 1 ? 'order' : 'orders';
-        var choiceMsg = 'Update ' + n + ' ' + word + ' to which status?\n\n' +
-                        '1 = Pending\n' +
-                        '2 = In Progress\n' +
-                        '3 = Completed\n' +
-                        '4 = Cancelled\n\n' +
-                        'Type the number (1-4):';
+        var choiceMsg = 'Update ' + n + ' ' + word + ' to which status?\n\n1 = Pending\n2 = In Progress\n3 = Completed\n4 = Cancelled\n\nType the number (1-4):';
         var choice = prompt(choiceMsg);
         if (choice === null) return;
 
         var statusMap = { '1': 'Pending', '2': 'In Progress', '3': 'Completed', '4': 'Cancelled' };
         var newStatus = statusMap[String(choice).trim()];
-        if (!newStatus) {
-            alert('Invalid choice. Please enter 1, 2, 3, or 4.');
-            return;
-        }
-
-        var confirmMsg = 'Set ' + n + ' ' + word + ' to "' + newStatus + '"?';
-        if (!confirm(confirmMsg)) return;
+        if (!newStatus) { alert('Invalid choice. Please enter 1, 2, 3, or 4.'); return; }
+        if (!confirm('Set ' + n + ' ' + word + ' to "' + newStatus + '"?')) return;
 
         var ids = bulkKeys();
         for (var i = 0; i < ids.length; i++) {
             var o = findOrder(ids[i]);
             if (o) o.status = newStatus;
         }
-
         supabaseClient.from('orders').update({ status: newStatus }).in('id', ids).then(function(res) {
             if (res.error) {
                 supabaseClient.from('orders').update({ status: newStatus }).in('order_id', ids).then(function(res2) {
-                    if (res2.error) {
-                        alert('Bulk update failed: ' + res2.error.message);
-                        loadOrders();
-                        return;
-                    }
+                    if (res2.error) { alert('Bulk update failed: ' + res2.error.message); loadOrders(); return; }
                     clearBulkSelection();
                     loadOrders();
                 });
@@ -1161,17 +1390,12 @@
         var n = bulkCount();
         if (n === 0) return;
         var word = n === 1 ? 'order' : 'orders';
-        var confirmMsg = 'Delete ' + n + ' ' + word + '?\n\nThis cannot be undone.';
-        if (!confirm(confirmMsg)) return;
-
+        if (!confirm('Delete ' + n + ' ' + word + '?\n\nThis cannot be undone.')) return;
         var ids = bulkKeys();
         supabaseClient.from('orders').delete().in('id', ids).then(function(res) {
             if (res.error) {
                 supabaseClient.from('orders').delete().in('order_id', ids).then(function(res2) {
-                    if (res2.error) {
-                        alert('Bulk delete failed: ' + res2.error.message);
-                        return;
-                    }
+                    if (res2.error) { alert('Bulk delete failed: ' + res2.error.message); return; }
                     clearBulkSelection();
                     loadOrders();
                 });
@@ -1196,7 +1420,6 @@
         document.getElementById('remarksModalOverlay').style.display = 'none';
         currentRemarksOrderId = null;
     }
-
     function closeRemarksModalOnBackdrop(event) {
         if (event.target.id === 'remarksModalOverlay') closeRemarksModal();
     }
@@ -1229,14 +1452,8 @@
 
     function sortGameList(gameList) {
         var masterList = [];
-        if (typeof APP_CONFIG !== 'undefined') {
-            masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
-        }
-        var names = [];
-        for (var i = 0; i < masterList.length; i++) {
-            var g = masterList[i];
-            names.push(typeof g === 'string' ? g : g.name);
-        }
+        if (typeof APP_CONFIG !== 'undefined') masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
+        var names = masterList.map(function(g) { return typeof g === 'string' ? g : g.name; });
         if (names.length > 0) {
             gameList.sort(function(a, b) {
                 var ia = names.indexOf(a);
@@ -1247,9 +1464,7 @@
                 return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
             });
         } else {
-            gameList.sort(function(a, b) {
-                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-            });
+            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
         }
         return gameList;
     }
@@ -1258,8 +1473,7 @@
         var list = [];
         if (Array.isArray(order.games)) list = order.games;
         else if (typeof order.games === 'string') {
-            try { list = JSON.parse(order.games); }
-            catch (e) { list = order.games.split(','); }
+            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
         }
         return list;
     }
@@ -1273,7 +1487,13 @@
         for (var i = 0; i < allOrders.length; i++) {
             var order = allOrders[i];
             var orderStatus = order.status || 'Pending';
-            if (currentStatusFilter !== 'ALL' && orderStatus !== currentStatusFilter) continue;
+
+            if (currentStatusFilter === 'WITH_REPAIRS') {
+                var rList = getRepairsOfOrder(order);
+                if (rList.length === 0) continue;
+            } else if (currentStatusFilter !== 'ALL' && orderStatus !== currentStatusFilter) {
+                continue;
+            }
 
             if (query) {
                 var phoneMatch = order.phone_ending && order.phone_ending.toLowerCase().indexOf(query) !== -1;
@@ -1286,7 +1506,12 @@
                 for (var j = 0; j < gameList.length; j++) {
                     if (String(gameList[j]).toLowerCase().indexOf(query) !== -1) { gameMatch = true; break; }
                 }
-                if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !substageMatch) continue;
+                var repairList = getRepairsOfOrder(order);
+                var repairMatch = false;
+                for (var k = 0; k < repairList.length; k++) {
+                    if (String(repairList[k].name).toLowerCase().indexOf(query) !== -1 || String(repairList[k].id).toLowerCase().indexOf(query) !== -1) { repairMatch = true; break; }
+                }
+                if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !substageMatch && !repairMatch) continue;
             }
 
             filtered.push(order);
@@ -1299,8 +1524,7 @@
         }
 
         container.innerHTML = '';
-
-        for (var k = 0; k < filtered.length; k++) {
+        for (var m = 0; m < filtered.length; m++) {
             (function(order) {
                 var card = document.createElement('div');
                 var orderId = order.id || order.order_id;
@@ -1318,10 +1542,8 @@
                 if (gameList.length > 0) {
                     var lines = [];
                     var shown = Math.min(3, gameList.length);
-                    for (var m = 0; m < shown; m++) lines.push('<div>' + (m + 1) + '. ' + gameList[m] + '</div>');
-                    if (gameList.length > 3) {
-                        lines.push('<div><button class="more-games-link" data-order-id="' + orderId + '">+ ' + (gameList.length - 3) + ' more games...</button></div>');
-                    }
+                    for (var n = 0; n < shown; n++) lines.push('<div>' + (n + 1) + '. ' + gameList[n] + '</div>');
+                    if (gameList.length > 3) lines.push('<div><button class="more-games-link" data-order-id="' + orderId + '">+ ' + (gameList.length - 3) + ' more games...</button></div>');
                     gamesPreview = lines.join('');
                 }
 
@@ -1329,9 +1551,7 @@
                     ? '<span style="color:#25D366; word-break:break-word;">WA: ' + order.whatsapp_username + '</span>'
                     : '<span style="color:#6a6357; font-style:italic;">WA: Not assigned</span>';
 
-                var remarksDisplay = (order.remarks && order.remarks.trim() !== '')
-                    ? order.remarks
-                    : '<span style="color:#6a6357; font-style:italic;">None</span>';
+                var remarksDisplay = (order.remarks && order.remarks.trim() !== '') ? order.remarks : '<span style="color:#6a6357; font-style:italic;">None</span>';
 
                 var phoneCount = orderCountByPhone[order.phone_ending] || 1;
                 var multiBadge = phoneCount > 1
@@ -1348,11 +1568,11 @@
                     progressOptions += '<option value="' + s + '"' + sel + '>' + (STAGE_ICONS[s] || '') + ' ' + s + '</option>';
                 }
 
-                var applicableSubs = SUBSTAGES_BY_SERVICE[order.service_type] || [];
+                var mergedSubs = getEffectiveSubStages(order);
                 var isInProgress = (currentProgress === 'In Progress');
                 var subOptions = '<option value="">-- Select --</option>';
-                for (var q = 0; q < applicableSubs.length; q++) {
-                    var sb = applicableSubs[q];
+                for (var q = 0; q < mergedSubs.length; q++) {
+                    var sb = mergedSubs[q];
                     var sSel = (currentSub === sb) ? ' selected' : '';
                     subOptions += '<option value="' + sb + '"' + sSel + '>' + sb + '</option>';
                 }
@@ -1360,20 +1580,22 @@
                 var notifyVisible = order.whatsapp_username ? ' visible' : '';
                 var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
 
+                var repairs = getRepairsOfOrder(order);
+                var repairsDisplay = buildRepairsDisplay(repairs);
+                var repairsLineHtml = repairs.length > 0
+                    ? '<div class="order-repair-line"><span class="icon">&#128295;</span><div class="text">' + repairsDisplay.line + (repairsDisplay.mini ? '<div class="order-repair-list-mini">' + repairsDisplay.mini + '</div>' : '') + '</div>' + (repairs.some(function(r){return r.isQuote;}) ? '<button class="set-price-btn copy-repairs-main-btn" data-order-id="' + orderId + '">Copy Repairs</button>' : '<button class="set-price-btn copy-repairs-main-btn" data-order-id="' + orderId + '">Copy Repairs</button>') + '</div>'
+                    : '';
+
                 card.innerHTML =
-                    '<div class="card-select-wrap">' +
-                        '<input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '>' +
-                    '</div>' +
+                    '<div class="card-select-wrap"><input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '></div>' +
                     '<div class="order-header">' +
                         '<div class="customer-info">' +
                             '<div>Order ID: ' + (order.phone_ending || 'N/A') + ' ' + multiBadge + '</div>' +
-                            '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' +
-                                waDisplay +
-                                '<button class="edit-wa-btn" data-order-id="' + orderId + '">Edit WA</button>' +
-                            '</div>' +
+                            '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">' + waDisplay + '<button class="edit-wa-btn" data-order-id="' + orderId + '">Edit WA</button></div>' +
                         '</div>' +
                         '<div class="order-date">' + (order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A') + '</div>' +
                     '</div>' +
+                    repairsLineHtml +
                     '<div class="order-body">' +
                         '<div>' +
                             '<strong>Service:</strong> ' + (order.service_type || 'N/A') + '<br>' +
@@ -1395,14 +1617,8 @@
                         '</div>' +
                     '</div>' +
                     '<div class="progress-controls">' +
-                        '<div class="progress-controls-row">' +
-                            '<label>Progress:</label>' +
-                            '<select class="progress-select" onchange="updateProgress(\'' + orderId + '\', this.value)">' + progressOptions + '</select>' +
-                        '</div>' +
-                        '<div class="progress-controls-row">' +
-                            '<label>Substage:</label>' +
-                            '<select class="progress-select" onchange="updateSubstage(\'' + orderId + '\', this.value)"' + (isInProgress ? '' : ' disabled') + '>' + subOptions + '</select>' +
-                        '</div>' +
+                        '<div class="progress-controls-row"><label>Progress:</label><select class="progress-select" onchange="updateProgress(\'' + orderId + '\', this.value)">' + progressOptions + '</select></div>' +
+                        '<div class="progress-controls-row"><label>Substage:</label><select class="progress-select" onchange="updateSubstage(\'' + orderId + '\', this.value)"' + (isInProgress ? '' : ' disabled') + '>' + subOptions + '</select></div>' +
                         '<div class="progress-controls-row" style="justify-content: flex-end; flex-wrap: wrap;">' +
                             '<button class="copy-track-btn" data-order-id="' + orderId + '" title="Copy tracking link">Copy Tracking Link</button>' +
                             '<button class="notify-btn' + notifyVisible + '" data-order-id="' + orderId + '">Notify Customer</button>' +
@@ -1425,20 +1641,17 @@
                     '</div>';
 
                 container.appendChild(card);
-            })(filtered[k]);
+            })(filtered[m]);
         }
-
         updateBulkBarUI();
     }
 
     function openOrderModal(orderId) {
         var order = findOrder(orderId);
-
         if (!order) {
             supabaseClient.from('orders').select('*').eq('id', orderId).limit(1).then(function(res) {
-                if (res.data && res.data.length > 0) {
-                    showOrderModal(res.data[0]);
-                } else {
+                if (res.data && res.data.length > 0) showOrderModal(res.data[0]);
+                else {
                     supabaseClient.from('orders').select('*').eq('order_id', orderId).limit(1).then(function(res2) {
                         if (res2.data && res2.data.length > 0) showOrderModal(res2.data[0]);
                         else alert('Could not load order details.');
@@ -1447,12 +1660,13 @@
             });
             return;
         }
-
         showOrderModal(order);
     }
 
     function showOrderModal(order) {
-        currentRemarksOrderId = order.id || order.order_id;
+        var orderId = order.id || order.order_id;
+        currentRemarksOrderId = orderId;
+        currentModalOrderId = orderId;
 
         document.getElementById('modalTitle').innerText = 'Order Details - Customer ' + (order.phone_ending || 'N/A');
         document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
@@ -1467,13 +1681,15 @@
         var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
         document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
 
-        var remarksDisplay = (order.remarks && order.remarks.trim() !== '')
-            ? order.remarks
-            : '<span style="color:#6a6357; font-style:italic;">None</span>';
+        var remarksDisplay = (order.remarks && order.remarks.trim() !== '') ? order.remarks : '<span style="color:#6a6357; font-style:italic;">None</span>';
         document.getElementById('modalRemarksVal').innerHTML = remarksDisplay;
-
         document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(currentRemarksOrderId); };
 
+        // Repairs
+        currentModalRepairs = getRepairsOfOrder(order);
+        renderModalRepairs(order);
+
+        // Games
         var gameGrid = document.getElementById('modalGameGrid');
         gameGrid.innerHTML = '';
         var gameList = gameListOf(order);
@@ -1496,6 +1712,58 @@
         document.getElementById('orderModalOverlay').style.display = 'flex';
     }
 
+    function renderModalRepairs(order) {
+        var container = document.getElementById('modalRepairsContainer');
+        if (!container) return;
+        var repairs = getRepairsOfOrder(order);
+        currentModalRepairs = repairs;
+
+        if (repairs.length === 0) { container.innerHTML = ''; return; }
+
+        var sum = sumOrderRepairs(repairs);
+        var html = '<div class="modal-repairs-container">';
+        html += '<div class="modal-repairs-header">';
+        html += '<h3>&#128295; Repairs (' + repairs.length + ')</h3>';
+        html += '<div class="modal-repairs-header-actions">';
+        if (sum.quoteCount > 0) {
+            html += '<span style="font-size:11.5px; color:#ffb74d; font-weight:600;">' + sum.quoteCount + ' awaiting quote</span>';
+        }
+        html += '<button class="copy-txt-btn" onclick="copyRepairsFromModal(this)">Copy Repair List</button>';
+        html += '</div>';
+        html += '</div>';
+
+        repairs.forEach(function(r) {
+            html += '<div class="modal-repair-item">';
+            html += '<div class="modal-repair-info">';
+            html += '<div class="modal-repair-name">' + escapeHtml(r.name) + '</div>';
+            if (r.category) html += '<div class="modal-repair-cat">' + escapeHtml(r.category) + '</div>';
+            if (r.note) html += '<div class="modal-repair-note">' + escapeHtml(r.note) + '</div>';
+            html += '</div>';
+            html += '<div class="modal-repair-right">';
+            if (r.isQuote) {
+                html += '<div class="modal-repair-price quote">TBC after inspection</div>';
+                html += '<button class="set-price-btn" onclick="setRepairPrice(\'' + escapeHtml(r.id) + '\')">Set Price</button>';
+            } else {
+                html += '<div class="modal-repair-price">RM' + r.price + '</div>';
+            }
+            html += '</div>';
+            html += '</div>';
+        });
+
+        html += '<div class="modal-repairs-summary">';
+        html += '<span>Repairs subtotal' + (sum.quoteCount > 0 ? ' (excludes ' + sum.quoteCount + ' quote)' : '') + '</span>';
+        html += '<strong>RM' + sum.total + (sum.quoteCount > 0 ? ' + TBC' : '') + '</strong>';
+        html += '</div>';
+
+        html += '</div>';
+        container.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
     function copyGamesForScript() {
         if (!currentModalGames || currentModalGames.length === 0) { alert('No games to copy!'); return; }
         var textToCopy = currentModalGames.join('\n');
@@ -1505,11 +1773,7 @@
             btn.innerText = 'Copied';
             btn.style.background = '#ffc000';
             btn.style.color = '#14110a';
-            setTimeout(function() {
-                btn.innerText = originalText;
-                btn.style.background = '#2e2716';
-                btn.style.color = '#e8dcc0';
-            }, 2000);
+            setTimeout(function() { btn.innerText = originalText; btn.style.background = '#2e2716'; btn.style.color = '#e8dcc0'; }, 2000);
         }).catch(function(err) { alert('Failed to copy text: ' + err); });
     }
 
@@ -1525,18 +1789,14 @@
             btnElement.innerText = 'Copied';
             btnElement.style.background = '#ffc000';
             btnElement.style.color = '#14110a';
-            setTimeout(function() {
-                btnElement.innerText = originalText;
-                btnElement.style.background = '#2e2716';
-                btnElement.style.color = '#e8dcc0';
-            }, 2000);
+            setTimeout(function() { btnElement.innerText = originalText; btnElement.style.background = '#2e2716'; btnElement.style.color = '#e8dcc0'; }, 2000);
         }).catch(function(err) { alert('Failed to copy text: ' + err); });
     }
 
     function closeOrderModal() {
         document.getElementById('orderModalOverlay').style.display = 'none';
+        currentModalOrderId = null;
     }
-
     function closeModalOnBackdrop(event) {
         if (event.target.id === 'orderModalOverlay') closeOrderModal();
     }
@@ -1546,16 +1806,11 @@
         var order = findOrder(orderId);
         var idField = (order && order.id) ? 'id' : 'order_id';
         supabaseClient.from('orders').delete().eq(idField, orderId).then(function(res) {
-            if (res.error) {
-                alert('Delete failed: ' + res.error.message);
-                return;
-            }
+            if (res.error) { alert('Delete failed: ' + res.error.message); return; }
             var newList = [];
             for (var i = 0; i < allOrders.length; i++) {
                 var o = allOrders[i];
-                if (String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId)) {
-                    newList.push(o);
-                }
+                if (String(o.id) !== String(orderId) && String(o.order_id) !== String(orderId)) newList.push(o);
             }
             allOrders = newList;
             delete bulkSelectedIds[String(orderId)];
@@ -1567,6 +1822,322 @@
             updateStats();
             filterAndRenderOrders();
         });
+    }
+
+    // ========================================================================
+    // REPAIR CATALOG (admin)
+    // ========================================================================
+
+    function renderCatalog() {
+        var container = document.getElementById('catalogContainer');
+        if (!container) return;
+        var query = (document.getElementById('catalogSearchInput').value || '').toLowerCase().trim();
+
+        var filtered = allRepairServices.filter(function(s) {
+            if (currentCatalogFilter === 'ACTIVE' && !s.active) return false;
+            if (currentCatalogFilter === 'INACTIVE' && s.active) return false;
+            if (query) {
+                var hay = ((s.name || '') + ' ' + (s.id || '') + ' ' + (s.category || '')).toLowerCase();
+                if (hay.indexOf(query) === -1) return false;
+            }
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="no-orders">No repair services match your filters.</div>';
+            return;
+        }
+
+        // Group by category
+        var grouped = {};
+        filtered.forEach(function(s) {
+            var cat = s.category || 'General';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(s);
+        });
+
+        // Order categories: use configured list order if available, else alphabetical
+        var order = (APP_CONFIG.repairCategories || []).slice();
+        Object.keys(grouped).forEach(function(c) { if (order.indexOf(c) === -1) order.push(c); });
+
+        container.innerHTML = '';
+        order.forEach(function(cat) {
+            if (!grouped[cat]) return;
+            var group = document.createElement('div');
+            group.className = 'catalog-group';
+
+            var header = document.createElement('div');
+            header.className = 'catalog-group-header';
+            header.innerHTML = '<span>' + escapeHtml(cat) + ' &nbsp;·&nbsp; ' + grouped[cat].length + '</span><span class="chev">▼</span>';
+            header.onclick = function() { group.classList.toggle('collapsed'); };
+            group.appendChild(header);
+
+            var body = document.createElement('div');
+            body.className = 'catalog-group-body';
+
+            grouped[cat].forEach(function(s) {
+                var row = document.createElement('div');
+                row.className = 'catalog-row' + (s.active ? '' : ' inactive');
+
+                var priceHtml = '';
+                if (s.pricing_model === 'quote') priceHtml = '<div class="catalog-row-price quote">Quote on inspection</div>';
+                else if (s.pricing_model === 'flat') priceHtml = '<div class="catalog-row-price">RM' + (Number(s.price_flat) || 0) + '</div>';
+                else if (s.pricing_model === 'per_model') {
+                    var p = s.price_by_model || {};
+                    priceHtml = '<div class="catalog-row-price-multi">' +
+                        '<span><span class="m">OLED</span>RM' + (Number(p.OLED) || 0) + '</span>' +
+                        '<span><span class="m">V1/V2</span>RM' + (Number(p.V1_V2) || 0) + '</span>' +
+                        '<span><span class="m">LITE</span>RM' + (Number(p.LITE) || 0) + '</span>' +
+                        '</div>';
+                }
+
+                row.innerHTML =
+                    '<div class="catalog-row-main">' +
+                        '<div class="catalog-row-name">' + escapeHtml(s.name) + '</div>' +
+                        '<div class="catalog-row-id">id: ' + escapeHtml(s.id) + ' &nbsp;·&nbsp; sort: ' + (s.sort_order || 0) + '</div>' +
+                        (s.note ? '<div class="catalog-row-note">' + escapeHtml(s.note) + '</div>' : '') +
+                    '</div>' +
+                    priceHtml +
+                    '<div class="catalog-row-actions">' +
+                        '<button class="catalog-toggle-btn ' + (s.active ? 'on' : '') + '" onclick="toggleRepairActive(\'' + escapeHtml(s.id) + '\')">' + (s.active ? 'Active' : 'Inactive') + '</button>' +
+                        '<button class="catalog-edit-btn" onclick="openRepairForm(\'' + escapeHtml(s.id) + '\')">Edit</button>' +
+                        '<button class="catalog-delete-btn" onclick="deleteRepairService(\'' + escapeHtml(s.id) + '\')">Delete</button>' +
+                    '</div>';
+
+                body.appendChild(row);
+            });
+
+            group.appendChild(body);
+            container.appendChild(group);
+        });
+    }
+
+    function populateCategorySelect() {
+        var sel = document.getElementById('rfCategory');
+        if (!sel) return;
+        var current = sel.value;
+        sel.innerHTML = '';
+        (APP_CONFIG.repairCategories || []).forEach(function(c) {
+            var o = document.createElement('option');
+            o.value = c; o.textContent = c;
+            sel.appendChild(o);
+        });
+        if (current) sel.value = current;
+    }
+
+    function suggestRepairId(name) {
+        var idField = document.getElementById('rfId');
+        if (!idField || idField.dataset.touched === '1') return;
+        var slug = (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        idField.value = slug;
+    }
+
+    function sanitizeRepairId() {
+        var idField = document.getElementById('rfId');
+        if (!idField) return;
+        idField.dataset.touched = '1';
+        var v = idField.value.toLowerCase().replace(/[^a-z0-9_]/g, '_');
+        idField.value = v;
+    }
+
+    function onPricingModelChange() {
+        var selected = document.querySelector('input[name="rfPricing"]:checked');
+        var val = selected ? selected.value : '';
+        document.querySelectorAll('.pricing-radio-row label').forEach(function(l) { l.classList.remove('checked'); });
+        if (selected && selected.parentElement) selected.parentElement.classList.add('checked');
+        document.getElementById('rfFlatPriceGroup').style.display = (val === 'flat') ? 'flex' : 'none';
+        document.getElementById('rfPerModelGroup').style.display = (val === 'per_model') ? 'flex' : 'none';
+    }
+
+    function openRepairForm(id) {
+        currentEditingRepairId = id || null;
+        populateCategorySelect();
+
+        var title = document.getElementById('repairFormTitle');
+        var nameField = document.getElementById('rfName');
+        var idField = document.getElementById('rfId');
+        var catField = document.getElementById('rfCategory');
+        var flatField = document.getElementById('rfPriceFlat');
+        var oledField = document.getElementById('rfPriceOled');
+        var v1v2Field = document.getElementById('rfPriceV1V2');
+        var liteField = document.getElementById('rfPriceLite');
+        var noteField = document.getElementById('rfNote');
+        var sortField = document.getElementById('rfSortOrder');
+        var activeField = document.getElementById('rfActive');
+        var saveBtn = document.getElementById('rfSaveBtn');
+
+        // Reset ID touched flag
+        idField.dataset.touched = '0';
+
+        if (id) {
+            var svc = allRepairServices.find(function(s) { return s.id === id; });
+            if (!svc) { alert('Repair service not found.'); return; }
+            title.textContent = 'Edit Repair Service';
+            saveBtn.textContent = 'Save Changes';
+            nameField.value = svc.name || '';
+            idField.value = svc.id || '';
+            idField.dataset.touched = '1'; // don't override existing id on name change
+            idField.readOnly = true;
+            catField.value = svc.category || (APP_CONFIG.repairCategories[0] || 'General');
+            noteField.value = svc.note || '';
+            sortField.value = (svc.sort_order !== undefined && svc.sort_order !== null) ? svc.sort_order : 100;
+            activeField.checked = !!svc.active;
+
+            // Pricing
+            var pm = svc.pricing_model || 'flat';
+            document.querySelectorAll('input[name="rfPricing"]').forEach(function(r) { r.checked = (r.value === pm); });
+            if (pm === 'flat') {
+                flatField.value = (svc.price_flat != null) ? svc.price_flat : '';
+                oledField.value = ''; v1v2Field.value = ''; liteField.value = '';
+            } else if (pm === 'per_model') {
+                var bm = svc.price_by_model || {};
+                oledField.value = (bm.OLED != null) ? bm.OLED : '';
+                v1v2Field.value = (bm.V1_V2 != null) ? bm.V1_V2 : '';
+                liteField.value = (bm.LITE != null) ? bm.LITE : '';
+                flatField.value = '';
+            } else {
+                flatField.value = ''; oledField.value = ''; v1v2Field.value = ''; liteField.value = '';
+            }
+        } else {
+            title.textContent = 'Add Repair Service';
+            saveBtn.textContent = 'Add Repair';
+            nameField.value = '';
+            idField.value = '';
+            idField.readOnly = false;
+            catField.value = APP_CONFIG.repairCategories[0] || 'General';
+            flatField.value = '';
+            oledField.value = '';
+            v1v2Field.value = '';
+            liteField.value = '';
+            noteField.value = '';
+            sortField.value = 100;
+            activeField.checked = true;
+            // Default to flat pricing
+            document.querySelectorAll('input[name="rfPricing"]').forEach(function(r) { r.checked = (r.value === 'flat'); });
+        }
+
+        onPricingModelChange();
+        document.getElementById('repairFormOverlay').style.display = 'flex';
+    }
+
+    function closeRepairForm() {
+        document.getElementById('repairFormOverlay').style.display = 'none';
+        currentEditingRepairId = null;
+    }
+    function closeRepairFormOnBackdrop(event) {
+        if (event.target.id === 'repairFormOverlay') closeRepairForm();
+    }
+
+    async function saveRepairForm() {
+        var name = (document.getElementById('rfName').value || '').trim();
+        var id = (document.getElementById('rfId').value || '').trim().toLowerCase();
+        var category = document.getElementById('rfCategory').value || 'General';
+        var pricing = (document.querySelector('input[name="rfPricing"]:checked') || {}).value;
+        var note = (document.getElementById('rfNote').value || '').trim() || null;
+        var sortOrder = parseInt(document.getElementById('rfSortOrder').value, 10);
+        if (isNaN(sortOrder)) sortOrder = 100;
+        var active = !!document.getElementById('rfActive').checked;
+
+        if (!name) { alert('Please enter a name.'); return; }
+        if (!id) { alert('Please enter a unique ID.'); return; }
+        if (!/^[a-z0-9_]+$/.test(id)) { alert('ID can only contain lowercase letters, numbers, and underscores.'); return; }
+        if (!pricing) { alert('Please choose a pricing model.'); return; }
+
+        var priceFlat = null, priceByModel = null;
+        if (pricing === 'flat') {
+            var pf = parseFloat(document.getElementById('rfPriceFlat').value);
+            if (isNaN(pf) || pf < 0) { alert('Please enter a valid flat price.'); return; }
+            priceFlat = pf;
+        } else if (pricing === 'per_model') {
+            var oled = parseFloat(document.getElementById('rfPriceOled').value);
+            var v1v2 = parseFloat(document.getElementById('rfPriceV1V2').value);
+            var lite = parseFloat(document.getElementById('rfPriceLite').value);
+            if (isNaN(oled) || isNaN(v1v2) || isNaN(lite)) { alert('Please enter prices for all three console models.'); return; }
+            if (oled < 0 || v1v2 < 0 || lite < 0) { alert('Prices cannot be negative.'); return; }
+            priceByModel = { OLED: oled, V1_V2: v1v2, LITE: lite };
+        }
+
+        var payload = {
+            name: name,
+            category: category,
+            pricing_model: pricing,
+            price_flat: priceFlat,
+            price_by_model: priceByModel,
+            note: note,
+            sort_order: sortOrder,
+            active: active
+        };
+
+        var saveBtn = document.getElementById('rfSaveBtn');
+        saveBtn.disabled = true;
+        var originalLabel = saveBtn.textContent;
+        saveBtn.textContent = 'Saving...';
+
+        try {
+            if (currentEditingRepairId) {
+                // Update (id not changeable)
+                var res = await supabaseClient.from('repair_services').update(payload).eq('id', currentEditingRepairId);
+                if (res.error) throw res.error;
+            } else {
+                // Insert
+                payload.id = id;
+                // Check for existing id
+                var existing = allRepairServices.find(function(s) { return s.id === id; });
+                if (existing) throw new Error('A repair with this ID already exists. Please choose a different ID.');
+                var res2 = await supabaseClient.from('repair_services').insert([payload]);
+                if (res2.error) throw res2.error;
+            }
+
+            // Reload
+            await Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]);
+            closeRepairForm();
+            renderCatalog();
+            alert(currentEditingRepairId ? 'Repair updated.' : 'Repair added.');
+        } catch (err) {
+            console.error(err);
+            alert('Failed to save: ' + (err.message || 'Unknown error'));
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalLabel;
+        }
+    }
+
+    async function toggleRepairActive(id) {
+        var svc = allRepairServices.find(function(s) { return s.id === id; });
+        if (!svc) return;
+        var newActive = !svc.active;
+        var res = await supabaseClient.from('repair_services').update({ active: newActive }).eq('id', id);
+        if (res.error) { alert('Failed to toggle: ' + res.error.message); return; }
+        svc.active = newActive;
+        await loadRepairServices(supabaseClient);
+        renderCatalog();
+    }
+
+    async function deleteRepairService(id) {
+        var svc = allRepairServices.find(function(s) { return s.id === id; });
+        if (!svc) return;
+
+        // Check if this repair is used in any order (client-side over loaded orders; not exhaustive but helpful)
+        var usedIn = 0;
+        allOrders.forEach(function(o) {
+            var rlist = Array.isArray(o.repairs) ? o.repairs : [];
+            rlist.forEach(function(r) {
+                if (typeof r === 'string' && r === id) usedIn++;
+                else if (r && typeof r === 'object' && r.id === id) usedIn++;
+            });
+        });
+
+        var msg = 'Delete "' + svc.name + '" (id: ' + id + ')?\n\nThis cannot be undone.';
+        if (usedIn > 0) {
+            msg = '"' + svc.name + '" is used in ' + usedIn + ' loaded order(s).\n\nHistorical orders keep their own snapshot, so deleting will not break them — but the repair will disappear from the customer form.\n\nConsider marking it Inactive instead.\n\nDelete anyway?';
+        }
+        if (!confirm(msg)) return;
+
+        var res = await supabaseClient.from('repair_services').delete().eq('id', id);
+        if (res.error) { alert('Failed to delete: ' + res.error.message); return; }
+        allRepairServices = allRepairServices.filter(function(s) { return s.id !== id; });
+        await loadRepairServices(supabaseClient);
+        renderCatalog();
     }
     </script>
 </body>

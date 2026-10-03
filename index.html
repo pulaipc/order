@@ -7,9 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
-        html {
-            -webkit-text-size-adjust: 100%;
-        }
+        html { -webkit-text-size-adjust: 100%; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #14110a;
@@ -19,596 +17,120 @@
             box-sizing: border-box;
             padding-bottom: calc(180px + env(safe-area-inset-bottom, 0px));
         }
-        body.modal-open {
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            left: 0;
-            right: 0;
-        }
-        body.summary-active {
-            padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
-        }
+        body.modal-open { overflow: hidden; position: fixed; width: 100%; left: 0; right: 0; }
+        body.summary-active { padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); }
         .container { max-width: 900px; margin: 0 auto; }
 
-        /* ===== HEADER BAR ===== */
-        .header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #3a3018;
-            padding-bottom: 15px;
-            margin-bottom: 18px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-        .site-logo {
-            display: block;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5);
-            flex-shrink: 0;
-        }
-        .logo-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            -webkit-tap-highlight-color: transparent;
-            transition: transform 0.2s;
-        }
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding-bottom: 15px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+        .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .site-logo { display: block; width: 48px; height: 48px; border-radius: 50%; box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
+        .logo-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform 0.2s; }
         .logo-link:active { transform: scale(0.96); }
-        h1 {
-            color: #ffc000;
-            margin: 0;
-            font-size: 18px;
-            line-height: 1.3;
-            word-break: break-word;
-        }
-        .header-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .btn-action {
-            background: #2e2716;
-            color: #ffc000;
-            border: 1px solid #3a3018;
-            padding: 8px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-family: inherit;
-            font-size: 12.5px;
-            line-height: normal;
-            transition: all 0.2s;
-            white-space: nowrap;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .btn-action:hover {
-            background: #ffc000;
-            color: #14110a;
-            border-color: #ffc000;
-        }
+        h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
+        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: inline-block; }
+        .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
-        /* ===== WHAT HAPPENS NEXT ===== */
-        .how-it-works {
-            background: #1a1814;
-            border: 1px solid #2e2716;
-            border-radius: 8px;
-            padding: 14px 16px;
-            margin-bottom: 18px;
-        }
-        .how-it-works-title {
-            font-size: 11.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #8a8272;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-        .how-steps {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .how-step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .how-num {
-            flex: 0 0 auto;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: #2e2716;
-            border: 1px solid #3a3018;
-            color: #b8b0a0;
-            font-size: 12px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1px;
-        }
-        .how-step-body {
-            flex: 1;
-            min-width: 0;
-        }
-        .how-step-title {
-            font-size: 13.5px;
-            font-weight: 600;
-            color: #e8dcc0;
-            line-height: 1.35;
-        }
-        .how-step-desc {
-            font-size: 12px;
-            color: #8a8272;
-            line-height: 1.5;
-            margin-top: 2px;
-        }
+        .how-it-works { background: #1a1814; border: 1px solid #2e2716; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+        .how-it-works-title { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #8a8272; font-weight: 700; margin-bottom: 12px; }
+        .how-steps { display: flex; flex-direction: column; gap: 10px; }
+        .how-step { display: flex; align-items: flex-start; gap: 12px; }
+        .how-num { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; background: #2e2716; border: 1px solid #3a3018; color: #b8b0a0; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+        .how-step-body { flex: 1; min-width: 0; }
+        .how-step-title { font-size: 13.5px; font-weight: 600; color: #e8dcc0; line-height: 1.35; }
+        .how-step-desc { font-size: 12px; color: #8a8272; line-height: 1.5; margin-top: 2px; }
 
-        /* ===== SUMMARY VIEW ===== */
-        .summary-view {
-            display: none;
-            flex-direction: column;
-            gap: 14px;
-        }
+        .summary-view { display: none; flex-direction: column; gap: 14px; }
         .summary-view.active { display: flex; }
-        .summary-card {
-            background: #1f190e;
-            border: 1px solid #3a3018;
-            border-radius: 10px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .summary-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            flex-wrap: wrap;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #2e2716;
-        }
-        .summary-header-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            min-width: 0;
-            flex: 1;
-        }
-        .summary-order-id {
-            font-size: 17px;
-            font-weight: bold;
-            color: #e8dcc0;
-        }
-        .summary-order-meta {
-            font-size: 12.5px;
-            color: #8a8272;
-            line-height: 1.5;
-        }
-        .summary-stage-pill {
-            font-size: 11.5px;
-            font-weight: bold;
-            padding: 5px 12px;
-            border-radius: 20px;
-            background: #2a2108;
-            color: #e8dcc0;
-            border: 1px solid #7a6820;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .summary-stage-pill.locked {
-            background: #2a1e0a;
-            color: #ffb74d;
-            border-color: #7a5420;
-        }
-        .summary-stage-pill.done {
-            background: #1a2a1a;
-            color: #00e676;
-            border-color: #2a4530;
-        }
-        .summary-stage-pill.cancelled {
-            background: #2a1212;
-            color: #e57373;
-            border-color: #7a3030;
-        }
+        .summary-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; }
+        .summary-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; padding-bottom: 14px; border-bottom: 1px solid #2e2716; }
+        .summary-header-left { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+        .summary-order-id { font-size: 17px; font-weight: bold; color: #e8dcc0; }
+        .summary-order-meta { font-size: 12.5px; color: #8a8272; line-height: 1.5; }
+        .summary-stage-pill { font-size: 11.5px; font-weight: bold; padding: 5px 12px; border-radius: 20px; background: #2a2108; color: #e8dcc0; border: 1px solid #7a6820; white-space: nowrap; flex-shrink: 0; }
+        .summary-stage-pill.locked { background: #2a1e0a; color: #ffb74d; border-color: #7a5420; }
+        .summary-stage-pill.done { background: #1a2a1a; color: #00e676; border-color: #2a4530; }
+        .summary-stage-pill.cancelled { background: #2a1212; color: #e57373; border-color: #7a3030; }
 
-        .summary-section {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .summary-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: #8a8272;
-            font-weight: 700;
-        }
-        .summary-value {
-            font-size: 14px;
-            color: #f0e9d8;
-            line-height: 1.5;
-        }
-        .summary-remarks {
-            background: #17120a;
-            border: 1px solid #241e12;
-            border-left: 3px solid #7dd3fc;
-            border-radius: 6px;
-            padding: 10px 12px;
-            font-size: 12.5px;
-            color: #d8d2c0;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            word-break: break-word;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .summary-total {
-            background: #251d08;
-            border: 1px solid #7a6820;
-            border-radius: 6px;
-            padding: 12px 14px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .summary-total-label {
-            font-size: 13px;
-            color: #b8b0a0;
-            font-weight: 600;
-        }
-        .summary-total-value {
-            font-size: 20px;
-            color: #ffc000;
-            font-weight: bold;
-        }
+        .summary-section { display: flex; flex-direction: column; gap: 6px; }
+        .summary-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #8a8272; font-weight: 700; }
+        .summary-value { font-size: 14px; color: #f0e9d8; line-height: 1.5; }
+        .summary-remarks { background: #17120a; border: 1px solid #241e12; border-left: 3px solid #7dd3fc; border-radius: 6px; padding: 10px 12px; font-size: 12.5px; color: #d8d2c0; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .summary-total { background: #251d08; border: 1px solid #7a6820; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+        .summary-total-label { font-size: 13px; color: #b8b0a0; font-weight: 600; }
+        .summary-total-value { font-size: 20px; color: #ffc000; font-weight: bold; }
 
-        .summary-games-toggle {
-            background: #191309;
-            border: 1px solid #2e2716;
-            border-radius: 6px;
-            padding: 12px 14px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            font-size: 13.5px;
-            color: #f0e9d8;
-            font-weight: 600;
-            user-select: none;
-        }
+        .summary-games-toggle { background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13.5px; color: #f0e9d8; font-weight: 600; user-select: none; }
         .summary-games-toggle:hover { border-color: #3a3018; }
-        .summary-games-toggle .chev {
-            color: #b8b0a0;
-            font-size: 12px;
-            transition: transform 0.2s;
-        }
+        .summary-games-toggle .chev { color: #b8b0a0; font-size: 12px; transition: transform 0.2s; }
         .summary-games-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
-        .summary-games-list {
-            display: none;
-            flex-direction: column;
-            gap: 6px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 10px 4px 4px 4px;
-        }
+        .summary-games-list { display: none; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; padding: 10px 4px 4px 4px; }
         .summary-games-list.expanded { display: flex; }
-        .summary-game-item {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            background: #17120a;
-            border: 1px solid #241e12;
-            border-radius: 5px;
-            padding: 8px 10px;
-            font-size: 12.5px;
-        }
+        .summary-game-item { display: flex; justify-content: space-between; gap: 10px; background: #17120a; border: 1px solid #241e12; border-radius: 5px; padding: 8px 10px; font-size: 12.5px; }
         .summary-game-name { color: #f0e9d8; flex: 1; min-width: 0; word-break: break-word; }
         .summary-game-size { color: #ffc000; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
 
-        .summary-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            padding-top: 6px;
-        }
-        .summary-btn {
-            flex: 1 1 auto;
-            min-width: 140px;
-            min-height: 48px;
-            border-radius: 6px;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 14px;
-            cursor: pointer;
-            padding: 12px 18px;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-        .summary-btn.primary {
-            background: #ffc000;
-            color: #14110a;
-            border: 1px solid #ffc000;
-        }
-        .summary-btn.primary:hover { background: #e6ac00; border-color: #e6ac00; }
-        .summary-btn.secondary {
-            background: #2e2716;
-            color: #e8dcc0;
-            border: 1px solid #3a3018;
-        }
-        .summary-btn.secondary:hover {
-            background: #ffc000;
-            color: #14110a;
-            border-color: #ffc000;
-        }
-        .summary-btn.whatsapp {
-            background: #25D366;
-            color: #fff;
-            border: 1px solid #25D366;
-        }
-        .summary-btn.whatsapp:hover { background: #1eaa52; border-color: #1eaa52; }
-        .summary-btn.cancel {
-            background: transparent;
-            color: #e57373;
-            border: 1px solid #4a2525;
-        }
-        .summary-btn.cancel:hover {
-            background: #e57373;
-            color: #14110a;
-            border-color: #e57373;
-        }
+        /* ===== REPAIR SUMMARY ITEM ===== */
+        .summary-repair-item { display: flex; justify-content: space-between; gap: 10px; background: #17120a; border: 1px solid #241e12; border-left: 3px solid #ffb74d; border-radius: 5px; padding: 9px 11px; font-size: 12.5px; align-items: flex-start; }
+        .summary-repair-name { color: #f0e9d8; flex: 1; min-width: 0; word-break: break-word; line-height: 1.4; }
+        .summary-repair-name .repair-note { display: block; font-size: 11px; color: #8a8272; margin-top: 2px; }
+        .summary-repair-price { font-weight: bold; color: #ffc000; white-space: nowrap; flex-shrink: 0; }
+        .summary-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
 
-        .locked-notice {
-            background: #2a1e0a;
-            border: 1px solid #7a5420;
-            border-left: 4px solid #ffb74d;
-            border-radius: 6px;
-            padding: 12px 14px;
-            font-size: 12.5px;
-            color: #ffd9a0;
-            line-height: 1.55;
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .locked-notice-icon {
-            flex-shrink: 0;
-            font-size: 16px;
-            color: #ffb74d;
-            line-height: 1.3;
-        }
+        .summary-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 6px; }
+        .summary-btn { flex: 1 1 auto; min-width: 140px; min-height: 48px; border-radius: 6px; font-family: inherit; font-weight: bold; font-size: 14px; cursor: pointer; padding: 12px 18px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .summary-btn.primary { background: #ffc000; color: #14110a; border: 1px solid #ffc000; }
+        .summary-btn.primary:hover { background: #e6ac00; border-color: #e6ac00; }
+        .summary-btn.secondary { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; }
+        .summary-btn.secondary:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .summary-btn.whatsapp { background: #25D366; color: #fff; border: 1px solid #25D366; }
+        .summary-btn.whatsapp:hover { background: #1eaa52; border-color: #1eaa52; }
+        .summary-btn.cancel { background: transparent; color: #e57373; border: 1px solid #4a2525; }
+        .summary-btn.cancel:hover { background: #e57373; color: #14110a; border-color: #e57373; }
+
+        .locked-notice { background: #2a1e0a; border: 1px solid #7a5420; border-left: 4px solid #ffb74d; border-radius: 6px; padding: 12px 14px; font-size: 12.5px; color: #ffd9a0; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; }
+        .locked-notice-icon { flex-shrink: 0; font-size: 16px; color: #ffb74d; line-height: 1.3; }
         .locked-notice strong { color: #ffb74d; }
 
-        /* Cancelled banner (summary view) */
-        .cancelled-banner {
-            background: #3a1212;
-            border: 1px solid #7a3030;
-            border-left: 4px solid #e57373;
-            border-radius: 6px;
-            padding: 14px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .cancelled-banner .icon {
-            flex-shrink: 0;
-            color: #e57373;
-            line-height: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1px;
-        }
-        .cancelled-banner .msg {
-            font-size: 13.5px;
-            color: #f5cdcd;
-            line-height: 1.55;
-            flex: 1;
-            min-width: 0;
-        }
+        .cancelled-banner { background: #3a1212; border: 1px solid #7a3030; border-left: 4px solid #e57373; border-radius: 6px; padding: 14px; display: flex; align-items: flex-start; gap: 12px; }
+        .cancelled-banner .icon { flex-shrink: 0; color: #e57373; line-height: 0; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+        .cancelled-banner .msg { font-size: 13.5px; color: #f5cdcd; line-height: 1.55; flex: 1; min-width: 0; }
         .cancelled-banner .msg strong { color: #e57373; }
 
-        /* Completed banner (summary view) */
-        .completed-banner {
-            background: #1a2a1a;
-            border: 1px solid #2a4530;
-            border-left: 4px solid #00e676;
-            border-radius: 6px;
-            padding: 14px;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-        .completed-banner .icon {
-            flex-shrink: 0;
-            color: #00e676;
-            line-height: 0;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin-top: 1px;
-        }
-        .completed-banner .msg {
-            font-size: 13.5px;
-            color: #c3ffdb;
-            line-height: 1.55;
-            flex: 1;
-            min-width: 0;
-        }
+        .completed-banner { background: #1a2a1a; border: 1px solid #2a4530; border-left: 4px solid #00e676; border-radius: 6px; padding: 14px; display: flex; align-items: flex-start; gap: 12px; }
+        .completed-banner .icon { flex-shrink: 0; color: #00e676; line-height: 0; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
+        .completed-banner .msg { font-size: 13.5px; color: #c3ffdb; line-height: 1.55; flex: 1; min-width: 0; }
         .completed-banner .msg strong { color: #00e676; }
 
-        /* ===== MISSING ORDER NOTICE ===== */
-        .missing-order-notice {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: calc(100% - 28px);
-            max-width: 480px;
-            background: #1f190e;
-            border: 1px solid #3a3018;
-            border-left: 4px solid #ffb74d;
-            border-radius: 10px;
-            padding: 20px;
-            z-index: 200;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            box-sizing: border-box;
-        }
-        .missing-order-title {
-            font-size: 16px;
-            font-weight: bold;
-            color: #ffb74d;
-            line-height: 1.3;
-        }
-        .missing-order-body {
-            font-size: 13.5px;
-            color: #d8d2c0;
-            line-height: 1.6;
-        }
-        .missing-order-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding-top: 4px;
-        }
-        .missing-order-btn {
-            flex: 1 1 auto;
-            min-width: 140px;
-            min-height: 44px;
-            border-radius: 6px;
-            font-family: inherit;
-            font-weight: bold;
-            font-size: 13.5px;
-            cursor: pointer;
-            padding: 11px 16px;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            text-decoration: none;
-            border: none;
-        }
-        .missing-order-btn.whatsapp {
-            background: #25D366;
-            color: #fff;
-        }
+        .missing-order-notice { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(100% - 28px); max-width: 480px; background: #1f190e; border: 1px solid #3a3018; border-left: 4px solid #ffb74d; border-radius: 10px; padding: 20px; z-index: 200; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
+        .missing-order-title { font-size: 16px; font-weight: bold; color: #ffb74d; line-height: 1.3; }
+        .missing-order-body { font-size: 13.5px; color: #d8d2c0; line-height: 1.6; }
+        .missing-order-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
+        .missing-order-btn { flex: 1 1 auto; min-width: 140px; min-height: 44px; border-radius: 6px; font-family: inherit; font-weight: bold; font-size: 13.5px; cursor: pointer; padding: 11px 16px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; border: none; }
+        .missing-order-btn.whatsapp { background: #25D366; color: #fff; }
         .missing-order-btn.whatsapp:hover { background: #1eaa52; }
-        .missing-order-btn.secondary {
-            background: #2e2716;
-            color: #e8dcc0;
-            border: 1px solid #3a3018;
-        }
-        .missing-order-btn.secondary:hover {
-            background: #ffc000;
-            color: #14110a;
-            border-color: #ffc000;
-        }
+        .missing-order-btn.secondary { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; }
+        .missing-order-btn.secondary:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
-        /* ===== ORDER PICK LIST (multi-order) ===== */
-        .order-pick-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 4px;
-        }
-        .order-pick-item {
-            background: #221c10;
-            border: 1px solid #2e2716;
-            border-radius: 8px;
-            padding: 12px 14px;
-            cursor: pointer;
-            transition: border-color 0.15s, background-color 0.15s;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
+        .order-pick-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
+        .order-pick-item { background: #221c10; border: 1px solid #2e2716; border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; display: flex; flex-direction: column; gap: 6px; }
         .order-pick-item:hover { border-color: #5a4a20; }
         .order-pick-item:active { background: #2a2108; }
-        .order-pick-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .order-pick-id {
-            font-size: 14px;
-            font-weight: bold;
-            color: #ffc000;
-        }
-        .order-pick-stage-pill {
-            font-size: 10px;
-            font-weight: bold;
-            padding: 3px 9px;
-            border-radius: 10px;
-            background: #2a2108;
-            color: #e8dcc0;
-            border: 1px solid #7a6820;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-        .order-pick-stage-pill.in-progress {
-            background: #16202a;
-            color: #7dd3fc;
-            border-color: #3a5a72;
-        }
-        .order-pick-stage-pill.confirmed {
-            background: #2a1e0a;
-            color: #ffb74d;
-            border-color: #7a5420;
-        }
-        .order-pick-stage-pill.completed {
-            background: #1a2a1a;
-            color: #00e676;
-            border-color: #2a4530;
-        }
-        .order-pick-stage-pill.cancelled {
-            background: #2a1212;
-            color: #e57373;
-            border-color: #7a3030;
-        }
-        .order-pick-detail {
-            font-size: 12.5px;
-            color: #b8b0a0;
-            line-height: 1.5;
-        }
+        .order-pick-item-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+        .order-pick-id { font-size: 14px; font-weight: bold; color: #ffc000; }
+        .order-pick-stage-pill { font-size: 10px; font-weight: bold; padding: 3px 9px; border-radius: 10px; background: #2a2108; color: #e8dcc0; border: 1px solid #7a6820; white-space: nowrap; flex-shrink: 0; }
+        .order-pick-stage-pill.in-progress { background: #16202a; color: #7dd3fc; border-color: #3a5a72; }
+        .order-pick-stage-pill.confirmed { background: #2a1e0a; color: #ffb74d; border-color: #7a5420; }
+        .order-pick-stage-pill.completed { background: #1a2a1a; color: #00e676; border-color: #2a4530; }
+        .order-pick-stage-pill.cancelled { background: #2a1212; color: #e57373; border-color: #7a3030; }
+        .order-pick-detail { font-size: 12.5px; color: #b8b0a0; line-height: 1.5; }
         .order-pick-detail strong { color: #e8dcc0; }
-        .order-pick-date {
-            font-size: 11px;
-            color: #8a8272;
-        }
+        .order-pick-date { font-size: 11px; color: #8a8272; }
 
-        /* ===== FORM VIEW ===== */
         .form-view { display: block; }
         .form-view.hidden { display: none; }
 
-        /* ===== PRICING GUIDE ===== */
         .pricing-guide { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; margin-bottom: 18px; font-size: 13px; color: #c9c1af; }
         .pricing-guide summary { color: #e8dcc0; font-weight: bold; cursor: pointer; outline: none; padding: 4px 0; }
         .pricing-tiers { display: flex; justify-content: space-around; margin-top: 10px; gap: 8px; flex-wrap: wrap; text-align: center; }
@@ -619,7 +141,6 @@
         .pricing-col h4 { margin: 0 0 6px 0; color: #e8dcc0; font-size: 12.5px; }
         .pricing-col ul { margin: 0; padding-left: 16px; font-size: 12px; color: #b8b0a0; line-height: 1.5; }
 
-        /* ===== CONFIG CARD ===== */
         .config-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 14px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; scroll-margin-top: 14px; }
         .config-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-start; }
         .field-group { display: flex; flex-direction: column; flex: 1 1 100%; min-width: 0; }
@@ -629,104 +150,149 @@
             box-sizing: border-box; outline: none; transition: border-color 0.2s; font-family: inherit;
         }
         .phone-input:focus, .sd-select:focus, .service-select:focus,
-        .model-select:focus, .sd-source-select:focus, .free-storage-input:focus {
-            border-color: #ffc000;
-        }
+        .model-select:focus, .sd-source-select:focus, .free-storage-input:focus { border-color: #ffc000; }
         .sd-select, .service-select, .model-select, .sd-source-select {
             cursor: pointer; appearance: none; -webkit-appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffc000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat; background-position: right 12px center; background-size: 18px; padding-right: 38px;
         }
-        .sd-select option:disabled, .service-select option:disabled, .model-select option:disabled, .sd-source-select option:disabled { color: #666; }
         .free-storage-container { display: none; flex-direction: column; gap: 6px; width: 100%; }
-        .free-storage-input.required-missing, .phone-input.required-missing {
-            border: 2px solid #ff5252 !important; background-color: #2c1a1a !important;
-        }
+        .free-storage-input.required-missing, .phone-input.required-missing { border: 2px solid #ff5252 !important; background-color: #2c1a1a !important; }
         .phone-input { text-align: center; letter-spacing: 4px; font-weight: bold; }
 
         .phone-load-row { display: flex; gap: 8px; width: 100%; align-items: stretch; flex-wrap: nowrap; }
         .phone-load-row .phone-input { flex: 1 1 auto; min-width: 0; }
-        .load-order-btn {
-            flex: 0 0 auto; background-color: #2e2716; color: #7dd3fc;
-            border: 1px solid #3a3018; padding: 12px 14px; font-size: 13px; font-weight: 700;
-            border-radius: 6px; cursor: pointer; white-space: nowrap; font-family: inherit;
-            min-height: 46px; display: flex; align-items: center; gap: 6px;
-            transition: background-color 0.2s, color 0.2s, opacity 0.2s, border-color 0.2s;
-        }
+        .load-order-btn { flex: 0 0 auto; background-color: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: 12px 14px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer; white-space: nowrap; font-family: inherit; min-height: 46px; display: flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, opacity 0.2s, border-color 0.2s; }
         .load-order-btn:hover:not(:disabled) { background-color: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
         .load-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        .returning-hint {
-            background: #16202a; border: 1px solid #3a5a72; border-left: 3px solid #7dd3fc;
-            color: #cfe6ff; padding: 10px 12px; border-radius: 6px;
-            font-size: 12.5px; line-height: 1.5; margin-top: 8px;
-            display: flex; align-items: flex-start; gap: 8px;
-        }
+        .returning-hint { background: #16202a; border: 1px solid #3a5a72; border-left: 3px solid #7dd3fc; color: #cfe6ff; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; line-height: 1.5; margin-top: 8px; display: flex; align-items: flex-start; gap: 8px; }
         .returning-hint .hint-icon { font-size: 15px; flex-shrink: 0; line-height: 1.4; color: #7dd3fc; }
         .returning-hint strong { color: #7dd3fc; }
 
-        .edit-mode-banner {
-            background: #2a2108; border: 1px solid #7a6820; border-left: 3px solid #ffc000;
-            color: #ffe9a8; padding: 10px 12px; border-radius: 6px;
-            font-size: 12.5px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px;
-        }
+        .edit-mode-banner { background: #2a2108; border: 1px solid #7a6820; border-left: 3px solid #ffc000; color: #ffe9a8; padding: 10px 12px; border-radius: 6px; font-size: 12.5px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px; }
         .edit-mode-banner .edit-icon { font-size: 15px; flex-shrink: 0; line-height: 1.4; }
         .edit-mode-banner strong { color: #ffc000; }
 
         .clear-games-row { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
-        .clear-btn {
-            flex: 1 1 auto; justify-content: center;
-            background-color: #2a2014; color: #e57373;
-            border: 1px solid #3a3018; padding: 12px 14px; font-size: 13.5px; font-weight: bold;
-            border-radius: 6px; cursor: pointer; font-family: inherit;
-            min-height: 46px; display: inline-flex; align-items: center; gap: 6px;
-            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-        }
+        .clear-btn { flex: 1 1 auto; justify-content: center; background-color: #2a2014; color: #e57373; border: 1px solid #3a3018; padding: 12px 14px; font-size: 13.5px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 46px; display: inline-flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
         .clear-btn:hover { background-color: #e57373; color: #14110a; border-color: #e57373; }
 
-        .guide-btn {
-            background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018;
-            padding: 9px 12px; border-radius: 6px; font-size: 12px; font-weight: bold;
-            cursor: pointer; margin-top: 2px; font-family: inherit; align-self: flex-start;
-            transition: all 0.2s;
-        }
+        .guide-btn { background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: 9px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 2px; font-family: inherit; align-self: flex-start; transition: all 0.2s; }
         .guide-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
-        .storage-guide-box {
-            display: none; background: #201904; border: 1px solid #7a6820;
-            border-radius: 6px; padding: 12px; font-size: 12.5px; color: #d8d2c0;
-            line-height: 1.5; margin-top: 5px;
-        }
+        .storage-guide-box { display: none; background: #201904; border: 1px solid #7a6820; border-radius: 6px; padding: 12px; font-size: 12.5px; color: #d8d2c0; line-height: 1.5; margin-top: 5px; }
         .storage-guide-box h4 { margin: 0 0 8px 0; color: #e8dcc0; font-size: 13px; }
         .storage-guide-box p { margin: 8px 0; }
 
         .field-hint { font-size: 11px; color: #8a8272; margin-top: 4px; line-height: 1.35; }
-        .storage-warning-banner {
-            background: #2a1e0a; border: 1px solid #7a5420; color: #ffd9a0;
-            padding: 12px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px;
-            display: flex; align-items: flex-start; gap: 10px; line-height: 1.45;
-        }
+        .storage-warning-banner { background: #2a1e0a; border: 1px solid #7a5420; color: #ffd9a0; padding: 12px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.45; }
         .storage-warning-banner .warning-icon { font-size: 18px; flex-shrink: 0; }
-        .tier-warning-banner {
-            background: #2d2612; border: 1px solid #7a6820; color: #fff8e1;
-            padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px;
-            display: none; align-items: flex-start; gap: 10px; line-height: 1.45;
+        .tier-warning-banner { background: #2d2612; border: 1px solid #7a6820; color: #fff8e1; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: none; align-items: flex-start; gap: 10px; line-height: 1.45; }
+
+        /* ===== REPAIR SECTION ===== */
+        .repair-section-card {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            border-left: 4px solid #ffb74d;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 18px;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
         }
+        .repair-section-card.show { display: flex; }
+        .repair-section-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .repair-section-title { font-size: 14px; font-weight: bold; color: #e8dcc0; display: flex; align-items: center; gap: 8px; }
+        .repair-section-title .repair-icon { font-size: 18px; color: #ffb74d; }
+        .repair-section-subtitle { font-size: 12px; color: #8a8272; line-height: 1.5; margin-top: -4px; }
+        .repair-toggle-btn {
+            background: #2e2716; color: #ffb74d; border: 1px solid #3a3018;
+            padding: 8px 14px; border-radius: 6px; cursor: pointer;
+            font-size: 12.5px; font-weight: bold; font-family: inherit;
+            display: inline-flex; align-items: center; gap: 6px;
+            transition: all 0.2s; white-space: nowrap;
+        }
+        .repair-toggle-btn:hover { background: #ffb74d; color: #14110a; border-color: #ffb74d; }
+        .repair-body {
+            display: none;
+            flex-direction: column;
+            gap: 14px;
+            padding-top: 8px;
+            border-top: 1px solid #2e2716;
+        }
+        .repair-body.expanded { display: flex; }
+
+        .repair-model-warning {
+            background: #2a1e0a; border: 1px solid #7a5420;
+            color: #ffd9a0; padding: 10px 12px; border-radius: 6px;
+            font-size: 12.5px; line-height: 1.5;
+            display: flex; align-items: flex-start; gap: 8px;
+        }
+        .repair-model-warning strong { color: #ffb74d; }
+
+        .repair-category-group {
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .repair-category-header {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.7px;
+            color: #8a8272; font-weight: 700; padding: 8px 2px 2px 2px;
+            border-bottom: 1px solid #2e2716;
+        }
+        .repair-item {
+            display: flex; align-items: flex-start; gap: 12px;
+            background: #221c10; border: 1px solid #2e2716;
+            border-radius: 6px; padding: 11px 13px;
+            cursor: pointer; transition: border-color 0.15s, background-color 0.15s;
+            min-height: 46px;
+        }
+        .repair-item:hover { border-color: #5a4a20; }
+        .repair-item.selected { border-color: #ffb74d; background: #2a2108; }
+        .repair-item input[type="checkbox"] {
+            transform: scale(1.35); accent-color: #ffb74d;
+            cursor: pointer; flex-shrink: 0; margin-top: 3px;
+        }
+        .repair-item-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+        .repair-item-name { font-size: 13.5px; color: #f0e9d8; font-weight: 600; word-break: break-word; line-height: 1.35; }
+        .repair-item-note { font-size: 11.5px; color: #8a8272; line-height: 1.4; font-style: italic; }
+        .repair-item-price { font-size: 13px; color: #ffc000; font-weight: bold; white-space: nowrap; flex-shrink: 0; align-self: flex-start; margin-top: 1px; }
+        .repair-item-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
+
+        .repair-summary-bar {
+            background: #251d08; border: 1px solid #7a6820;
+            border-radius: 6px; padding: 10px 12px;
+            font-size: 12.5px; color: #f0e9d8;
+            display: flex; justify-content: space-between; align-items: center;
+            gap: 10px; flex-wrap: wrap;
+        }
+        .repair-summary-bar .rsb-label { font-weight: 600; }
+        .repair-summary-bar .rsb-total { font-weight: bold; color: #ffc000; font-size: 14px; }
+        .repair-summary-bar .rsb-quote { color: #ffb74d; font-style: italic; font-size: 11.5px; }
+        .repair-summary-bar .rsb-clear {
+            background: transparent; color: #e57373;
+            border: 1px solid #4a2525; padding: 5px 10px;
+            border-radius: 4px; cursor: pointer;
+            font-size: 11.5px; font-weight: bold; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .repair-summary-bar .rsb-clear:hover { background: #e57373; color: #14110a; border-color: #e57373; }
+
+        .repair-soft-warning {
+            background: #2d2212; border: 1px solid #7a4a1a;
+            border-left: 3px solid #ffb74d;
+            color: #ffd9a0; padding: 10px 12px; border-radius: 6px;
+            font-size: 12.5px; line-height: 1.5;
+            display: none; align-items: flex-start; gap: 8px;
+        }
+        .repair-soft-warning.show { display: flex; }
+        .repair-soft-warning strong { color: #ffb74d; }
 
         /* ===== SEARCH & GAME LIST ===== */
         .search-container { margin-bottom: 15px; display: flex; flex-direction: column; }
         .search-input-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-        .search-box {
-            width: 100%; padding: 12px 40px 12px 14px; font-size: 16px;
-            border-radius: 6px; border: 1px solid #3a3018; background: #1f190e;
-            color: #f0e9d8; box-sizing: border-box; outline: none; font-family: inherit;
-            transition: border-color 0.2s;
-        }
+        .search-box { width: 100%; padding: 12px 40px 12px 14px; font-size: 16px; border-radius: 6px; border: 1px solid #3a3018; background: #1f190e; color: #f0e9d8; box-sizing: border-box; outline: none; font-family: inherit; transition: border-color 0.2s; }
         .search-box:focus { border-color: #ffc000; }
-        .clear-search-btn {
-            position: absolute; right: 10px; background: none; border: none;
-            color: #8a8272; font-size: 24px; cursor: pointer; display: none;
-            padding: 4px 8px; line-height: 1; min-height: 40px; min-width: 40px;
-        }
+        .clear-search-btn { position: absolute; right: 10px; background: none; border: none; color: #8a8272; font-size: 24px; cursor: pointer; display: none; padding: 4px 8px; line-height: 1; min-height: 40px; min-width: 40px; }
         .clear-search-btn:hover { color: #f0e9d8; }
 
         .modes-container { display: flex; flex-direction: column; gap: 10px; padding-top: 10px; border-top: 1px solid #2e2716; }
@@ -736,504 +302,135 @@
         .mode-checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 14px; color: #c9c1af; cursor: pointer; padding: 6px 0; min-height: 32px; }
         .mode-checkbox-label input[type="checkbox"] { transform: scale(1.3); }
 
-        .modes-locked-notice {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 10px 12px;
-            background: #2a1e0a;
-            border: 1px solid #7a5420;
-            border-left: 3px solid #ffb74d;
-            border-radius: 6px;
-            font-size: 12.5px;
-            color: #ffd9a0;
-            line-height: 1.5;
-        }
+        .modes-locked-notice { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: #2a1e0a; border: 1px solid #7a5420; border-left: 3px solid #ffb74d; border-radius: 6px; font-size: 12.5px; color: #ffd9a0; line-height: 1.5; }
         .modes-locked-notice strong { color: #ffb74d; }
-        .modes-locked-icon {
-            color: #ffb74d;
-            font-size: 15px;
-            flex-shrink: 0;
-            line-height: 1.4;
-        }
-        .mode-checkbox-label input[type="checkbox"]:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
+        .modes-locked-icon { color: #ffb74d; font-size: 15px; flex-shrink: 0; line-height: 1.4; }
+        .mode-checkbox-label input[type="checkbox"]:disabled { opacity: 0.4; cursor: not-allowed; }
         .mode-wrapper.mode-disabled { opacity: 0.55; }
         .mode-wrapper.mode-disabled .mode-checkbox-label { cursor: not-allowed; }
 
-        .storage-breakdown {
-            font-size: 12px; color: #e8dcc0; width: 100%; background: #17120a;
-            padding: 10px 12px; border-radius: 4px; border: 1px solid #241e12;
-            line-height: 1.6; box-sizing: border-box; word-break: break-word;
-            min-height: 40px;
-            display: flex;
-            align-items: center;
-        }
+        .storage-breakdown { font-size: 12px; color: #e8dcc0; width: 100%; background: #17120a; padding: 10px 12px; border-radius: 4px; border: 1px solid #241e12; line-height: 1.6; box-sizing: border-box; word-break: break-word; min-height: 40px; display: flex; align-items: center; }
         .storage-breakdown > * { width: 100%; }
 
-        .status-msg {
-            text-align: center; font-size: 13.5px; color: #e8dcc0;
-            margin-bottom: 15px; min-height: 20px; transition: opacity 0.4s ease;
-        }
+        .status-msg { text-align: center; font-size: 13.5px; color: #e8dcc0; margin-bottom: 15px; min-height: 20px; transition: opacity 0.4s ease; }
         .status-msg.fading { opacity: 0; }
 
-        .jailbreak-notice-card {
-            background: #2a2108; border: 1px solid #7a6820; border-radius: 8px;
-            padding: 18px; text-align: center; margin-bottom: 18px;
-        }
+        .jailbreak-notice-card { background: #2a2108; border: 1px solid #7a6820; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 18px; }
         .jailbreak-notice-card h3 { margin-top: 0; color: #e8dcc0; font-size: 16px; line-height: 1.3; }
         .jailbreak-notice-card p { color: #b8b0a0; font-size: 13px; line-height: 1.5; margin-bottom: 15px; }
-        .browse-games-btn {
-            background-color: #ffc000; color: #14110a; border: none;
-            padding: 12px 22px; font-size: 15px; font-weight: bold; border-radius: 6px;
-            cursor: pointer; font-family: inherit; min-height: 46px; width: 100%; max-width: 320px;
-        }
+        .browse-games-btn { background-color: #ffc000; color: #14110a; border: none; padding: 12px 22px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 46px; width: 100%; max-width: 320px; }
         .browse-games-btn:hover { background-color: #e6ac00; }
 
         .game-section-wrapper { display: block; position: relative; }
         .game-section-wrapper.locked { opacity: 0.4; pointer-events: none; user-select: none; }
         .game-list { display: grid; gap: 10px; }
-        .game-card {
-            background: #221c10; padding: 14px; border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center; gap: 12px;
-            border: 1px solid #2e2716; cursor: pointer;
-            transition: border-color 0.15s, background-color 0.15s; min-height: 52px;
-            will-change: border-color, background-color;
-        }
+        .game-card { background: #221c10; padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #2e2716; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 52px; will-change: border-color, background-color; }
         .game-card.selected { border-color: #ffc000; background: #2a2108; }
         .game-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
         .game-title { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.35; color: #f0e9d8; }
         .game-size { color: #ffc000; font-size: 0.9em; white-space: nowrap; font-weight: 600; flex-shrink: 0; }
         input[type="checkbox"] { transform: scale(1.4); accent-color: #ffc000; cursor: pointer; flex-shrink: 0; }
 
-        .hidden-games-notice {
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            background: #2a2412; border: 1px solid #7a6820; border-left: 3px solid #ffc000;
-            border-radius: 6px; padding: 10px 12px; font-size: 12.5px; color: #ffd97a;
-            line-height: 1.45; margin-bottom: 8px; flex-wrap: wrap;
-        }
+        .hidden-games-notice { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #2a2412; border: 1px solid #7a6820; border-left: 3px solid #ffc000; border-radius: 6px; padding: 10px 12px; font-size: 12.5px; color: #ffd97a; line-height: 1.45; margin-bottom: 8px; flex-wrap: wrap; }
         .hidden-notice-text { display: flex; align-items: flex-start; gap: 8px; min-width: 0; flex: 1; }
         .hidden-notice-icon { font-size: 15px; flex-shrink: 0; line-height: 1.4; }
         .hidden-notice-text strong { color: #ffc000; }
-        .hidden-notice-toggle {
-            background: transparent; color: #e8dcc0; border: 1px solid #3a3018;
-            padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-size: 11.5px; font-weight: bold; font-family: inherit; white-space: nowrap;
-            transition: all 0.2s; flex-shrink: 0;
-        }
+        .hidden-notice-toggle { background: transparent; color: #e8dcc0; border: 1px solid #3a3018; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; font-family: inherit; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
         .hidden-notice-toggle:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
         .hidden-games-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
-        .game-card.hidden-game {
-            background: #1a1508; border: 1px dashed #3a3018;
-            opacity: 0.55; cursor: not-allowed; pointer-events: none;
-        }
+        .game-card.hidden-game { background: #1a1508; border: 1px dashed #3a3018; opacity: 0.55; cursor: not-allowed; pointer-events: none; }
         .game-card.hidden-game .game-title { color: #8a8272; }
         .game-lock-icon { font-size: 15px; flex-shrink: 0; line-height: 1; opacity: 0.7; }
 
-        /* ===== CHECKOUT BAR ===== */
-        .checkout-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #221c10; border-top: 1px solid #3a3018;
-            padding: 12px 14px; box-sizing: border-box;
-            display: flex; flex-direction: column; gap: 10px;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.5); z-index: 100;
-        }
+        .checkout-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #221c10; border-top: 1px solid #3a3018; padding: 12px 14px; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 -4px 10px rgba(0,0,0,0.5); z-index: 100; }
         .checkout-bar.hidden { display: none; }
         .checkout-info { font-size: 13.5px; cursor: pointer; line-height: 1.45; text-align: center; color: #f0e9d8; }
-        .checkout-nudge-action {
-            color: #ffb74d;
-            font-weight: bold;
-        }
-        .submit-btn {
-            background-color: #ffc000; color: #14110a; border: none;
-            padding: 14px 20px; font-size: 16px; font-weight: bold;
-            border-radius: 6px; cursor: pointer; font-family: inherit;
-            width: 100%; min-height: 48px; transition: background 0.2s;
-        }
+        .checkout-nudge-action { color: #ffb74d; font-weight: bold; }
+        .submit-btn { background-color: #ffc000; color: #14110a; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; width: 100%; min-height: 48px; transition: background 0.2s; }
         .submit-btn:hover { background-color: #e6ac00; }
         .submit-btn:disabled { background-color: #4a4020; color: #888; cursor: not-allowed; }
 
-        /* ===== POST-SAVE PANEL ===== */
-        .post-save-panel {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #1a2a1a;
-            border-top: 2px solid #00e676;
-            padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px));
-            z-index: 110;
-            box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6);
-            animation: postSaveSlideUp 0.3s ease-out;
-        }
-        @keyframes postSaveSlideUp {
-            from { transform: translateY(100%); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
-        .post-save-card {
-            max-width: 900px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .post-save-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #00e676;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .post-save-title::before {
-            content: '\2713';
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 20px; height: 20px;
-            background: #00e676;
-            color: #14110a;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .post-save-desc {
-            font-size: 12.5px;
-            color: #c3ffdb;
-            line-height: 1.5;
-        }
-        .post-save-links {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .post-save-link-row {
-            display: flex;
-            align-items: stretch;
-            gap: 6px;
-        }
-        .post-save-link-label {
-            flex: 0 0 auto;
-            align-self: center;
-            font-size: 11px;
-            color: #8fc9a3;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 700;
-            min-width: 84px;
-        }
-        .post-save-input {
-            flex: 1 1 auto;
-            min-width: 0;
-            padding: 9px 12px;
-            background: #0f1a0f;
-            border: 1px solid #2a4530;
-            color: #7ee39b;
-            border-radius: 5px;
-            font-size: 11.5px;
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-            outline: none;
-            box-sizing: border-box;
-        }
-        .post-save-copy-btn {
-            flex: 0 0 auto;
-            background: #00e676;
-            color: #14110a;
-            border: none;
-            padding: 9px 14px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: bold;
-            font-family: inherit;
-            white-space: nowrap;
-            transition: background 0.2s;
-        }
+        .post-save-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a2a1a; border-top: 2px solid #00e676; padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 110; box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6); animation: postSaveSlideUp 0.3s ease-out; }
+        @keyframes postSaveSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .post-save-card { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+        .post-save-title { font-size: 15px; font-weight: bold; color: #00e676; display: flex; align-items: center; gap: 8px; }
+        .post-save-title::before { content: '\2713'; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #00e676; color: #14110a; border-radius: 50%; font-size: 12px; font-weight: bold; }
+        .post-save-desc { font-size: 12.5px; color: #c3ffdb; line-height: 1.5; }
+        .post-save-links { display: flex; flex-direction: column; gap: 8px; }
+        .post-save-link-row { display: flex; align-items: stretch; gap: 6px; }
+        .post-save-link-label { flex: 0 0 auto; align-self: center; font-size: 11px; color: #8fc9a3; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; min-width: 84px; }
+        .post-save-input { flex: 1 1 auto; min-width: 0; padding: 9px 12px; background: #0f1a0f; border: 1px solid #2a4530; color: #7ee39b; border-radius: 5px; font-size: 11.5px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; outline: none; box-sizing: border-box; }
+        .post-save-copy-btn { flex: 0 0 auto; background: #00e676; color: #14110a; border: none; padding: 9px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; white-space: nowrap; transition: background 0.2s; }
         .post-save-copy-btn:hover { background: #00c853; }
-        .post-save-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .post-save-track-btn {
-            flex: 1 1 auto;
-            text-align: center;
-            background: #2e2716;
-            color: #e8dcc0;
-            border: 1px solid #3a3018;
-            padding: 11px 16px;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13.5px;
-            text-decoration: none;
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-        }
+        .post-save-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .post-save-track-btn { flex: 1 1 auto; text-align: center; background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; padding: 11px 16px; border-radius: 6px; font-weight: bold; font-size: 13.5px; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s, border-color 0.2s; }
         .post-save-track-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-        .post-save-close-btn {
-            flex: 0 0 auto;
-            background: transparent;
-            color: #a8c4b0;
-            border: 1px solid #2a4530;
-            padding: 11px 18px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13.5px;
-            font-family: inherit;
-            cursor: pointer;
-            transition: all 0.2s;
-            min-height: 44px;
-        }
+        .post-save-close-btn { flex: 0 0 auto; background: transparent; color: #a8c4b0; border: 1px solid #2a4530; padding: 11px 18px; border-radius: 6px; font-weight: 600; font-size: 13.5px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-height: 44px; }
         .post-save-close-btn:hover { border-color: #00e676; color: #00e676; }
 
-        /* ===== MODALS ===== */
-        .modal {
-            display: none; position: fixed; z-index: 1000;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%;
-            height: 100vh;
-            height: 100dvh;
-            background-color: rgba(0,0,0,0.85);
-            justify-content: center; align-items: center;
-            padding: 12px; box-sizing: border-box;
-            overscroll-behavior: contain;
-        }
-        .modal-content {
-            background: #221c10; border-radius: 8px;
-            width: 100%; max-width: 520px;
-            max-height: 92vh;
-            max-height: 92dvh;
-            display: flex; flex-direction: column;
-            border: 1px solid #3a3018; box-sizing: border-box;
-            overflow: hidden;
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid #3a3018; padding: 14px 16px;
-            flex-shrink: 0; gap: 10px;
-        }
+        .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; padding: 12px; box-sizing: border-box; overscroll-behavior: contain; }
+        .modal-content { background: #221c10; border-radius: 8px; width: 100%; max-width: 520px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; border: 1px solid #3a3018; box-sizing: border-box; overflow: hidden; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding: 14px 16px; flex-shrink: 0; gap: 10px; }
         .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; line-height: 1.3; word-break: break-word; }
-        .close-modal {
-            background: none; border: none; color: #f0e9d8; font-size: 28px;
-            cursor: pointer; line-height: 1; padding: 0 6px;
-            min-height: 40px; min-width: 40px; flex-shrink: 0;
-        }
+        .close-modal { background: none; border: none; color: #f0e9d8; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 6px; min-height: 40px; min-width: 40px; flex-shrink: 0; }
+        .modal-body { overflow-y: auto; flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        #cartModalBody { display: flex; flex-direction: column; gap: 16px; }
+        .modal-section-title { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #e8dcc0; font-weight: 700; margin-bottom: -4px; padding-bottom: 6px; border-bottom: 1px solid #2e2716; }
 
-        .modal-body {
-            overflow-y: auto; flex-grow: 1;
-            padding: 16px;
-            display: flex; flex-direction: column; gap: 16px;
-            -webkit-overflow-scrolling: touch;
-            overscroll-behavior: contain;
-        }
-        #cartModalBody {
-            display: flex; flex-direction: column; gap: 16px;
-        }
-
-        .modal-section-title {
-            font-size: 11.5px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: #e8dcc0;
-            font-weight: 700;
-            margin-bottom: -4px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #2e2716;
-        }
-
-        /* ===== CART ITEMS ===== */
-        .cart-item {
-            display: flex; justify-content: space-between; align-items: center; gap: 10px;
-            background: #2e2716; padding: 12px 14px; border-radius: 6px; font-size: 13px;
-        }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; gap: 10px; background: #2e2716; padding: 12px 14px; border-radius: 6px; font-size: 13px; }
         .cart-item.fixed-item { background: #251d08; border: 1px solid #7a6820; }
+        .cart-item.repair-cart-item { background: #2a1e0a; border-left: 3px solid #ffb74d; }
         .cart-item-details { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
         .cart-item-title { font-weight: 600; color: #f0e9d8; word-break: break-word; line-height: 1.35; }
         .cart-item-sub { font-size: 11.5px; color: #b8b0a0; line-height: 1.35; }
         .cart-item > span:first-child { flex: 1 1 auto; min-width: 0; word-break: break-word; line-height: 1.4; color: #f0e9d8; }
         .cart-item > .remove-btn { flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
-        .lock-badge {
-            font-size: 11px; color: #e8dcc0; background: rgba(0,230,118,0.1);
-            padding: 4px 9px; border-radius: 4px; font-weight: bold; white-space: nowrap;
-        }
-        .remove-btn {
-            background: transparent; color: #e57373; border: 1px solid #4a2525;
-            padding: 8px 12px; border-radius: 4px; cursor: pointer;
-            font-size: 12px; font-weight: bold; font-family: inherit;
-            min-height: 36px; white-space: nowrap;
-            transition: background 0.2s, color 0.2s, border-color 0.2s;
-        }
+        .lock-badge { font-size: 11px; color: #e8dcc0; background: rgba(0,230,118,0.1); padding: 4px 9px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
+        .remove-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; min-height: 36px; white-space: nowrap; transition: background 0.2s, color 0.2s, border-color 0.2s; }
         .remove-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
-        /* ===== NATIVE COLLAPSIBLE ===== */
-        .cart-details {
-            background: #191309;
-            border: 1px solid #2e2716;
-            border-radius: 6px;
-        }
+        .cart-details { background: #191309; border: 1px solid #2e2716; border-radius: 6px; }
         .cart-details[open] { border-color: #3a3018; }
-        .cart-details-summary {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            padding: 14px;
-            cursor: pointer;
-            font-size: 13.5px;
-            color: #f0e9d8;
-            font-weight: 600;
-            user-select: none;
-            list-style: none;
-            transition: background 0.2s;
-            border-radius: 6px;
-        }
+        .cart-details-summary { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px; cursor: pointer; font-size: 13.5px; color: #f0e9d8; font-weight: 600; user-select: none; list-style: none; transition: background 0.2s; border-radius: 6px; }
         .cart-details-summary::-webkit-details-marker { display: none; }
         .cart-details-summary::marker { display: none; }
         .cart-details-summary:hover { background: #201808; }
-        .cart-details-summary .chev {
-            color: #b8b0a0;
-            font-size: 12px;
-            transition: transform 0.2s;
-        }
+        .cart-details-summary .chev { color: #b8b0a0; font-size: 12px; transition: transform 0.2s; }
         .cart-details[open] .cart-details-summary .chev { transform: rotate(180deg); }
-        .cart-details-body {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding: 0 14px 14px 14px;
-            max-height: 320px;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-        }
+        .cart-details-body { display: flex; flex-direction: column; gap: 8px; padding: 0 14px 14px 14px; max-height: 320px; overflow-y: auto; overscroll-behavior: contain; }
 
-        /* ===== SHARE LINK ===== */
-        .share-link-prominent {
-            background: #16202a;
-            border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc;
-            border-radius: 6px; padding: 12px;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        .share-link-prominent-title {
-            display: flex; align-items: center; gap: 6px;
-            font-size: 12.5px; font-weight: 700; color: #7dd3fc;
-            text-transform: uppercase; letter-spacing: 0.5px;
-        }
+        .share-link-prominent { background: #16202a; border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc; border-radius: 6px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .share-link-prominent-title { display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 700; color: #7dd3fc; text-transform: uppercase; letter-spacing: 0.5px; }
         .share-link-desc { font-size: 11.5px; color: #cfe6ff; line-height: 1.4; }
         .share-link-row { display: flex; gap: 6px; align-items: stretch; width: 100%; }
-        .share-link-input {
-            flex: 1 1 auto; min-width: 0; padding: 10px 12px;
-            background: #0d1620; border: 1px solid #3a5a72;
-            color: #7dd3fc; border-radius: 6px; font-size: 12px;
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
-            outline: none; box-sizing: border-box;
-        }
-        .copy-link-btn {
-            flex: 0 0 auto; background: #7dd3fc; color: #14110a;
-            border: none; padding: 10px 16px; border-radius: 6px;
-            cursor: pointer; font-size: 12.5px; font-weight: bold;
-            font-family: inherit; white-space: nowrap; min-height: 40px;
-            transition: background 0.2s, color 0.2s;
-        }
+        .share-link-input { flex: 1 1 auto; min-width: 0; padding: 10px 12px; background: #0d1620; border: 1px solid #3a5a72; color: #7dd3fc; border-radius: 6px; font-size: 12px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; outline: none; box-sizing: border-box; }
+        .copy-link-btn { flex: 0 0 auto; background: #7dd3fc; color: #14110a; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: bold; font-family: inherit; white-space: nowrap; min-height: 40px; transition: background 0.2s, color 0.2s; }
         .copy-link-btn:hover { background: #a4e2fc; }
 
-        /* ===== PRICE BREAKDOWN ===== */
-        .price-breakdown-box {
-            background: #191309; border: 1px solid #2e2716;
-            border-radius: 6px; padding: 12px; font-size: 12.5px;
-            display: flex; flex-direction: column; gap: 6px;
-        }
-        .price-breakdown-row {
-            display: flex; justify-content: space-between; gap: 10px;
-            color: #b8b0a0; line-height: 1.4;
-        }
+        .price-breakdown-box { background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
+        .price-breakdown-row { display: flex; justify-content: space-between; gap: 10px; color: #b8b0a0; line-height: 1.4; }
         .price-breakdown-row span:first-child { min-width: 0; word-break: break-word; }
         .price-breakdown-row span:last-child { white-space: nowrap; flex-shrink: 0; }
-        .price-breakdown-row.total-row {
-            border-top: 1px solid #3a3018; padding-top: 8px; margin-top: 2px;
-            color: #f0e9d8; font-weight: bold; font-size: 16px;
-        }
+        .price-breakdown-row.total-row { border-top: 1px solid #3a3018; padding-top: 8px; margin-top: 2px; color: #f0e9d8; font-weight: bold; font-size: 16px; }
+        .price-breakdown-row.quote-row span:last-child { color: #ffb74d; font-style: italic; font-weight: 600; }
+        .price-breakdown-row.repair-row span:first-child { color: #ffd9a0; }
 
-        /* ===== PAYMENT REASSURANCE ===== */
-        .payment-note {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 10px 12px;
-            background: #1a2a1a;
-            border: 1px solid #2a4530;
-            border-radius: 6px;
-            font-size: 12.5px;
-            color: #c3ffdb;
-            line-height: 1.5;
-        }
-        .payment-note-icon {
-            color: #00e676;
-            font-size: 14px;
-            flex-shrink: 0;
-            line-height: 1.4;
-            font-weight: bold;
-        }
+        .payment-note { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: #1a2a1a; border: 1px solid #2a4530; border-radius: 6px; font-size: 12.5px; color: #c3ffdb; line-height: 1.5; }
+        .payment-note-icon { color: #00e676; font-size: 14px; flex-shrink: 0; line-height: 1.4; font-weight: bold; }
 
-        /* ===== STICKY FOOTER FOR SAVE BUTTON ===== */
-        .modal-sticky-footer {
-            position: sticky;
-            bottom: 0;
-            padding-top: 12px;
-            margin-top: -4px;
-            background: linear-gradient(to bottom,
-                rgba(34, 28, 16, 0) 0%,
-                rgba(34, 28, 16, 0.9) 20%,
-                #221c10 50%);
-            padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
-            z-index: 5;
-        }
+        .modal-sticky-footer { position: sticky; bottom: 0; padding-top: 12px; margin-top: -4px; background: linear-gradient(to bottom, rgba(34, 28, 16, 0) 0%, rgba(34, 28, 16, 0.9) 20%, #221c10 50%); padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px)); z-index: 5; }
 
-        .remarks-input {
-            width: 100%; padding: 12px; background: #2e2716;
-            border: 1px solid #4a4020; color: #f0e9d8; border-radius: 6px;
-            font-size: 15px; box-sizing: border-box; resize: vertical;
-            min-height: 80px; font-family: inherit; outline: none;
-            transition: border-color 0.2s;
-        }
+        .remarks-input { width: 100%; padding: 12px; background: #2e2716; border: 1px solid #4a4020; color: #f0e9d8; border-radius: 6px; font-size: 15px; box-sizing: border-box; resize: vertical; min-height: 80px; font-family: inherit; outline: none; transition: border-color 0.2s; }
         .remarks-input:focus { border-color: #ffc000; }
 
-        /* ===== ALERT BOXES ===== */
-        .modal-alert {
-            padding: 10px 14px;
-            border-radius: 6px;
-            font-size: 12.5px;
-            line-height: 1.55;
-            display: none;
-            word-break: break-word;
-            white-space: normal;
-        }
-        .modal-alert.warning {
-            background: #2d2612;
-            border: 1px solid #7a6820;
-            border-left: 3px solid #ffc000;
-            color: #fff8e1;
-        }
+        .modal-alert { padding: 10px 14px; border-radius: 6px; font-size: 12.5px; line-height: 1.55; display: none; word-break: break-word; white-space: normal; }
+        .modal-alert.warning { background: #2d2612; border: 1px solid #7a6820; border-left: 3px solid #ffc000; color: #fff8e1; }
         .modal-alert.warning strong { color: #e8dcc0; }
-        .modal-alert.danger {
-            background: #2d2212;
-            border: 1px solid #7a4a1a;
-            border-left: 3px solid #ffb74d;
-            color: #ffd9a0;
-        }
+        .modal-alert.danger { background: #2d2212; border: 1px solid #7a4a1a; border-left: 3px solid #ffb74d; color: #ffd9a0; }
         .modal-alert.danger strong { color: #ffb74d; }
 
-        /* ===== LOAD CHOICE MODAL ===== */
         .load-choice-content { max-width: 460px; }
-        .load-choice-btn {
-            display: flex; align-items: center; gap: 14px;
-            padding: 14px 16px; border-radius: 8px; cursor: pointer;
-            font-family: inherit; text-align: left; min-height: 62px;
-            width: 100%;
-            transition: background 0.2s, border-color 0.2s;
-        }
+        .load-choice-btn { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 8px; cursor: pointer; font-family: inherit; text-align: left; min-height: 62px; width: 100%; transition: background 0.2s, border-color 0.2s; }
         .load-choice-btn.edit { background: #2a2108; border: 1px solid #7a6820; color: #ffe9a8; }
         .load-choice-btn.edit:hover { background: #3a2d0a; border-color: #ffc000; }
         .load-choice-btn.new { background: #1f2d1a; border: 1px solid #2a4530; color: #c3ffdb; }
@@ -1243,46 +440,24 @@
         .load-choice-btn .choice-text strong { font-size: 14.5px; font-weight: 700; color: #f0e9d8; }
         .load-choice-btn .choice-text small { font-size: 11.5px; opacity: 0.85; line-height: 1.35; }
 
-        /* ===== TRUST FOOTER ===== */
-        .trust-footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #2e2716;
-            text-align: center;
-            font-size: 12px;
-            color: #8a8272;
-            line-height: 1.7;
-        }
-        .trust-footer .brand {
-            color: #e8dcc0; font-weight: bold; margin-bottom: 6px;
-            font-size: 13px;
-        }
-        .trust-footer a {
-            color: #25D366; text-decoration: none;
-        }
+        .trust-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #2e2716; text-align: center; font-size: 12px; color: #8a8272; line-height: 1.7; }
+        .trust-footer .brand { color: #e8dcc0; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
+        .trust-footer a { color: #25D366; text-decoration: none; }
         .trust-footer a:hover { text-decoration: underline; }
-        .trust-footer .note {
-            margin-top: 4px; color: #6a6357; font-size: 11px;
-        }
+        .trust-footer .note { margin-top: 4px; color: #6a6357; font-size: 11px; }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #14110a; }
         ::-webkit-scrollbar-thumb { background: #3a3018; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #5a4a20; }
 
-        /* ===== RESPONSIVE ===== */
         @media (min-width: 600px) {
             body { padding: 20px 20px 110px; }
             body.summary-active { padding-bottom: 20px; }
             .site-logo { width: 52px; height: 52px; }
             h1 { font-size: 20px; }
             .how-it-works { padding: 16px 18px; }
-            .how-steps {
-                display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 14px;
-            }
+            .how-steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
             .how-step { flex-direction: column; gap: 8px; }
             .how-num { margin-top: 0; }
             .pricing-details-grid { grid-template-columns: 1fr 1fr; }
@@ -1343,7 +518,7 @@
                         <div class="how-num">1</div>
                         <div class="how-step-body">
                             <div class="how-step-title">Build your order</div>
-                            <div class="how-step-desc">Pick your service, games, and storage here.</div>
+                            <div class="how-step-desc">Pick your service, games, storage, and any repairs here.</div>
                         </div>
                     </div>
                     <div class="how-step">
@@ -1357,7 +532,7 @@
                         <div class="how-num">3</div>
                         <div class="how-step-body">
                             <div class="how-step-title">We prepare it</div>
-                            <div class="how-step-desc">Jailbreak + game installation, typically 1–2 days.</div>
+                            <div class="how-step-desc">Jailbreak, repairs, and game installation — typically 1–3 days.</div>
                         </div>
                     </div>
                     <div class="how-step">
@@ -1430,8 +605,9 @@
                             <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
                             <option value="system_setup">System Setup</option>
                             <option value="games_only">Games Only</option>
+                            <option value="repair_only">Repair Only (No jailbreak/games)</option>
                         </select>
-                        <span class="field-hint">Choose full jailbreak, system setup, or a games-only install</span>
+                        <span class="field-hint">Choose full jailbreak, system setup, games-only install, or repairs only</span>
                     </div>
                     <div class="field-group" id="consoleModelGroup">
                         <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
@@ -1503,9 +679,51 @@
                 </div>
 
                 <div class="clear-games-row">
-                    <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games & mode addons">
+                    <button class="clear-btn" onclick="clearAllSelections()" title="Clear selected games, repairs & mode addons">
                         Clear All Selections
                     </button>
+                </div>
+            </div>
+
+            <!-- ===== REPAIR SECTION ===== -->
+            <div id="repairSectionCard" class="repair-section-card">
+                <div class="repair-section-header">
+                    <div>
+                        <div class="repair-section-title">
+                            <span class="repair-icon">&#128295;</span>
+                            <span>Repair Jobs (Optional)</span>
+                        </div>
+                        <div class="repair-section-subtitle" id="repairSectionSubtitle">Select any repairs you'd like done on your console.</div>
+                    </div>
+                    <button type="button" class="repair-toggle-btn" id="repairToggleBtn" onclick="toggleRepairSection()">
+                        <span id="repairToggleLabel">Show</span>
+                    </button>
+                </div>
+
+                <div id="repairModelWarning" class="repair-model-warning" style="display:none;">
+                    <span>&#9888;</span>
+                    <span>Please select your <strong>Console Model</strong> above first to see accurate repair prices.</span>
+                </div>
+
+                <div id="repairBody" class="repair-body">
+                    <div id="repairCategoriesContainer"></div>
+
+                    <div id="repairSoftWarning" class="repair-soft-warning">
+                        <span>&#9888;</span>
+                        <span id="repairSoftWarningText"></span>
+                    </div>
+
+                    <div id="repairSummaryBar" class="repair-summary-bar" style="display:none;">
+                        <div>
+                            <span class="rsb-label">Repairs selected:</span>
+                            <strong id="repairCountLabel">0</strong>
+                            <span id="repairQuoteLabel" class="rsb-quote"></span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <span class="rsb-total" id="repairTotalLabel">RM0</span>
+                            <button type="button" class="rsb-clear" onclick="clearRepairs()">Clear</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1554,6 +772,7 @@
             (<span id="selectedSize" style="color: #ffc000; font-weight: bold;">0</span> GB selected | 
             <span id="remainderSize" style="color: #ffb74d; font-weight: bold;">0</span> GB left) | 
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
+            <span id="checkoutRepairSummary"></span>
             <br><span id="checkoutSubtext" style="font-size: 11px; color: #8a8272;">Tap to review and add remarks</span>
             <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup — no upfront payment required.</span>
         </div>
@@ -1590,7 +809,7 @@
     <div id="cartModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Your Selected Games &amp; Setup</h2>
+                <h2>Review Your Order</h2>
                 <button class="close-modal" onclick="closeCartModal()">&times;</button>
             </div>
             <div class="modal-body">
@@ -1600,7 +819,7 @@
                     <strong>Size Tolerance Alert:</strong> Your total storage size has exceeded standard buffer limits for this tier. The price has been adjusted accordingly.
                 </div>
 
-                <div class="modal-section-title" style="margin-top: 4px;">4. Total</div>
+                <div class="modal-section-title" style="margin-top: 4px;">Total</div>
 
                 <div id="shareLinkContainer" style="display:none;">
                     <div class="share-link-prominent">
@@ -1684,7 +903,6 @@
     const BodyLock = (function() {
         let scrollY = 0;
         let lockCount = 0;
-
         function lock() {
             if (lockCount === 0) {
                 scrollY = window.scrollY || window.pageYOffset || 0;
@@ -1693,7 +911,6 @@
             }
             lockCount++;
         }
-
         function unlock() {
             if (lockCount <= 0) return;
             lockCount--;
@@ -1703,7 +920,6 @@
                 window.scrollTo(0, scrollY);
             }
         }
-
         function attachBackdropGuard(overlayEl) {
             overlayEl.addEventListener('touchmove', function(e) {
                 const modalContent = overlayEl.querySelector('.modal-content, .modal-card, .remarks-modal-card');
@@ -1711,12 +927,13 @@
                 e.preventDefault();
             }, { passive: false });
         }
-
-        return { lock: lock, unlock: unlock, attachBackdropGuard: attachBackdropGuard };
+        return { lock, unlock, attachBackdropGuard };
     })();
 
     const state = {
         selectedGames: new Map(),
+        selectedRepairs: new Map(), // id -> { id, name, category, price, isQuote, note }
+        repairSectionExpanded: false,
         maxSdSize: 0,
         usableStorageLimit: 0,
         isStorageConfigured: false,
@@ -1738,51 +955,225 @@
     function scrollToTop(e) {
         if (e) e.preventDefault();
         const summaryView = $('summaryView');
-        if (summaryView && summaryView.classList.contains('active')) {
-            resetFormForNewOrder();
-        }
+        if (summaryView && summaryView.classList.contains('active')) resetFormForNewOrder();
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-
     function scrollToPricing() {
         const el = $('pricingGuide');
-        if (el) {
-            el.open = true;
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (el) { el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     }
     function scrollToGames() {
         const el = $('gameSectionWrapper');
-        if (el && el.style.display !== 'none') {
-            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } else {
-            alert('Please complete your configuration first (phone, service type, storage).');
-        }
+        if (el && el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        else alert('Please complete your configuration first (phone, service type, storage).');
     }
 
     function isOrderLocked(order) {
         const stage = (order && order.progress_stage) || 'Order Received';
         return stage !== 'Order Received';
     }
-
     function isOrderCancellable(order) {
         const stage = (order && order.progress_stage) || 'Order Received';
         return stage === 'Order Received' && order.status !== 'Cancelled';
     }
 
-    // SVG icon helpers (used inside summary banners)
     function svgXIcon(size) {
         size = size || 22;
-        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-             + '<line x1="6" y1="6" x2="18" y2="18"></line>'
-             + '<line x1="18" y1="6" x2="6" y2="18"></line>'
-             + '</svg>';
+        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="6" x2="18" y2="18"></line><line x1="18" y1="6" x2="6" y2="18"></line></svg>';
     }
     function svgCheckIcon(size) {
         size = size || 22;
-        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-             + '<polyline points="4 12 10 18 20 6"></polyline>'
-             + '</svg>';
+        return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 12 10 18 20 6"></polyline></svg>';
+    }
+
+    // ===== REPAIR HELPERS (local, backed by config.js globals) =====
+    function getSelectedRepairTotal() {
+        let total = 0, quoteCount = 0;
+        state.selectedRepairs.forEach(r => {
+            if (r.isQuote) quoteCount++;
+            else total += Number(r.price) || 0;
+        });
+        return { total: total, quoteCount: quoteCount, count: state.selectedRepairs.size };
+    }
+
+    function renderRepairSection() {
+        const card = $('repairSectionCard');
+        const serviceType = valOf('serviceTypeSelect');
+        if (!serviceType) { card.classList.remove('show'); return; }
+        card.classList.add('show');
+
+        const model = valOf('consoleModelSelect');
+        const isRepairOnly = serviceType === 'repair_only';
+        const needsModel = (serviceType === 'jailbreak') || isRepairOnly;
+
+        $('repairSectionSubtitle').textContent = isRepairOnly
+            ? 'Pick the repairs you need. Diagnostic fee of RM30 is waived if a paid repair is selected.'
+            : 'Select any repairs you\'d like done at the same time.';
+
+        const warning = $('repairModelWarning');
+        if (needsModel && !model) {
+            warning.style.display = 'flex';
+        } else {
+            warning.style.display = 'none';
+        }
+
+        const container = $('repairCategoriesContainer');
+        container.innerHTML = '';
+
+        const services = window.REPAIR_SERVICES || [];
+        const grouped = {};
+        services.forEach(s => {
+            const cat = s.category || 'General';
+            if (!grouped[cat]) grouped[cat] = [];
+            grouped[cat].push(s);
+        });
+
+        const orderedCategories = (APP_CONFIG.repairCategories || []).filter(c => grouped[c]);
+        // Include any categories present in DB but not in the list (custom admin ones)
+        Object.keys(grouped).forEach(c => { if (orderedCategories.indexOf(c) === -1) orderedCategories.push(c); });
+
+        orderedCategories.forEach(cat => {
+            const group = document.createElement('div');
+            group.className = 'repair-category-group';
+            const header = document.createElement('div');
+            header.className = 'repair-category-header';
+            header.textContent = cat;
+            group.appendChild(header);
+
+            grouped[cat].forEach(svc => {
+                const selected = state.selectedRepairs.has(svc.id);
+                const p = computeRepairPrice(svc, model || 'OLED');
+                const item = document.createElement('div');
+                item.className = 'repair-item' + (selected ? ' selected' : '');
+                item.onclick = (e) => {
+                    if (e.target.tagName !== 'INPUT') {
+                        const cb = item.querySelector('input');
+                        cb.checked = !cb.checked;
+                        cb.onchange();
+                    }
+                };
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = selected;
+                cb.onchange = () => toggleRepair(svc);
+
+                const info = document.createElement('div');
+                info.className = 'repair-item-info';
+                const nameEl = document.createElement('div');
+                nameEl.className = 'repair-item-name';
+                nameEl.textContent = svc.name;
+                info.appendChild(nameEl);
+                if (svc.note) {
+                    const noteEl = document.createElement('div');
+                    noteEl.className = 'repair-item-note';
+                    noteEl.textContent = svc.note;
+                    info.appendChild(noteEl);
+                }
+
+                const priceEl = document.createElement('div');
+                priceEl.className = 'repair-item-price' + (p.isQuote ? ' quote' : '');
+                priceEl.textContent = p.isQuote ? 'TBC' : p.label;
+
+                item.appendChild(cb);
+                item.appendChild(info);
+                item.appendChild(priceEl);
+                group.appendChild(item);
+            });
+            container.appendChild(group);
+        });
+
+        updateRepairSummaryBar();
+    }
+
+    function updateRepairSummaryBar() {
+        const bar = $('repairSummaryBar');
+        const count = state.selectedRepairs.size;
+        if (count === 0) { bar.style.display = 'none'; $('repairSoftWarning').classList.remove('show'); return; }
+        bar.style.display = 'flex';
+        const { total, quoteCount } = getSelectedRepairTotal();
+        $('repairCountLabel').textContent = count + ' repair' + (count === 1 ? '' : 's');
+        $('repairQuoteLabel').textContent = quoteCount > 0 ? ' · ' + quoteCount + ' needing quote' : '';
+        $('repairTotalLabel').textContent = 'RM' + total + (quoteCount > 0 ? ' + TBC' : '');
+
+        // Soft warnings
+        const warn = $('repairSoftWarning');
+        const warnText = $('repairSoftWarningText');
+        if (count >= 6) {
+            warn.classList.add('show');
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> This is a major refurb. Make sure you\'ve discussed this with us on WhatsApp first — it may be more economical to consider a replacement unit.';
+        } else if (count >= 4) {
+            warn.classList.add('show');
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> That\'s a lot — make sure you know this is a major refurbishment. We\'ll confirm everything on WhatsApp.';
+        } else {
+            warn.classList.remove('show');
+        }
+    }
+
+    function toggleRepair(svc) {
+        if (state.selectedRepairs.has(svc.id)) {
+            state.selectedRepairs.delete(svc.id);
+        } else {
+            const model = valOf('consoleModelSelect') || 'OLED';
+            const p = computeRepairPrice(svc, model);
+            state.selectedRepairs.set(svc.id, {
+                id: svc.id,
+                name: svc.name,
+                category: svc.category || '',
+                price: p.amount,
+                isQuote: p.isQuote,
+                note: svc.note || ''
+            });
+        }
+        // Refresh checkboxes in case prices changed
+        updateRepairSummaryBar();
+        // Re-render just to update "selected" styling
+        document.querySelectorAll('.repair-item').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('.repair-item input:checked').forEach(cb => cb.closest('.repair-item').classList.add('selected'));
+        updateStorageBreakdownAndCart();
+    }
+
+    function clearRepairs() {
+        state.selectedRepairs.clear();
+        document.querySelectorAll('.repair-item input').forEach(cb => { cb.checked = false; });
+        document.querySelectorAll('.repair-item').forEach(el => el.classList.remove('selected'));
+        updateRepairSummaryBar();
+        updateStorageBreakdownAndCart();
+    }
+
+    function toggleRepairSection() {
+        state.repairSectionExpanded = !state.repairSectionExpanded;
+        const body = $('repairBody');
+        const label = $('repairToggleLabel');
+        if (state.repairSectionExpanded) { body.classList.add('expanded'); label.textContent = 'Hide'; }
+        else { body.classList.remove('expanded'); label.textContent = 'Show'; }
+    }
+
+    // Refresh repair prices when model changes
+    function refreshRepairPrices() {
+        const model = valOf('consoleModelSelect') || 'OLED';
+        const services = window.REPAIR_SERVICES || [];
+        // Update stored prices
+        state.selectedRepairs.forEach((r, id) => {
+            const svc = services.find(s => s.id === id);
+            if (!svc) return;
+            const p = computeRepairPrice(svc, model);
+            r.price = p.amount;
+            r.isQuote = p.isQuote;
+        });
+        // Update UI prices
+        document.querySelectorAll('.repair-item').forEach(item => {
+            const nameEl = item.querySelector('.repair-item-name');
+            if (!nameEl) return;
+            const svc = services.find(s => s.name === nameEl.textContent);
+            if (!svc) return;
+            const p = computeRepairPrice(svc, model);
+            const priceEl = item.querySelector('.repair-item-price');
+            if (priceEl) {
+                priceEl.className = 'repair-item-price' + (p.isQuote ? ' quote' : '');
+                priceEl.textContent = p.isQuote ? 'TBC' : p.label;
+            }
+        });
+        updateRepairSummaryBar();
     }
 
     function showSummaryView(order) {
@@ -1825,10 +1216,14 @@
             gamesWithSize.push({ name: name, size: size });
         });
 
+        const repairs = getEnrichedRepairs(order);
+        const repairSum = sumRepairs(repairs);
+
         const serviceLabels = {
             'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
             'system_setup': 'System Setup',
-            'games_only': 'Games Only'
+            'games_only': 'Games Only',
+            'repair_only': 'Repair Only'
         };
         const serviceLabel = serviceLabels[order.service_type] || 'Order';
 
@@ -1841,7 +1236,6 @@
             : (order.free_storage_gb ? order.free_storage_gb + ' GB free' : 'N/A');
 
         let html = '';
-
         html += '<div class="summary-card">';
         html += '<div class="summary-header">';
         html += '<div class="summary-header-left">';
@@ -1853,37 +1247,54 @@
 
         html += '<div class="summary-grid">';
         html += '<div class="summary-section"><div class="summary-label">Service</div><div class="summary-value">' + serviceLabel + '</div></div>';
-        html += '<div class="summary-section"><div class="summary-label">Storage</div><div class="summary-value">' + storageLabel + '</div></div>';
+        if (order.service_type !== 'repair_only') {
+            html += '<div class="summary-section"><div class="summary-label">Storage</div><div class="summary-value">' + storageLabel + '</div></div>';
+        } else if (order.console_model) {
+            html += '<div class="summary-section"><div class="summary-label">Console</div><div class="summary-value">' + order.console_model + '</div></div>';
+        }
         html += '</div>';
 
         const addons = [];
         if (order.android_mode) addons.push('Android Mode (+RM30)');
         if (order.linux_mode) addons.push('Linux Mode (+RM30)');
         if (addons.length > 0) {
+            html += '<div class="summary-section"><div class="summary-label">Add-ons</div><div class="summary-value">' + addons.join(' &nbsp;·&nbsp; ') + '</div></div>';
+        }
+
+        // Repairs section
+        if (repairs.length > 0) {
             html += '<div class="summary-section">';
-            html += '<div class="summary-label">Add-ons</div>';
-            html += '<div class="summary-value">' + addons.join(' &nbsp;·&nbsp; ') + '</div>';
+            html += '<div class="summary-label">Repair Jobs (' + repairs.length + ')</div>';
+            repairs.forEach(r => {
+                html += '<div class="summary-repair-item">';
+                html += '<div class="summary-repair-name">' + escapeHtml(r.name) + (r.note ? '<span class="repair-note">' + escapeHtml(r.note) + '</span>' : '') + '</div>';
+                html += '<div class="summary-repair-price' + (r.isQuote ? ' quote' : '') + '">' + (r.isQuote ? 'TBC' : 'RM' + r.price) + '</div>';
+                html += '</div>';
+            });
             html += '</div>';
         }
 
-        html += '<div>';
-        html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
-        html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
-        html += '<span class="chev">▼</span>';
-        html += '</div>';
-        html += '<div class="summary-games-list" id="summaryGamesList">';
-        if (gamesWithSize.length === 0) {
-            html += '<div style="text-align:center; color:#8a8272; padding:14px; font-size:13px;">No games selected yet.</div>';
-        } else {
-            gamesWithSize.forEach(function(g) {
-                html += '<div class="summary-game-item">';
-                html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
-                html += '<div class="summary-game-size">' + g.size.toFixed(1) + ' GB</div>';
-                html += '</div>';
-            });
+        // Games
+        if (order.service_type !== 'repair_only') {
+            html += '<div>';
+            html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
+            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
+            html += '<span class="chev">▼</span>';
+            html += '</div>';
+            html += '<div class="summary-games-list" id="summaryGamesList">';
+            if (gamesWithSize.length === 0) {
+                html += '<div style="text-align:center; color:#8a8272; padding:14px; font-size:13px;">No games selected yet.</div>';
+            } else {
+                gamesWithSize.forEach(g => {
+                    html += '<div class="summary-game-item">';
+                    html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
+                    html += '<div class="summary-game-size">' + g.size.toFixed(1) + ' GB</div>';
+                    html += '</div>';
+                });
+            }
+            html += '</div>';
+            html += '</div>';
         }
-        html += '</div>';
-        html += '</div>';
 
         if (order.remarks && String(order.remarks).trim() !== '') {
             html += '<div class="summary-section">';
@@ -1893,7 +1304,7 @@
         }
 
         html += '<div class="summary-total">';
-        html += '<span class="summary-total-label">Total estimated</span>';
+        html += '<span class="summary-total-label">Total estimated' + (repairSum.quoteCount > 0 ? ' (+ ' + repairSum.quoteCount + ' quote)' : '') + '</span>';
         html += '<span class="summary-total-value">RM' + Math.round(order.estimated_price || 0) + '</span>';
         html += '</div>';
 
@@ -1906,39 +1317,25 @@
         html += '<div class="summary-card">';
 
         if (isCancelled) {
-            // Cancelled — message WhatsApp is the primary action
             const cancelPrefill = 'Hi, I cancelled order #' + (order.phone_ending || '') + ' and I\'d like to ask about it.';
             const waNumberC = APP_CONFIG.whatsappNumber || '';
             const waUrlC = 'https://wa.me/' + waNumberC + '?text=' + encodeURIComponent(cancelPrefill);
-            html += '<div class="cancelled-banner" style="margin-top:0;">'
-                  +   '<span class="icon">' + svgXIcon(22) + '</span>'
-                  +   '<div class="msg"><strong>Order Cancelled.</strong><br>'
-                  +   'This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div>'
-                  + '</div>';
+            html += '<div class="cancelled-banner" style="margin-top:0;"><span class="icon">' + svgXIcon(22) + '</span><div class="msg"><strong>Order Cancelled.</strong><br>This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div></div>';
             html += '<div class="summary-actions">';
             html += '<a class="summary-btn whatsapp" href="' + waUrlC + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else if (isCompleted) {
-            // Completed — Start New Order is the primary action
             const waNumberDone = APP_CONFIG.whatsappNumber || '';
             const prefillDone = 'Hi, I would like to ask about my completed order #' + (order.phone_ending || '') + '.';
             const waUrlDone = 'https://wa.me/' + waNumberDone + '?text=' + encodeURIComponent(prefillDone);
-            html += '<div class="completed-banner" style="margin-top:0;">'
-                  +   '<span class="icon">' + svgCheckIcon(22) + '</span>'
-                  +   '<div class="msg"><strong>Order complete.</strong><br>'
-                  +   'Thanks for your business. If you need anything else, message us or start a new order below.</div>'
-                  + '</div>';
+            html += '<div class="completed-banner" style="margin-top:0;"><span class="icon">' + svgCheckIcon(22) + '</span><div class="msg"><strong>Order complete.</strong><br>Thanks for your business. If you need anything else, message us or start a new order below.</div></div>';
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '<a class="summary-btn secondary" href="' + waUrlDone + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '</div>';
         } else if (locked) {
-            html += '<div class="locked-notice">';
-            html += '<span class="locked-notice-icon">&#128274;</span>';
-            html += '<div><strong>This order is locked for changes.</strong><br>';
-            html += 'We\'ve already confirmed the details with you. If you need to make a change or cancel, message us on WhatsApp and we\'ll take care of it.</div>';
-            html += '</div>';
+            html += '<div class="locked-notice"><span class="locked-notice-icon">&#128274;</span><div><strong>This order is locked for changes.</strong><br>We\'ve already confirmed the details with you. If you need to make a change or cancel, message us on WhatsApp and we\'ll take care of it.</div></div>';
             html += '<div class="summary-actions">';
             const prefill = 'Hi, I would like to ask about my order #' + (order.phone_ending || '') + '.';
             const waNumber = APP_CONFIG.whatsappNumber || '';
@@ -1948,14 +1345,11 @@
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else {
-            // Editable order
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
-            if (cancellable) {
-                html += '<button class="summary-btn cancel" onclick="cancelOrder()">Cancel Order</button>';
-            }
+            if (cancellable) html += '<button class="summary-btn cancel" onclick="cancelOrder()">Cancel Order</button>';
             html += '</div>';
         }
         html += '</div>';
@@ -1980,11 +1374,8 @@
         document.body.classList.remove('summary-active');
         setTimeout(() => {
             const configCard = $('configCard');
-            if (configCard) {
-                configCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            if (configCard) configCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            else window.scrollTo({ top: 0, behavior: 'smooth' });
         }, 50);
     }
 
@@ -1999,32 +1390,22 @@
     async function cancelOrder() {
         const order = state.loadedOrderForSummary;
         if (!order) return;
-        if (!isOrderCancellable(order)) {
-            alert('This order can no longer be cancelled here. Please message us on WhatsApp.');
-            return;
-        }
+        if (!isOrderCancellable(order)) { alert('This order can no longer be cancelled here. Please message us on WhatsApp.'); return; }
         const confirmed = confirm('Cancel this order?\n\nThis can\'t be undone. You\'ll need to place a new order if you change your mind.');
         if (!confirmed) return;
 
         const btn = document.querySelector('.summary-btn.cancel');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Cancelling...';
-        }
+        if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
 
         try {
             const orderId = order.id || order.order_id;
             const nowIso = new Date().toISOString();
-            const { error } = await supabaseClient
-                .from('orders')
-                .update({
-                    status: 'Cancelled',
-                    progress_stage: 'Cancelled',
-                    progress_updated_at: nowIso,
-                    updated_at: nowIso
-                })
-                .eq('id', orderId);
-
+            const { error } = await supabaseClient.from('orders').update({
+                status: 'Cancelled',
+                progress_stage: 'Cancelled',
+                progress_updated_at: nowIso,
+                updated_at: nowIso
+            }).eq('id', orderId);
             if (error) throw error;
 
             order.status = 'Cancelled';
@@ -2035,21 +1416,13 @@
         } catch (err) {
             console.error(err);
             alert('Failed to cancel: ' + (err.message || 'Please try again or message us on WhatsApp.'));
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = 'Cancel Order';
-            }
+            if (btn) { btn.disabled = false; btn.textContent = 'Cancel Order'; }
         }
     }
 
     function escapeHtml(str) {
         if (str === null || str === undefined) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
     function gameListOf(order) {
@@ -2057,17 +1430,14 @@
         if (!order) return list;
         if (Array.isArray(order.games)) list = order.games;
         else if (typeof order.games === 'string') {
-            try { list = JSON.parse(order.games); }
-            catch (e) { list = order.games.split(','); }
+            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
         }
         return list;
     }
 
     function sortGameList(gameList) {
         let masterList = [];
-        if (typeof APP_CONFIG !== 'undefined') {
-            masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
-        }
+        if (typeof APP_CONFIG !== 'undefined') masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
         const names = masterList.map(g => typeof g === 'string' ? g : g.name);
         if (names.length > 0) {
             gameList.sort(function(a, b) {
@@ -2079,9 +1449,7 @@
                 return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
             });
         } else {
-            gameList.sort(function(a, b) {
-                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-            });
+            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
         }
         return gameList;
     }
@@ -2110,12 +1478,7 @@
         if ($('androidModeCheck').checked) deduction += partition;
         if ($('linuxModeCheck').checked) deduction += partition;
 
-        return {
-            usable: Math.max(0, realCapacity - deduction),
-            baseOverhead: baseOverhead,
-            partition: partition,
-            realCapacity: realCapacity
-        };
+        return { usable: Math.max(0, realCapacity - deduction), baseOverhead: baseOverhead, partition: partition, realCapacity: realCapacity };
     }
 
     function buildStorageBreakdownText() {
@@ -2129,8 +1492,7 @@
         state.selectedGames.forEach(s => gSize += s);
 
         if (serviceType === 'games_only') {
-            return `Service: Games Only | Stated Free Storage: ${usable} GB` +
-                `<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usable - gSize).toFixed(1)} GB</strong>`;
+            return `Service: Games Only | Stated Free Storage: ${usable} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(usable - gSize).toFixed(1)} GB</strong>`;
         }
         const sdLabel = state.maxSdSize >= 1000 ? `${(state.maxSdSize / 1024).toFixed(0)}TB` : `${state.maxSdSize}GB`;
         const sourceLabel = sdSource === 'buy' ? 'New SD Card' : 'Own SD Card';
@@ -2158,9 +1520,7 @@
         if (autoDismissMs > 0) {
             state.statusMsgTimeout = setTimeout(() => {
                 el.classList.add('fading');
-                setTimeout(() => {
-                    if (el.classList.contains('fading')) { el.innerText = ''; el.classList.remove('fading'); }
-                }, 400);
+                setTimeout(() => { if (el.classList.contains('fading')) { el.innerText = ''; el.classList.remove('fading'); } }, 400);
             }, autoDismissMs);
         }
     }
@@ -2172,11 +1532,14 @@
         el.innerText = '';
     }
 
-    window.onload = function() {
+    window.onload = async function() {
         ['cartModal', 'loadChoiceModal', 'orderPickModal'].forEach(id => {
             const el = $(id);
             if (el) BodyLock.attachBackdropGuard(el);
         });
+
+        // Load repair catalog first
+        await loadRepairServices(supabaseClient);
 
         const params = new URLSearchParams(window.location.search);
         const urlPhone = params.get('phone');
@@ -2196,17 +1559,13 @@
         updateSdLimit();
         filterGames();
         updateSaveButtonLabel();
+        renderRepairSection();
     };
 
     async function loadOrderAndShowSummary(orderId) {
         setStatusMessage('Loading your order...', '#7dd3fc', 0);
         try {
-            const { data, error } = await supabaseClient
-                .from('orders')
-                .select('*')
-                .eq('id', orderId)
-                .limit(1);
-
+            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).limit(1);
             if (error) throw error;
 
             if (!data || data.length === 0) {
@@ -2215,7 +1574,6 @@
                 showMissingOrderNotice();
                 return;
             }
-
             const order = data[0];
             state.currentEditingOrderId = order.id;
             state.currentLoadedPhone = order.phone_ending || null;
@@ -2234,17 +1592,13 @@
     function showMissingOrderNotice() {
         const existing = document.querySelector('.missing-order-notice');
         if (existing) existing.remove();
-
         const notice = document.createElement('div');
         notice.className = 'missing-order-notice';
         const waNumber = APP_CONFIG.whatsappNumber || '';
         const waText = encodeURIComponent('Hi, I clicked my order link and it says the order is no longer valid. Can you check for me?');
         notice.innerHTML = ''
             + '<div class="missing-order-title">This order link is no longer valid</div>'
-            + '<div class="missing-order-body">'
-            + 'The order this link points to has been removed or does not exist. '
-            + 'If you recently placed an order and need help, please message us on WhatsApp.'
-            + '</div>'
+            + '<div class="missing-order-body">The order this link points to has been removed or does not exist. If you recently placed an order and need help, please message us on WhatsApp.</div>'
             + '<div class="missing-order-actions">'
             + '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + waText + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>'
             + '  <button class="missing-order-btn secondary" onclick="dismissMissingOrderNotice()">Start a new order</button>'
@@ -2278,17 +1632,12 @@
 
         if (sdSource === 'own') {
             const ownSizes = [
-                { v: '64', l: '64 GB Card' },
-                { v: '128', l: '128 GB Card' },
-                { v: '256', l: '256 GB Card' },
-                { v: '512', l: '512 GB Card' },
-                { v: '1024', l: '1 TB Card' },
-                { v: '2048', l: '2 TB Card' }
+                { v: '64', l: '64 GB Card' }, { v: '128', l: '128 GB Card' }, { v: '256', l: '256 GB Card' },
+                { v: '512', l: '512 GB Card' }, { v: '1024', l: '1 TB Card' }, { v: '2048', l: '2 TB Card' }
             ];
             ownSizes.forEach(({ v, l }) => {
                 const o = document.createElement('option');
-                o.value = v;
-                o.textContent = l;
+                o.value = v; o.textContent = l;
                 if (currentValue === v) o.selected = true;
                 sdSelect.appendChild(o);
             });
@@ -2308,8 +1657,7 @@
             });
             if (!hasOptions) {
                 const o = document.createElement('option');
-                o.value = '256';
-                o.textContent = '256 GB Card';
+                o.value = '256'; o.textContent = '256 GB Card';
                 sdSelect.appendChild(o);
             }
         }
@@ -2348,13 +1696,36 @@
 
     function toggleServiceFields() {
         const serviceType = valOf('serviceTypeSelect');
-        const groups = ['consoleModelGroup', 'sdSourceGroup', 'sdCardGroup', 'freeStorageContainer', 'jailbreakModesContainer', 'jailbreakNoticeCard', 'gameSectionWrapper'];
+        const isRepairOnly = serviceType === 'repair_only';
 
         if (!serviceType) {
-            groups.forEach(id => $(id).style.display = 'none');
+            ['consoleModelGroup', 'sdSourceGroup', 'sdCardGroup', 'freeStorageContainer', 'jailbreakModesContainer', 'jailbreakNoticeCard', 'gameSectionWrapper'].forEach(id => $(id).style.display = 'none');
+            $('repairSectionCard').classList.remove('show');
             updateSdLimit();
             return;
         }
+
+        // Repair Only: no SD, no games — just repairs
+        if (isRepairOnly) {
+            $('consoleModelGroup').style.display = 'flex'; // model affects per_model repair prices
+            $('sdSourceGroup').style.display = 'none';
+            $('sdCardGroup').style.display = 'none';
+            $('freeStorageContainer').style.display = 'none';
+            $('jailbreakModesContainer').style.display = 'none';
+            $('androidModeCheck').checked = false;
+            $('linuxModeCheck').checked = false;
+            $('jailbreakNoticeCard').style.display = 'none';
+            $('gameSectionWrapper').style.display = 'none';
+            state.isStorageConfigured = true;
+            state.usableStorageLimit = 0;
+            $('storageWarningBanner').style.display = 'none';
+            $('storageBreakdown').innerHTML = '<span>Service: Repair Only | Select repairs below.</span>';
+            $('mainSubmitBtn').disabled = false;
+            renderRepairSection();
+            updateCartSummary();
+            return;
+        }
+
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (isJbOrSetup) {
@@ -2387,6 +1758,8 @@
             $('jailbreakNoticeCard').style.display = 'none';
             $('gameSectionWrapper').style.display = 'block';
         }
+
+        renderRepairSection();
         updateSdLimit();
     }
 
@@ -2413,6 +1786,18 @@
         const submitBtn = $('mainSubmitBtn');
         const breakdown = $('storageBreakdown');
         const browseBtn = $('browseGamesBtn');
+
+        // Repair Only path
+        if (serviceType === 'repair_only') {
+            state.isStorageConfigured = true;
+            state.usableStorageLimit = 0;
+            warning.style.display = 'none';
+            submitBtn.disabled = false;
+            // Update repair prices in case model changed
+            refreshRepairPrices();
+            updateCartSummary();
+            return;
+        }
 
         const setWaiting = (msg) => {
             state.isStorageConfigured = false;
@@ -2446,8 +1831,8 @@
             const linuxWrapper = linux.closest('.mode-wrapper');
 
             if (state.maxSdSize < 128) {
-                if (android.checked) { android.checked = false; }
-                if (linux.checked) { linux.checked = false; }
+                if (android.checked) android.checked = false;
+                if (linux.checked) linux.checked = false;
                 android.disabled = true;
                 linux.disabled = true;
                 if (androidWrapper) androidWrapper.classList.add('mode-disabled');
@@ -2505,6 +1890,8 @@
         }
 
         if (gameWrapper.style.display !== 'none') scheduleGamesRerender();
+        // Refresh repair prices too (model may have changed)
+        refreshRepairPrices();
         updateCartSummary();
     }
 
@@ -2512,6 +1899,7 @@
         state.currentEditingOrderId = null;
         state.currentLoadedPhone = null;
         state.selectedGames.clear();
+        state.selectedRepairs.clear();
         state.savedRemarksText = '';
         state.loadedOrderForSummary = null;
         state.pendingOrderList = [];
@@ -2528,11 +1916,12 @@
         if (trackLink) trackLink.href = 'track.html';
         hideSummaryShowForm();
         updateSaveButtonLabel();
+        renderRepairSection();
     }
 
     function clearAllSelections() {
-        if (state.selectedGames.size === 0 && !$('androidModeCheck').checked && !$('linuxModeCheck').checked) return;
-        if (confirm('Are you sure you want to clear all selected games and modes?')) {
+        if (state.selectedGames.size === 0 && state.selectedRepairs.size === 0 && !$('androidModeCheck').checked && !$('linuxModeCheck').checked) return;
+        if (confirm('Are you sure you want to clear all selected games, repairs, and modes?')) {
             resetFormForNewOrder();
             setStatusMessage('Selections cleared.', '#e57373', 4000);
         }
@@ -2576,13 +1965,7 @@
             const noticeId = 'hiddenNotice_' + Date.now() + Math.random().toString(36).slice(2);
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
-            notice.innerHTML = `
-                <div class="hidden-notice-text">
-                    <span class="hidden-notice-icon">&#128274;</span>
-                    <span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span>
-                </div>
-                <button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>
-            `;
+            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
             container.appendChild(notice);
 
             const hiddenContainer = document.createElement('div');
@@ -2594,13 +1977,7 @@
             hidden.forEach(g => {
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
-                card.innerHTML = `
-                    <div class="game-info">
-                        <span class="game-lock-icon">&#128274;</span>
-                        <span class="game-title">${g.name}</span>
-                    </div>
-                    <span class="game-size" style="color:#8a8272;">${g.size} GB</span>
-                `;
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span></div><span class="game-size" style="color:#8a8272;">${g.size} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -2622,11 +1999,7 @@
 
             card.onclick = (e) => {
                 if (!validatePhoneProvided()) return;
-                if (!state.isStorageConfigured) {
-                    alert('Please enter your available Free Storage Space (GB) at the top before picking games!');
-                    $('userFreeStorageInput').focus();
-                    return;
-                }
+                if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) at the top before picking games!'); $('userFreeStorageInput').focus(); return; }
                 const cb = card.querySelector('input');
                 if (e.target !== cb) cb.checked = !cb.checked;
 
@@ -2646,12 +2019,7 @@
             cb.onclick = (e) => e.stopPropagation();
             cb.onchange = () => {
                 if (!validatePhoneProvided()) { cb.checked = false; return; }
-                if (!state.isStorageConfigured) {
-                    alert('Please enter your available Free Storage Space (GB) first!');
-                    cb.checked = false;
-                    $('userFreeStorageInput').focus();
-                    return;
-                }
+                if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) first!'); cb.checked = false; $('userFreeStorageInput').focus(); return; }
                 let cur = 0;
                 state.selectedGames.forEach(s => cur += s);
                 if (cb.checked && state.usableStorageLimit > 0 && (cur + g.size > state.usableStorageLimit)) {
@@ -2665,12 +2033,10 @@
             const infoDiv = document.createElement('div');
             infoDiv.className = 'game-info';
             infoDiv.appendChild(cb);
-
             const titleSpan = document.createElement('span');
             titleSpan.className = 'game-title';
             titleSpan.textContent = g.name;
             infoDiv.appendChild(titleSpan);
-
             const sizeSpan = document.createElement('span');
             sizeSpan.className = 'game-size';
             sizeSpan.textContent = `${g.size} GB`;
@@ -2686,23 +2052,13 @@
         if (!c) return;
         const notice = c.previousElementSibling;
         const btn = notice ? notice.querySelector('.hidden-notice-toggle') : null;
-        if (c.style.display === 'none') {
-            c.style.display = 'flex';
-            if (btn) btn.textContent = 'Hide';
-        } else {
-            c.style.display = 'none';
-            if (btn) btn.textContent = 'Show';
-        }
+        if (c.style.display === 'none') { c.style.display = 'flex'; if (btn) btn.textContent = 'Hide'; }
+        else { c.style.display = 'none'; if (btn) btn.textContent = 'Show'; }
     }
 
     function toggleGame(name, size, isChecked, cardEl) {
-        if (isChecked) {
-            state.selectedGames.set(name, size);
-            if (cardEl) cardEl.classList.add('selected');
-        } else {
-            state.selectedGames.delete(name);
-            if (cardEl) cardEl.classList.remove('selected');
-        }
+        if (isChecked) { state.selectedGames.set(name, size); if (cardEl) cardEl.classList.add('selected'); }
+        else { state.selectedGames.delete(name); if (cardEl) cardEl.classList.remove('selected'); }
         updateStorageBreakdownAndCart();
         scheduleGamesRerender();
     }
@@ -2712,7 +2068,6 @@
         if (!input) return;
         const query = input.value.toLowerCase();
         $('clearSearchBtn').style.display = query.length > 0 ? 'block' : 'none';
-
         const source = typeof games !== 'undefined' ? games : [];
         const filtered = source.filter(g => g.name.toLowerCase().includes(query));
         filtered.sort((a, b) => {
@@ -2737,6 +2092,7 @@
 
         if (serviceType === 'jailbreak') basePrice = (APP_CONFIG.jailbreakPrices && APP_CONFIG.jailbreakPrices[consoleModel]) || 190;
         else if (serviceType === 'system_setup') basePrice = APP_CONFIG.systemSetupPrice || 50;
+        else if (serviceType === 'repair_only') basePrice = APP_CONFIG.repairOnlyBaseFee || 30;
 
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
         if (isJbOrSetup) {
@@ -2746,7 +2102,27 @@
         }
         const baseOnly = androidPrice + linuxPrice;
 
-        if (count <= 0) return { serviceBasePrice: basePrice, sdCardPrice, androidPrice, linuxPrice, gamesPrice: 0, price: basePrice + sdCardPrice + baseOnly, exceeded: false };
+        // Repairs
+        const repairSum = getSelectedRepairTotal();
+
+        // Repair Only: diagnostic fee is waived if any paid (non-quote, non-diagnostic) repair is selected
+        let effectiveBase = basePrice;
+        if (serviceType === 'repair_only') {
+            const hasPaidRepair = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
+            if (hasPaidRepair) effectiveBase = 0;
+        }
+
+        if (count <= 0) {
+            return {
+                serviceBasePrice: effectiveBase,
+                sdCardPrice, androidPrice, linuxPrice,
+                gamesPrice: 0,
+                repairTotal: repairSum.total,
+                repairQuoteCount: repairSum.quoteCount,
+                price: effectiveBase + sdCardPrice + baseOnly + repairSum.total,
+                exceeded: false
+            };
+        }
 
         let chargeable = isJbOrSetup ? Math.max(0, count - 3) : count;
         let countPrice, targetLimit;
@@ -2765,85 +2141,35 @@
         if (totalGb > targetLimit && sizePrice > countPrice) { gamesPrice = sizePrice; exceeded = true; }
 
         return {
-            serviceBasePrice: basePrice,
+            serviceBasePrice: effectiveBase,
             sdCardPrice, androidPrice, linuxPrice, gamesPrice,
-            price: Math.round(basePrice + sdCardPrice + gamesPrice + baseOnly),
+            repairTotal: repairSum.total,
+            repairQuoteCount: repairSum.quoteCount,
+            price: Math.round(effectiveBase + sdCardPrice + gamesPrice + baseOnly + repairSum.total),
             exceeded
         };
     }
 
-    // Returns { hasWarning, targetCount, remaining, msg, nudge }
-    // Only fires when a real price break is coming up. Silent at tier boundaries.
     function checkTierRecommendation(count, serviceType) {
         const empty = { hasWarning: false, targetCount: 0, remaining: 0, msg: '', nudge: '' };
         if (!serviceType) return empty;
         if (count === 0) return empty;
-
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            if (count < 3) {
-                return {
-                    hasWarning: true,
-                    targetCount: 3,
-                    remaining: 3 - count,
-                    msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`,
-                    nudge: ''
-                };
-            }
+            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`, nudge: '' };
             if (count === 3) return empty;
-
-            if (count > 13 && count < 23) {
-                const rem = 23 - count;
-                return {
-                    hasWarning: true,
-                    targetCount: 23,
-                    remaining: rem,
-                    msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`,
-                    nudge: { remaining: rem, rate: 'RM2.50' }
-                };
-            }
+            if (count > 13 && count < 23) { const rem = 23 - count; return { hasWarning: true, targetCount: 23, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`, nudge: { remaining: rem, rate: 'RM2.50' } }; }
             if (count === 23) return empty;
-
-            if (count > 23 && count < 43) {
-                const rem = 43 - count;
-                return {
-                    hasWarning: true,
-                    targetCount: 43,
-                    remaining: rem,
-                    msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`,
-                    nudge: { remaining: rem, rate: 'RM2' }
-                };
-            }
+            if (count > 23 && count < 43) { const rem = 43 - count; return { hasWarning: true, targetCount: 43, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`, nudge: { remaining: rem, rate: 'RM2' } }; }
             if (count === 43) return empty;
-
             return empty;
         }
 
-        if (count > 10 && count < 20) {
-            const rem = 20 - count;
-            return {
-                hasWarning: true,
-                targetCount: 20,
-                remaining: rem,
-                msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`,
-                nudge: { remaining: rem, rate: 'RM2.50' }
-            };
-        }
+        if (count > 10 && count < 20) { const rem = 20 - count; return { hasWarning: true, targetCount: 20, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`, nudge: { remaining: rem, rate: 'RM2.50' } }; }
         if (count === 20) return empty;
-
-        if (count > 20 && count < 40) {
-            const rem = 40 - count;
-            return {
-                hasWarning: true,
-                targetCount: 40,
-                remaining: rem,
-                msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`,
-                nudge: { remaining: rem, rate: 'RM2' }
-            };
-        }
+        if (count > 20 && count < 40) { const rem = 40 - count; return { hasWarning: true, targetCount: 40, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2/game rate.`, nudge: { remaining: rem, rate: 'RM2' } }; }
         if (count === 40) return empty;
-
         return empty;
     }
 
@@ -2852,43 +2178,40 @@
         const serviceType = valOf('serviceTypeSelect');
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
-
         const remainder = Math.max(0, state.usableStorageLimit - gSize);
         const details = calculatePriceDetails(count, gSize);
+        const repairInfo = getSelectedRepairTotal();
 
         $('selectedCount').innerText = count;
         $('selectedSize').innerText = gSize.toFixed(1);
         $('remainderSize').innerText = remainder.toFixed(1);
         $('selectedPrice').innerText = 'RM' + Math.round(details.price);
 
-        const tierRec = checkTierRecommendation(count, serviceType);
-        const banner = $('tierWarningBanner');
-        if (tierRec.hasWarning && tierRec.msg) {
-            banner.style.display = 'flex';
-            $('tierWarningText').innerHTML = tierRec.msg;
+        // Repair summary line in checkout bar
+        const rSummary = $('checkoutRepairSummary');
+        if (repairInfo.count > 0) {
+            rSummary.innerHTML = ' | <span style="color:#ffb74d; font-weight:bold;">' + repairInfo.count + ' repair' + (repairInfo.count === 1 ? '' : 's') + (repairInfo.quoteCount > 0 ? ' (+' + repairInfo.quoteCount + ' quote)' : '') + '</span>';
         } else {
-            banner.style.display = 'none';
+            rSummary.innerHTML = '';
         }
 
-        // Build the checkout-bar subtext
+        const tierRec = checkTierRecommendation(count, serviceType);
+        const banner = $('tierWarningBanner');
+        if (tierRec.hasWarning && tierRec.msg) { banner.style.display = 'flex'; $('tierWarningText').innerHTML = tierRec.msg; }
+        else banner.style.display = 'none';
+
         const sub = $('checkoutSubtext');
         let subHtml = '';
-
-        if (tierRec.hasWarning && tierRec.nudge) {
-            // Price break is coming — nudge with two-tone coloring
+        if (serviceType === 'repair_only') {
+            subHtml = repairInfo.count === 0 ? 'Select your repairs above' : 'Tap to review and add remarks';
+        } else if (tierRec.hasWarning && tierRec.nudge) {
             subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> — ' + tierRec.nudge.rate + '/game rate · Tap to review';
         } else if (tierRec.hasWarning && tierRec.remaining > 0 && (serviceType === 'jailbreak' || serviceType === 'system_setup') && count < 3) {
-            // Free games still available
             subHtml = `(${count} free games selected, ${tierRec.remaining} more available) · Tap to review`;
         } else if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
-            if (count === 0) {
-                subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
-            } else if (count <= 3) {
-                subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
-            } else {
-                const c = count - 3;
-                subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`;
-            }
+            if (count === 0) subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
+            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
+            else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`; }
         } else {
             subHtml = 'Tap here to review & add remarks';
         }
@@ -2916,12 +2239,8 @@
         setStatusMessage('Searching for your saved orders...', '#7dd3fc', 0);
 
         try {
-            const { data, error } = await supabaseClient
-                .from('orders').select('*')
-                .eq('phone_ending', phone)
-                .order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.from('orders').select('*').eq('phone_ending', phone).order('created_at', { ascending: false });
             if (error) throw error;
-
             const orders = data || [];
 
             if (orders.length === 0) {
@@ -2943,7 +2262,6 @@
             state.pendingOrderList = orders;
             showOrderPickModal(orders);
             setStatusMessage('Pick an order from the popup to continue.', '#e8dcc0', 0);
-
         } catch (err) {
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#e57373', 5000);
@@ -2961,8 +2279,14 @@
         const updated = order.updated_at ? new Date(order.updated_at).toLocaleString('en-MY', dateOpts) : created;
         const lastTouched = (order.updated_at && order.updated_at !== order.created_at) ? `Last edited: <strong>${updated}</strong>` : `Created: <strong>${created}</strong>`;
         const count = Array.isArray(order.games) ? order.games.length : 0;
-        const label = order.service_type === 'jailbreak' ? `Full Jailbreak (${order.console_model || 'N/A'})` : (order.service_type === 'system_setup' ? 'System Setup' : 'Games Only');
-        info.innerHTML = `We found your previous order:<br>• Service: <strong>${label}</strong><br>• Games: <strong>${count}</strong> selected<br>• ${lastTouched}`;
+        const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
+        const serviceLabels = { 'jailbreak': `Full Jailbreak (${order.console_model || 'N/A'})`, 'system_setup': 'System Setup', 'games_only': 'Games Only', 'repair_only': 'Repair Only' };
+        const label = serviceLabels[order.service_type] || 'Order';
+        let infoText = `We found your previous order:<br>• Service: <strong>${label}</strong>`;
+        if (order.service_type !== 'repair_only') infoText += `<br>• Games: <strong>${count}</strong> selected`;
+        if (rCount > 0) infoText += `<br>• Repairs: <strong>${rCount}</strong> selected`;
+        infoText += `<br>• ${lastTouched}`;
+        info.innerHTML = infoText;
         $('loadChoiceModal').style.display = 'flex';
         BodyLock.lock();
     }
@@ -2990,10 +2314,11 @@
     }
 
     function chooseNewOrder() {
-        if (state.selectedGames.size > 0) {
-            const count = state.selectedGames.size;
-            const word = count === 1 ? 'game' : 'games';
-            const msg = 'You have ' + count + ' ' + word + ' selected. Starting a new order will clear them.\n\nContinue?';
+        if (state.selectedGames.size > 0 || state.selectedRepairs.size > 0) {
+            const parts = [];
+            if (state.selectedGames.size > 0) parts.push(state.selectedGames.size + ' game' + (state.selectedGames.size === 1 ? '' : 's'));
+            if (state.selectedRepairs.size > 0) parts.push(state.selectedRepairs.size + ' repair' + (state.selectedRepairs.size === 1 ? '' : 's'));
+            const msg = 'You have ' + parts.join(' and ') + ' selected. Starting a new order will clear them.\n\nContinue?';
             if (!confirm(msg)) return;
         }
         resetFormForNewOrder();
@@ -3012,7 +2337,6 @@
         orders.forEach(order => {
             const item = document.createElement('div');
             item.className = 'order-pick-item';
-
             const stage = order.progress_stage || 'Order Received';
             let pillClass = '';
             if (order.status === 'Cancelled') pillClass = 'cancelled';
@@ -3020,34 +2344,28 @@
             else if (stage === 'In Progress') pillClass = 'in-progress';
             else if (stage === 'Confirmed') pillClass = 'confirmed';
 
-            const serviceLabels = {
-                'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''),
-                'system_setup': 'System Setup',
-                'games_only': 'Games Only'
-            };
+            const serviceLabels = { 'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''), 'system_setup': 'System Setup', 'games_only': 'Games Only', 'repair_only': 'Repair Only' };
             const serviceLabel = serviceLabels[order.service_type] || 'Order';
-
             const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+            const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
             const total = order.estimated_price ? 'RM' + Math.round(order.estimated_price) : '';
-            const created = order.created_at
-                ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
-                : '';
+            const created = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) : '';
+
+            let detailParts = [escapeHtml(serviceLabel)];
+            if (order.service_type !== 'repair_only') detailParts.push('<strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : ''));
+            if (rCount > 0) detailParts.push('<strong>' + rCount + '</strong> repair' + (rCount !== 1 ? 's' : ''));
+            if (total) detailParts.push('<strong>' + total + '</strong>');
 
             item.innerHTML = ''
                 + '<div class="order-pick-item-header">'
-                +   '<div class="order-pick-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
-                +   '<span class="order-pick-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
+                + '  <div class="order-pick-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
+                + '  <span class="order-pick-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
                 + '</div>'
-                + '<div class="order-pick-detail">'
-                +   escapeHtml(serviceLabel) + ' &nbsp;·&nbsp; <strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : '')
-                +   (total ? ' &nbsp;·&nbsp; <strong>' + total + '</strong>' : '')
-                + '</div>'
+                + '<div class="order-pick-detail">' + detailParts.join(' &nbsp;·&nbsp; ') + '</div>'
                 + '<div class="order-pick-date">Placed ' + escapeHtml(created) + '</div>';
-
             item.onclick = () => pickOrderFromList(order.id);
             list.appendChild(item);
         });
-
         $('orderPickModal').style.display = 'flex';
         BodyLock.lock();
     }
@@ -3083,13 +2401,42 @@
 
     function applyLoadedOrder(order) {
         state.selectedGames.clear();
+        state.selectedRepairs.clear();
         const source = typeof games !== 'undefined' ? games : [];
+
         if (order.games && Array.isArray(order.games)) {
             order.games.forEach(name => {
                 const found = source.find(g => g.name === name);
                 state.selectedGames.set(name, found ? found.size : 0);
             });
         }
+
+        // Load repairs (snapshot objects)
+        if (order.repairs && Array.isArray(order.repairs)) {
+            order.repairs.forEach(r => {
+                if (r && typeof r === 'object' && r.id) {
+                    state.selectedRepairs.set(r.id, {
+                        id: r.id,
+                        name: r.name || r.id,
+                        category: r.category || '',
+                        price: Number(r.price) || 0,
+                        isQuote: !!r.is_quote,
+                        note: r.note || ''
+                    });
+                } else if (typeof r === 'string') {
+                    // Legacy id-only
+                    const svc = (window.REPAIR_SERVICES || []).find(s => s.id === r);
+                    if (svc) {
+                        const p = computeRepairPrice(svc, order.console_model || 'OLED');
+                        state.selectedRepairs.set(svc.id, {
+                            id: svc.id, name: svc.name, category: svc.category || '',
+                            price: p.amount, isQuote: p.isQuote, note: svc.note || ''
+                        });
+                    }
+                }
+            });
+        }
+
         if (order.remarks) state.savedRemarksText = order.remarks;
         if (order.service_type) $('serviceTypeSelect').value = order.service_type;
         if (order.sd_source) $('sdSourceSelect').value = order.sd_source;
@@ -3108,7 +2455,14 @@
         toggleServiceFields();
         updateSdLimit();
         filterGames();
-        if (state.selectedGames.size > 0) revealGameSection();
+        if (state.selectedGames.size > 0 && order.service_type !== 'repair_only') revealGameSection();
+        // Expand repair section if repairs exist
+        if (state.selectedRepairs.size > 0 && !state.repairSectionExpanded) {
+            state.repairSectionExpanded = true;
+            $('repairBody').classList.add('expanded');
+            $('repairToggleLabel').textContent = 'Hide';
+        }
+        renderRepairSection();
         showEditModeBanner();
         updateSaveButtonLabel();
     }
@@ -3116,17 +2470,15 @@
     function updateSaveButtonLabel() {
         const btn = $('modalSaveBtn');
         if (!btn) return;
-        if (state.currentEditingOrderId) {
-            btn.textContent = 'Save Changes';
-        } else {
-            btn.textContent = 'Place Order';
-        }
+        btn.textContent = state.currentEditingOrderId ? 'Save Changes' : 'Place Order';
     }
 
     function openCartModal() {
         if (!validatePhoneProvided()) return;
-        if (!state.isStorageConfigured) {
-            alert('Please complete your configuration (service type, model, storage) before proceeding!');
+        if (!state.isStorageConfigured) { alert('Please complete your configuration (service type, model, storage) before proceeding!'); return; }
+        const serviceType = valOf('serviceTypeSelect');
+        if (serviceType === 'repair_only' && state.selectedRepairs.size === 0) {
+            alert('Please select at least one repair to continue.');
             return;
         }
         renderCartModalContent();
@@ -3146,12 +2498,14 @@
         const android = $('androidModeCheck').checked;
         const linux = $('linuxModeCheck').checked;
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
+        const isRepairOnly = serviceType === 'repair_only';
 
         const count = state.selectedGames.size;
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         const details = calculatePriceDetails(count, gSize);
 
+        // ===== 1. Service & Hardware =====
         const h1 = document.createElement('div');
         h1.className = 'modal-section-title';
         h1.textContent = '1. Service & Hardware';
@@ -3159,26 +2513,19 @@
 
         let serviceLabel = 'Games Installation Service';
         let serviceSub = `Client-Stated Free Space: ${freeStorage || 0} GB`;
-        let servicePrice = 0;
-        if (serviceType === 'jailbreak') {
-            serviceLabel = `Full Jailbreak (${consoleModel})`;
-            serviceSub = 'Console modification + 3 games included';
-            servicePrice = details.serviceBasePrice;
-        } else if (serviceType === 'system_setup') {
-            serviceLabel = 'System Setup';
-            serviceSub = 'Console modding & configuration + 3 games included';
-            servicePrice = details.serviceBasePrice;
+        let servicePrice = details.serviceBasePrice;
+        if (serviceType === 'jailbreak') { serviceLabel = `Full Jailbreak (${consoleModel})`; serviceSub = 'Console modification + 3 games included'; }
+        else if (serviceType === 'system_setup') { serviceLabel = 'System Setup'; serviceSub = 'Console modding & configuration + 3 games included'; }
+        else if (serviceType === 'repair_only') {
+            serviceLabel = 'Repair Service';
+            const hasPaid = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
+            serviceSub = hasPaid ? 'Bench fee waived (paid repair selected)' : 'Diagnostic / bench fee';
+            if (hasPaid) servicePrice = 0;
         }
 
         const sItem = document.createElement('div');
         sItem.className = 'cart-item fixed-item';
-        sItem.innerHTML = `
-            <div class="cart-item-details">
-                <span class="cart-item-title">${serviceLabel}</span>
-                <span class="cart-item-sub">${serviceSub}</span>
-            </div>
-            ${servicePrice > 0 ? `<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">RM${servicePrice}</span></div>` : ''}
-        `;
+        sItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">${serviceLabel}</span><span class="cart-item-sub">${serviceSub}</span></div>${servicePrice > 0 ? `<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">RM${servicePrice}</span></div>` : '<span class="lock-badge">Waived</span>'}`;
         body.appendChild(sItem);
 
         if (isJbOrSetup) {
@@ -3186,119 +2533,114 @@
             const sdItem = document.createElement('div');
             sdItem.className = 'cart-item';
             if (sdSource === 'buy') {
-                sdItem.innerHTML = `
-                    <div class="cart-item-details">
-                        <span class="cart-item-title">Purchase ${sdLabel} SD Card</span>
-                        <span class="cart-item-sub">Brand new pre-configured card</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        <span style="font-weight:bold; color:#ffc000;">+RM${details.sdCardPrice}</span>
-                        <button class="remove-btn" onclick="removeAddonFromCart('sdcard')">Remove</button>
-                    </div>
-                `;
+                sdItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">Purchase ${sdLabel} SD Card</span><span class="cart-item-sub">Brand new pre-configured card</span></div><div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">+RM${details.sdCardPrice}</span><button class="remove-btn" onclick="removeAddonFromCart('sdcard')">Remove</button></div>`;
             } else {
-                sdItem.innerHTML = `
-                    <div class="cart-item-details">
-                        <span class="cart-item-title">Bring Own SD Card (${sdLabel})</span>
-                        <span class="cart-item-sub">Provided by customer</span>
-                    </div>
-                    <span class="lock-badge">Free</span>
-                `;
+                sdItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">Bring Own SD Card (${sdLabel})</span><span class="cart-item-sub">Provided by customer</span></div><span class="lock-badge">Free</span>`;
             }
             body.appendChild(sdItem);
 
             if (android) {
                 const aItem = document.createElement('div');
                 aItem.className = 'cart-item';
-                aItem.innerHTML = `
-                    <div class="cart-item-details">
-                        <span class="cart-item-title">Android Mode</span>
-                        <span class="cart-item-sub">LineageOS dual-boot setup</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        <span style="font-weight:bold; color:#ffc000;">+RM${details.androidPrice}</span>
-                        <button class="remove-btn" onclick="removeAddonFromCart('android')">Remove</button>
-                    </div>
-                `;
+                aItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">Android Mode</span><span class="cart-item-sub">LineageOS dual-boot setup</span></div><div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">+RM${details.androidPrice}</span><button class="remove-btn" onclick="removeAddonFromCart('android')">Remove</button></div>`;
                 body.appendChild(aItem);
             }
             if (linux) {
                 const lItem = document.createElement('div');
                 lItem.className = 'cart-item';
-                lItem.innerHTML = `
-                    <div class="cart-item-details">
-                        <span class="cart-item-title">Linux Mode</span>
-                        <span class="cart-item-sub">Ubuntu Linux desktop environment</span>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-                        <span style="font-weight:bold; color:#ffc000;">+RM${details.linuxPrice}</span>
-                        <button class="remove-btn" onclick="removeAddonFromCart('linux')">Remove</button>
-                    </div>
-                `;
+                lItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">Linux Mode</span><span class="cart-item-sub">Ubuntu Linux desktop environment</span></div><div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">+RM${details.linuxPrice}</span><button class="remove-btn" onclick="removeAddonFromCart('linux')">Remove</button></div>`;
                 body.appendChild(lItem);
             }
         }
 
-        const h2 = document.createElement('div');
-        h2.className = 'modal-section-title';
-        h2.textContent = '2. Selected Games';
-        body.appendChild(h2);
+        // ===== 2. Repairs =====
+        if (state.selectedRepairs.size > 0) {
+            const hRep = document.createElement('div');
+            hRep.className = 'modal-section-title';
+            hRep.textContent = '2. Repair Jobs';
+            body.appendChild(hRep);
 
-        const tierRec = checkTierRecommendation(count, serviceType);
-        if (tierRec.hasWarning && tierRec.msg) {
-            const banner = document.createElement('div');
-            banner.className = 'modal-alert warning';
-            banner.style.display = 'block';
-            banner.innerHTML = tierRec.msg;
-            body.appendChild(banner);
-        }
-
-        const gamesDetails = document.createElement('details');
-        gamesDetails.className = 'cart-details';
-        if (state.modalGamesExpanded) gamesDetails.open = true;
-
-        const gamesSummary = document.createElement('summary');
-        gamesSummary.className = 'cart-details-summary';
-        gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
-        gamesDetails.appendChild(gamesSummary);
-
-        const gamesBody = document.createElement('div');
-        gamesBody.className = 'cart-details-body';
-        if (state.selectedGames.size === 0) {
-            const p = document.createElement('p');
-            p.style.cssText = 'text-align:center; color:#8a8272; margin:5px 0; font-size:13px;';
-            p.textContent = isJbOrSetup ? 'No games selected yet (3 games included in package)' : 'No games selected.';
-            gamesBody.appendChild(p);
-        } else {
-            let idx = 1;
-            state.selectedGames.forEach((size, name) => {
+            state.selectedRepairs.forEach(r => {
                 const item = document.createElement('div');
-                item.className = 'cart-item';
-                let tag = '';
-                if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#e8dcc0; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
-
-                const titleSpan = document.createElement('span');
-                titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${size} GB)</span>`;
-
-                const btn = document.createElement('button');
-                btn.className = 'remove-btn';
-                btn.textContent = 'Remove';
-                btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); removeGameFromCart(name); };
-
-                item.appendChild(titleSpan);
-                item.appendChild(btn);
-                gamesBody.appendChild(item);
-                idx++;
+                item.className = 'cart-item repair-cart-item';
+                item.innerHTML = `
+                    <div class="cart-item-details">
+                        <span class="cart-item-title">${escapeHtml(r.name)}</span>
+                        <span class="cart-item-sub">${r.note ? escapeHtml(r.note) : (r.category || 'Repair')}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                        <span style="font-weight:bold; ${r.isQuote ? 'color:#ffb74d;font-style:italic;font-size:11.5px;' : 'color:#ffc000;'}">${r.isQuote ? 'TBC' : 'RM' + r.price}</span>
+                        <button class="remove-btn" onclick="removeRepairFromCart('${escapeHtml(r.id)}')">Remove</button>
+                    </div>
+                `;
+                body.appendChild(item);
             });
         }
-        gamesDetails.appendChild(gamesBody);
-        gamesDetails.addEventListener('toggle', () => { state.modalGamesExpanded = gamesDetails.open; });
-        body.appendChild(gamesDetails);
 
-        const h3 = document.createElement('div');
-        h3.className = 'modal-section-title';
-        h3.textContent = '3. Additional Remarks';
-        body.appendChild(h3);
+        // ===== 3. Selected Games =====
+        if (!isRepairOnly) {
+            const h2 = document.createElement('div');
+            h2.className = 'modal-section-title';
+            h2.textContent = (state.selectedRepairs.size > 0 ? '3' : '2') + '. Selected Games';
+            body.appendChild(h2);
+
+            const tierRec = checkTierRecommendation(count, serviceType);
+            if (tierRec.hasWarning && tierRec.msg) {
+                const banner = document.createElement('div');
+                banner.className = 'modal-alert warning';
+                banner.style.display = 'block';
+                banner.innerHTML = tierRec.msg;
+                body.appendChild(banner);
+            }
+
+            const gamesDetails = document.createElement('details');
+            gamesDetails.className = 'cart-details';
+            if (state.modalGamesExpanded) gamesDetails.open = true;
+
+            const gamesSummary = document.createElement('summary');
+            gamesSummary.className = 'cart-details-summary';
+            gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
+            gamesDetails.appendChild(gamesSummary);
+
+            const gamesBody = document.createElement('div');
+            gamesBody.className = 'cart-details-body';
+            if (state.selectedGames.size === 0) {
+                const p = document.createElement('p');
+                p.style.cssText = 'text-align:center; color:#8a8272; margin:5px 0; font-size:13px;';
+                p.textContent = isJbOrSetup ? 'No games selected yet (3 games included in package)' : 'No games selected.';
+                gamesBody.appendChild(p);
+            } else {
+                let idx = 1;
+                state.selectedGames.forEach((size, name) => {
+                    const item = document.createElement('div');
+                    item.className = 'cart-item';
+                    let tag = '';
+                    if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#e8dcc0; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
+                    const titleSpan = document.createElement('span');
+                    titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${size} GB)</span>`;
+                    const btn = document.createElement('button');
+                    btn.className = 'remove-btn';
+                    btn.textContent = 'Remove';
+                    btn.onclick = (e) => { e.preventDefault(); e.stopPropagation(); removeGameFromCart(name); };
+                    item.appendChild(titleSpan);
+                    item.appendChild(btn);
+                    gamesBody.appendChild(item);
+                    idx++;
+                });
+            }
+            gamesDetails.appendChild(gamesBody);
+            gamesDetails.addEventListener('toggle', () => { state.modalGamesExpanded = gamesDetails.open; });
+            body.appendChild(gamesDetails);
+        }
+
+        // ===== N. Remarks =====
+        const hLast = document.createElement('div');
+        hLast.className = 'modal-section-title';
+        let secNum = 2;
+        if (state.selectedRepairs.size > 0) secNum++;
+        if (!isRepairOnly) secNum++;
+        hLast.textContent = secNum + '. Additional Remarks';
+        body.appendChild(hLast);
 
         const remarksDetails = document.createElement('details');
         remarksDetails.className = 'cart-details';
@@ -3307,9 +2649,7 @@
         const remarksSummary = document.createElement('summary');
         remarksSummary.className = 'cart-details-summary';
         const hasContent = (state.savedRemarksText || '').trim().length > 0;
-        const label = hasContent
-            ? 'Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>'
-            : 'Add Remarks (Optional)';
+        const label = hasContent ? 'Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>' : 'Add Remarks (Optional)';
         remarksSummary.innerHTML = `<span>${label}</span><span class="chev">▼</span>`;
         remarksDetails.appendChild(remarksSummary);
 
@@ -3317,7 +2657,7 @@
         remarksBody.className = 'cart-details-body';
         const ta = document.createElement('textarea');
         ta.className = 'remarks-input';
-        ta.placeholder = 'e.g. mention specific game DLCs, trilogies, or special requests...';
+        ta.placeholder = 'e.g. describe the issue, specific game DLCs, special requests...';
         ta.value = state.savedRemarksText || '';
         ta.oninput = () => { state.savedRemarksText = ta.value; };
         remarksBody.appendChild(ta);
@@ -3325,19 +2665,23 @@
         remarksDetails.addEventListener('toggle', () => { state.modalRemarksExpanded = remarksDetails.open; });
         body.appendChild(remarksDetails);
 
+        // Share link (editing only)
         const shareContainer = $('shareLinkContainer');
         if (state.currentEditingOrderId) {
             shareContainer.style.display = 'block';
             $('shareLinkInput').value = buildShareUrl();
             $('shareLinkDesc').innerHTML = 'This order already exists. Bookmark or share this link to edit it anytime:';
-        } else {
-            shareContainer.style.display = 'none';
-        }
+        } else shareContainer.style.display = 'none';
 
+        // ===== Price breakdown =====
         const priceBox = $('modalPriceBreakdown');
         let html = '';
         if (serviceType === 'jailbreak') html += `<div class="price-breakdown-row"><span>Full Jailbreak (${consoleModel})</span><span>RM${details.serviceBasePrice}</span></div>`;
         else if (serviceType === 'system_setup') html += `<div class="price-breakdown-row"><span>System Setup Service</span><span>RM${details.serviceBasePrice}</span></div>`;
+        else if (serviceType === 'repair_only') {
+            if (details.serviceBasePrice > 0) html += `<div class="price-breakdown-row"><span>Diagnostic / bench fee</span><span>RM${details.serviceBasePrice}</span></div>`;
+            else html += `<div class="price-breakdown-row"><span>Diagnostic fee</span><span style="color:#00e676;">Waived</span></div>`;
+        }
 
         if (isJbOrSetup) {
             if (sdSource === 'buy') {
@@ -3346,16 +2690,33 @@
             }
             if (android) html += `<div class="price-breakdown-row"><span>Android Mode</span><span>RM${details.androidPrice}</span></div>`;
             if (linux) html += `<div class="price-breakdown-row"><span>Linux Mode</span><span>RM${details.linuxPrice}</span></div>`;
-            const c = Math.max(0, count - 3);
-            html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
-        } else {
-            html += `<div class="price-breakdown-row"><span>Games Installation (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
         }
-        html += `<div class="price-breakdown-row total-row"><span>Total</span><span style="color:#ffc000;">RM${Math.round(details.price)}</span></div>`;
+
+        // Repair rows
+        if (state.selectedRepairs.size > 0) {
+            state.selectedRepairs.forEach(r => {
+                if (r.isQuote) {
+                    html += `<div class="price-breakdown-row repair-row quote-row"><span>🔧 ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
+                } else {
+                    html += `<div class="price-breakdown-row repair-row"><span>🔧 ${escapeHtml(r.name)}</span><span>RM${r.price}</span></div>`;
+                }
+            });
+        }
+
+        // Games row
+        if (!isRepairOnly) {
+            if (isJbOrSetup) {
+                const c = Math.max(0, count - 3);
+                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+            } else {
+                html += `<div class="price-breakdown-row"><span>Games Installation (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+            }
+        }
+
+        html += `<div class="price-breakdown-row total-row"><span>Total${details.repairQuoteCount > 0 ? ' (+' + details.repairQuoteCount + ' quote)' : ''}</span><span style="color:#ffc000;">RM${Math.round(details.price)}</span></div>`;
         priceBox.innerHTML = html;
 
         $('sizeWarningBox').style.display = details.exceeded ? 'block' : 'none';
-
         updateSaveButtonLabel();
     }
 
@@ -3400,6 +2761,13 @@
         renderCartModalContent();
     }
 
+    function removeRepairFromCart(id) {
+        state.selectedRepairs.delete(id);
+        renderRepairSection();
+        updateCartSummary();
+        renderCartModalContent();
+    }
+
     function closeCartModal() {
         $('cartModal').style.display = 'none';
         BodyLock.unlock();
@@ -3408,23 +2776,14 @@
     function showPostSavePanel(phone) {
         const panel = $('postSavePanel');
         if (!panel) return;
-
         const base = window.location.origin + window.location.pathname;
-        const editUrl = state.currentEditingOrderId
-            ? `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}`
-            : `${base}?phone=${encodeURIComponent(phone)}`;
-
-        const trackUrl = window.location.origin
-            + window.location.pathname.replace('index.html', 'track.html')
-            + '?phone=' + encodeURIComponent(phone);
-
+        const editUrl = state.currentEditingOrderId ? `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}` : `${base}?phone=${encodeURIComponent(phone)}`;
+        const trackUrl = window.location.origin + window.location.pathname.replace('index.html', 'track.html') + '?phone=' + encodeURIComponent(phone);
         $('postSaveEditInput').value = editUrl;
         $('postSaveTrackInput').value = trackUrl;
         $('postSaveTrackBtn').href = trackUrl;
-
         const trackLink = $('headerTrackLink');
         if (trackLink) trackLink.href = trackUrl;
-
         panel.style.display = 'block';
     }
 
@@ -3441,23 +2800,20 @@
             const orig = btnEl.textContent;
             btnEl.textContent = 'Copied';
             btnEl.style.background = '#00c853';
-            setTimeout(() => {
-                btnEl.textContent = orig;
-                btnEl.style.background = '#00e676';
-            }, 1800);
+            setTimeout(() => { btnEl.textContent = orig; btnEl.style.background = '#00e676'; }, 1800);
         }).catch(err => alert('Failed to copy: ' + err));
     }
 
     async function submitOrUpdateOrder() {
-        if (!state.isStorageConfigured) {
-            alert('Please complete your configuration (service type, model, storage) before saving.');
-            closeCartModal();
-            return;
-        }
+        if (!state.isStorageConfigured) { alert('Please complete your configuration (service type, model, storage) before saving.'); closeCartModal(); return; }
 
         const serviceType = valOf('serviceTypeSelect');
         if (!serviceType) return alert('Please select a Service Type first.');
+        const isRepairOnly = serviceType === 'repair_only';
+
         if (serviceType === 'jailbreak' && !valOf('consoleModelSelect')) return alert('Please select your Console Model.');
+        if (isRepairOnly && !valOf('consoleModelSelect')) return alert('Please select your Console Model (needed for repair pricing).');
+        if (isRepairOnly && state.selectedRepairs.size === 0) return alert('Please select at least one repair.');
 
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
         if (isJbOrSetup) {
@@ -3473,14 +2829,8 @@
         const tierRec = checkTierRecommendation(count, serviceType);
         if (tierRec.hasWarning && tierRec.msg) {
             let msg;
-            if (isJbOrSetup && count < 3) {
-                msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\n` +
-                      `Pick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
-            } else {
-                msg = `You've selected ${count} games.\n\n` +
-                      `Add ${tierRec.remaining} more to unlock the lower rate — every game you've picked gets cheaper.\n\n` +
-                      `Save now with ${count} games, or go back and add more?`;
-            }
+            if (isJbOrSetup && count < 3) msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\nPick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
+            else msg = `You've selected ${count} games.\n\nAdd ${tierRec.remaining} more to unlock the lower rate — every game you've picked gets cheaper.\n\nSave now with ${count} games, or go back and add more?`;
             if (!confirm(msg)) return;
         }
 
@@ -3488,11 +2838,7 @@
             if (!confirm(`You have selected only ${count} game(s).\n\nYour ${submitLabel} package includes 3 games at no extra cost. Do you still want to save your order with fewer than 3 games?`)) return;
         } else if (serviceType === 'games_only') {
             const fs = valOf('userFreeStorageInput');
-            if (!fs || parseFloat(fs) <= 0) {
-                alert('Please enter your remaining free SD card storage space before submitting!');
-                $('userFreeStorageInput').focus();
-                return;
-            }
+            if (!fs || parseFloat(fs) <= 0) { alert('Please enter your remaining free SD card storage space before submitting!'); $('userFreeStorageInput').focus(); return; }
         }
 
         if (state.currentEditingOrderId) {
@@ -3517,18 +2863,29 @@
         state.selectedGames.forEach(s => gSize += s);
         const details = calculatePriceDetails(count, gSize);
 
+        // Snapshot repairs
+        const repairsSnapshot = Array.from(state.selectedRepairs.values()).map(r => ({
+            id: r.id,
+            name: r.name,
+            category: r.category || '',
+            price: r.price,
+            is_quote: r.isQuote,
+            note: r.note || ''
+        }));
+
         try {
             const nowIso = new Date().toISOString();
             const orderData = {
                 phone_ending: phone,
                 games: gameNames,
                 total_games: count,
+                repairs: repairsSnapshot,
                 remarks: remarksText,
                 sd_card_size: isJbOrSetup ? state.maxSdSize : null,
                 free_storage_gb: serviceType === 'games_only' ? parseFloat(freeStorage) : null,
                 sd_source: sdSource,
                 service_type: serviceType,
-                console_model: serviceType === 'jailbreak' ? consoleModel : null,
+                console_model: (serviceType === 'jailbreak' || isRepairOnly) ? consoleModel : null,
                 total_size_gb: gSize,
                 estimated_price: Math.round(details.price),
                 android_mode: androidSel,
@@ -3586,12 +2943,14 @@
         state.selectedGames.forEach(s => gSize += s);
         const details = calculatePriceDetails(count, gSize);
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
+        const isRepairOnly = serviceType === 'repair_only';
 
         let msg = `*New Pulai PC Order*\n`;
         msg += `Phone ID (Last 4): ${phone}\n`;
         let label = 'Games Only';
         if (serviceType === 'jailbreak') label = `Full Jailbreak (${consoleModel})`;
         else if (serviceType === 'system_setup') label = 'System Setup';
+        else if (serviceType === 'repair_only') label = `Repair Only (${consoleModel})`;
         msg += `Service Type: ${label}\n`;
 
         if (isJbOrSetup) {
@@ -3599,12 +2958,21 @@
             msg += `SD Card: ${sdLabel} (${sdSource === 'buy' ? 'New Purchase' : 'Own Card'})\n`;
             if (android) msg += `Addon: Android Mode\n`;
             if (linux) msg += `Addon: Linux Mode\n`;
-        } else {
+        } else if (serviceType === 'games_only') {
             msg += `Free Storage: ${valOf('userFreeStorageInput') || 0} GB\n`;
         }
-        msg += `Selected Games: ${count} games (${gSize.toFixed(1)} GB total)\n`;
+
+        if (state.selectedRepairs.size > 0) {
+            msg += `\n*Repair Jobs:*\n`;
+            state.selectedRepairs.forEach(r => {
+                msg += `• ${r.name} — ${r.isQuote ? 'TBC after inspection' : 'RM' + r.price}\n`;
+            });
+        }
+
+        if (!isRepairOnly) msg += `Selected Games: ${count} games (${gSize.toFixed(1)} GB total)\n`;
         if (remarks) msg += `Remarks: ${remarks}\n`;
         msg += `Total Estimated Price: RM${Math.round(details.price)}`;
+        if (details.repairQuoteCount > 0) msg += ` (+${details.repairQuoteCount} quote)`;
 
         const shareUrl = buildShareUrl();
         if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\nView or edit your order anytime:\n${shareUrl}`;
@@ -3612,7 +2980,6 @@
 
         const wa = APP_CONFIG.whatsappNumber || '';
         if (!wa) return alert('WhatsApp number is not configured in APP_CONFIG.');
-
         const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
         try {
             const a = document.createElement('a');
@@ -3620,9 +2987,7 @@
             a.style.display = 'none';
             document.body.appendChild(a); a.click();
             setTimeout(() => document.body.removeChild(a), 100);
-        } catch (err) {
-            window.open(url, '_blank');
-        }
+        } catch (err) { window.open(url, '_blank'); }
     }
     </script>
 </body>
