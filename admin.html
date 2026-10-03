@@ -74,22 +74,7 @@
         .filter-btn.needs { border-color: #3a5a72; color: #7dd3fc; }
         .filter-btn.needs.active { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
 
-        /* ===== QUEUE / ORDERS LIST ===== */
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 2px;
-            margin-bottom: 8px;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-            color: #8a8272;
-            font-weight: 700;
-        }
-        .section-header .count { color: #e8dcc0; }
-
+        /* ===== ORDERS LIST ===== */
         .orders-grid { display: flex; flex-direction: column; gap: 10px; }
         .order-card {
             background: #1f190e;
@@ -154,6 +139,7 @@
         .stage-pill.Ready       { background: #1a2a1a; color: #7ee39b; border-color: #2a4530; }
         .stage-pill.Completed   { background: #1a2a1a; color: #00e676; border-color: #2a4530; }
         .stage-pill.Cancelled   { background: #2a1212; color: #e57373; border-color: #7a3030; }
+        .stage-pill.Queued      { background: #221a2a; color: #c4a8e8; border-color: #5a3a72; }
 
         .order-meta { font-size: 12px; color: #b8b0a0; line-height: 1.5; }
         .order-meta strong { color: #e8dcc0; }
@@ -742,6 +728,7 @@
                     <button class="filter-btn" data-status="Pending" onclick="setStatusFilter('Pending', this)">Pending</button>
                     <button class="filter-btn" data-status="In Progress" onclick="setStatusFilter('In Progress', this)">In Progress</button>
                     <button class="filter-btn" data-status="Ready" onclick="setStatusFilter('Ready', this)">Ready</button>
+                    <button class="filter-btn" data-status="QUEUED" onclick="setStatusFilter('QUEUED', this)">In queue</button>
                     <button class="filter-btn" data-status="Completed" onclick="setStatusFilter('Completed', this)">Completed</button>
                     <button class="filter-btn" data-status="Cancelled" onclick="setStatusFilter('Cancelled', this)">Cancelled</button>
                 </div>
@@ -1353,7 +1340,7 @@
 
         var items = [];
         items.push({ key: 'confirmed',  label: 'Order confirmed',          autoStage: 'Confirmed' });
-        items.push({ key: 'received',   label: 'Console received',         autoStage: null });
+        items.push({ key: 'received',   label: 'Console received',         autoStage: null, autoSub: 'Received' });
 
         if (serviceType === 'jailbreak') {
             items.push({ key: 'modchip',  label: 'Modchip installed',       autoSub: 'Modchip Installation' });
@@ -1477,6 +1464,7 @@
             var item = checklist[m];
             if (!newTicked[item.key]) continue;
             if (item.autoStage) { newStage = item.autoStage; break; }
+            if (item.autoSub === 'Received') { newStage = 'Confirmed'; newSub = 'Received'; break; }
             if (item.autoSub) { newStage = 'In Progress'; newSub = item.autoSub; break; }
             if (newStage === 'Order Received') newStage = 'Confirmed';
         }
@@ -1516,8 +1504,11 @@
             if (status === 'Cancelled') return;
             revenue += Number(o.estimated_price) || 0;
             if (s !== 'Completed' && s !== 'Cancelled') {
-                if (s === 'Confirmed' || s === 'In Progress') queue++;
                 needs++;
+                // "In queue" = console received but no work started yet
+                var ticked = deriveTickedSteps(o);
+                var anyWorkTicked = ticked.modchip || ticked.diagnosis || ticked.repair || ticked.setup || ticked.games || ticked.testing;
+                if (ticked.received && !anyWorkTicked && s !== 'Ready') queue++;
             }
         });
         document.getElementById('statQueue').innerText = queue;
@@ -1552,6 +1543,11 @@
 
             if (currentStatusFilter === 'NEEDS') {
                 if (status === 'Cancelled' || status === 'Completed' || stage === 'Completed') continue;
+            } else if (currentStatusFilter === 'QUEUED') {
+                if (status === 'Cancelled' || status === 'Completed' || stage === 'Completed' || stage === 'Ready') continue;
+                var _t = deriveTickedSteps(order);
+                var _work = _t.modchip || _t.diagnosis || _t.repair || _t.setup || _t.games || _t.testing;
+                if (!(_t.received && !_work)) continue;
             } else if (currentStatusFilter !== 'ALL') {
                 if (currentStatusFilter === 'Pending') {
                     if (status !== 'Pending') continue;
@@ -1637,6 +1633,10 @@
         var doneCount = 0;
         checklist.forEach(function(item) { if (ticked[item.key]) doneCount++; });
 
+        // "In queue" — console is with us but no work item ticked yet
+        var anyWorkTicked = ticked.modchip || ticked.diagnosis || ticked.repair || ticked.setup || ticked.games || ticked.testing;
+        var isQueued = !!ticked.received && !anyWorkTicked && stage !== 'Ready' && stage !== 'Completed' && status !== 'Cancelled';
+
         var checklistHtml = '';
         var firstPendingSeen = false;
         checklist.forEach(function(item) {
@@ -1655,6 +1655,7 @@
         });
 
         var stagePillClass = stage.replace(/\s+/g, '-');
+        var stageIcon = STAGE_ICONS[stage] || '';
         card.innerHTML =
             '<div class="card-select-wrap"><input type="checkbox" class="bulk-checkbox" data-order-id="' + orderId + '"' + isChecked + '></div>' +
             '<div class="order-card-header">' +
@@ -1662,7 +1663,8 @@
                     '<div class="order-id-row">' +
                         '<span class="order-id">Order #' + escapeHtml(order.phone_ending || 'N/A') + '</span>' +
                         '<button class="order-copy-btn" data-order-id="' + orderId + '" title="Copy order number">Copy #</button>' +
-                        '<span class="stage-pill ' + stagePillClass + '">' + escapeHtml(stage) + '</span>' +
+                                                '<span class="stage-pill ' + stagePillClass + '">' + (stageIcon ? stageIcon + ' ' : '') + escapeHtml(stage) + '</span>' +
+                                                (isQueued ? '<span class="stage-pill Queued">In queue</span>' : '') +
                     '</div>' +
                     '<div class="order-meta">' + metaLine + '</div>' +
                     '<div class="order-summary-line">' + summaryLine + '</div>' +
@@ -1809,7 +1811,7 @@
 
         document.getElementById('modalTitle').innerText = 'Order #' + (order.phone_ending || 'N/A');
         document.getElementById('modalStagePill').className = 'stage-pill ' + stagePillClass;
-        document.getElementById('modalStagePill').innerText = stage;
+        document.getElementById('modalStagePill').innerText = (STAGE_ICONS[stage] ? STAGE_ICONS[stage] + ' ' : '') + stage;
         document.getElementById('modalPhoneVal').innerText = order.phone_ending || 'N/A';
         var waEl = document.getElementById('modalWaVal');
         waEl.innerText = order.whatsapp_username || 'Not assigned';
