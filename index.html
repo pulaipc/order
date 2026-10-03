@@ -690,7 +690,7 @@
                     <div>
                         <div class="repair-section-title">
                             <span class="repair-icon">&#128295;</span>
-                            <span>Repair Jobs (Optional)</span>
+                            <span id="repairSectionTitle">Repair Jobs (Optional)</span>
                         </div>
                         <div class="repair-section-subtitle" id="repairSectionSubtitle">Select any repairs you'd like done on your console.</div>
                     </div>
@@ -1004,6 +1004,18 @@
         const model = valOf('consoleModelSelect');
         const isRepairOnly = serviceType === 'repair_only';
         const needsModel = (serviceType === 'jailbreak') || isRepairOnly;
+
+        // Repair Only: rename section + auto-expand
+        if (isRepairOnly) {
+            $('repairSectionTitle').textContent = 'Repair Jobs (Required)';
+            if (!state.repairSectionExpanded) {
+                state.repairSectionExpanded = true;
+                $('repairBody').classList.add('expanded');
+                $('repairToggleLabel').textContent = 'Hide';
+            }
+        } else {
+            $('repairSectionTitle').textContent = 'Repair Jobs (Optional)';
+        }
 
         $('repairSectionSubtitle').textContent = isRepairOnly
             ? 'Pick the repairs you need. Diagnostic fee of RM30 is waived if a paid repair is selected.'
