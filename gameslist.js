@@ -1,7 +1,7 @@
-// gameslist.js
+﻿// gameslist.js
 // ---------------------------------------------------------------------------
 // Auto-generated game catalog. Do NOT edit manually.
-// Regenerate this file by running your PowerShell script — it should write
+// Regenerate this file by running your PowerShell script â€” it should write
 // the entire file, including this header.
 //
 // Consumed by config.js (which sets APP_CONFIG.gamesList = games) and by
@@ -87,6 +87,7 @@ const games = [
       { name: "EA Sports FC 24", size: 51.3 },
       { name: "EA SPORTS FC 25", size: 32.05 },
       { name: "EA Sports FC 26", size: 30.91 },
+      { name: "EA Sports FC 27", size: 31.97 },
       { name: "ENDER LILIES Quietus of the Knights", size: 1.76 },
       { name: "Ender Magnolia Bloom in the Mist", size: 3.63 },
       { name: "Fairy Tail 2 (US)", size: 3.98 },
