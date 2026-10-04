@@ -313,6 +313,9 @@
     let currentOrders = [];
     let currentOrder = null;
     let currentOrderId = null;
+    // Set only when the page was opened from a private link. A phone lookup can
+    // never set it, because orders_by_phone does not return tokens.
+    let currentToken = null;
 
     const RATE_LIMIT = {
         maxAttempts: 5,
@@ -420,20 +423,51 @@
         if (footerWa) footerWa.href = 'https://wa.me/' + getWhatsAppNumber();
 
         const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('t');
         const urlPhone = params.get('phone');
-        const urlId = params.get('id');
 
-        if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
+        if (urlToken) {
+            trackByToken(urlToken);
+            return;
+        }
+
+        if (urlPhone && /^\d{4}$/.test(urlPhone)) {
             $('trackPhoneInput').value = urlPhone;
             if (!checkRateLimit().allowed) applyRateLimitUI();
-            else trackOrder(urlId || null);
+            else trackOrder();
         }
         $('trackPhoneInput').addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') trackOrder(null);
+            if (e.key === 'Enter') trackOrder();
         });
     };
 
-    async function trackOrder(preferredOrderId) {
+    // Private link. This is the only path that returns a whole order.
+    async function trackByToken(token) {
+        setStatus('Loading your order...', '#7dd3fc', 0);
+        clearAllViews();
+        try {
+            const { data, error } = await supabaseClient.rpc('order_by_token', { p_token: token });
+            if (error) throw error;
+            if (!data) {
+                setStatus('');
+                showNoActiveOrders('', false, true);
+                return;
+            }
+            currentToken = data.public_token || token;
+            currentOrder = data;
+            currentOrderId = String(data.id);
+            currentOrders = [data];
+            currentPhone = data.phone_ending || null;
+            recordSuccess();
+            renderTracker(data);
+            setStatus('');
+        } catch (err) {
+            console.error(err);
+            setStatus('Could not load that link. Please message us on WhatsApp.', '#e57373', 6000);
+        }
+    }
+
+    async function trackOrder() {
         const input = $('trackPhoneInput');
         const phone = input.value.trim();
         const btn = $('trackBtn');
@@ -453,18 +487,15 @@
         clearAllViews();
 
         try {
-            const { data, error } = await supabaseClient
-                .from('orders')
-                .select('*')
-                .eq('phone_ending', phone)
-                .order('created_at', { ascending: false });
-
+            const { data, error } = await supabaseClient.rpc('orders_by_phone', { p_phone: phone });
             if (error) throw error;
 
-            const activeOrders = (data || []).filter(isActiveOrder);
+            // Status only by design: service, stage, status, dates. No games, no
+            // price, no remarks, no courier numbers, no token.
+            const all = Array.isArray(data) ? data : [];
+            const activeOrders = all.filter(isActiveOrder);
 
             if (activeOrders.length === 0) {
-                const hadAnyOrders = (data || []).length > 0;
                 recordSuccess();
                 currentPhone = phone;
                 currentOrders = [];
@@ -472,38 +503,18 @@
                 currentOrderId = null;
                 setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(phone));
                 setStatus('');
-                showNoActiveOrders(phone, hadAnyOrders);
+                showNoActiveOrders(phone, all.length > 0);
                 return;
             }
 
             recordSuccess();
             currentPhone = phone;
             currentOrders = activeOrders;
-
-            if (activeOrders.length === 1) {
-                currentOrder = activeOrders[0];
-                currentOrderId = String(activeOrders[0].id || activeOrders[0].order_id);
-                renderTracker(activeOrders[0]);
-                setStatus('');
-                const newUrl = window.location.pathname + '?phone=' + encodeURIComponent(phone) + '&id=' + encodeURIComponent(currentOrderId);
-                window.history.replaceState({}, '', newUrl);
-                return;
-            }
-
-            if (preferredOrderId) {
-                const preferred = activeOrders.find(o => String(o.id || o.order_id) === String(preferredOrderId));
-                if (preferred) {
-                    currentOrder = preferred;
-                    currentOrderId = String(preferred.id || preferred.order_id);
-                    renderTracker(preferred);
-                    setStatus('');
-                    $('backToOrdersBar').classList.add('show');
-                    return;
-                }
-            }
-
-            renderOrderList(activeOrders);
+            currentOrder = null;
+            currentOrderId = null;
+            currentToken = null;
             setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(phone));
+            renderOrderList(activeOrders, true);
             setStatus('');
 
         } catch (err) {
@@ -524,36 +535,43 @@
         $('backToOrdersBar').classList.remove('show');
     }
 
-    function showNoActiveOrders(phone, hadAnyOrders) {
+    function showNoActiveOrders(phone, hadAnyOrders, linkInvalid) {
         clearAllViews();
         const card = $('noActiveCard');
         const body = $('noActiveBody');
         const wa = getWhatsAppNumber();
 
-        if (hadAnyOrders) {
-            body.innerHTML = 'We found past orders for <strong>' + escapeHtml(phone) + '</strong>, but none are currently active — they\'ve either been completed or cancelled.<br><br>If you need to check a completed order, message us and we\'ll look it up.';
+        if (linkInvalid) {
+            body.innerHTML = 'This link is no longer valid.<br><br>Order links now use a private code instead of an order number. If this link came from us it may have been mistyped, or the order may have been removed.<br><br>Message us and we\'ll send you a fresh link.';
+        } else if (hadAnyOrders) {
+            body.innerHTML = 'We found past orders for <strong>' + escapeHtml(phone) + '</strong>, but none are currently active - they\'ve either been completed or cancelled.<br><br>If you need to check a completed order, message us and we\'ll look it up.';
         } else {
             body.innerHTML = 'We couldn\'t find any orders for <strong>' + escapeHtml(phone) + '</strong>. If you just placed one, please wait a moment and try again.<br><br>Otherwise, message us on WhatsApp and we\'ll check.';
         }
 
-        const prefill = 'Hi, I\'m checking on my order (phone ending ' + phone + ').';
+        const prefill = linkInvalid
+            ? "Hi, my order link isn't working any more. Could you send me a new one?"
+            : 'Hi, I\'m checking on my order (phone ending ' + phone + ').';
         $('noActiveWaBtn').href = 'https://wa.me/' + wa + '?text=' + encodeURIComponent(prefill);
         card.classList.add('show');
     }
 
-    function renderOrderList(orders) {
+    // statusOnly = the record came from orders_by_phone, so it has no games,
+    // price, repairs or courier data. Show what it has and nothing more.
+    function renderOrderList(orders, statusOnly) {
         clearAllViews();
         const card = $('orderListCard');
         const list = $('orderList');
         const subtitle = $('orderListSubtitle');
 
         list.innerHTML = '';
-        subtitle.textContent = 'We found ' + orders.length + ' active orders for ' + currentPhone + '. Tap one to see its progress.';
+        subtitle.textContent = statusOnly
+            ? 'We found ' + orders.length + ' active order' + (orders.length !== 1 ? 's' : '') + ' for ' + currentPhone + '.'
+            : 'We found ' + orders.length + ' active orders for ' + currentPhone + '. Tap one to see its progress.';
 
-        orders.forEach(order => {
+        orders.forEach((order, index) => {
             const item = document.createElement('div');
             item.className = 'order-list-item';
-            const orderId = String(order.id || order.order_id);
             const stage = order.progress_stage || 'Order Received';
             let pillClass = '';
             if (stage === 'In Progress') pillClass = 'in-progress';
@@ -567,31 +585,50 @@
                 'repair_only': 'Repair Only'
             };
             const serviceLabel = serviceLabels[order.service_type] || 'Order';
-
-            const gameCount = Array.isArray(order.games) ? order.games.length : 0;
-            const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
-            const totals = getOrderTotals(order);
-            const total = totals.total ? 'RM' + totals.total : '';
             const created = order.created_at
                 ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
                 : '';
 
-            let detailParts = [escapeHtml(serviceLabel)];
-            if (order.service_type !== 'repair_only') detailParts.push('<strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : ''));
-            if (rCount > 0) detailParts.push('<strong>' + rCount + '</strong> repair' + (rCount !== 1 ? 's' : ''));
-            if (total) detailParts.push('<strong>' + total + '</strong>');
+            let detailParts, heading;
+            if (statusOnly) {
+                // No game count, no price: orders_by_phone never sends them, and
+                // showing "0 games" because a field is absent would be a lie.
+                detailParts = [escapeHtml(serviceLabel), escapeHtml(order.status || 'Pending')];
+                heading = 'Order ' + (index + 1);
+            } else {
+                const orderId = String(order.id || order.order_id);
+                const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+                const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
+                const total = getOrderTotals(order).total ? 'RM' + getOrderTotals(order).total : '';
+                detailParts = [escapeHtml(serviceLabel)];
+                if (order.service_type !== 'repair_only') detailParts.push('<strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : ''));
+                if (rCount > 0) detailParts.push('<strong>' + rCount + '</strong> repair' + (rCount !== 1 ? 's' : ''));
+                if (total) detailParts.push('<strong>' + total + '</strong>');
+                heading = 'Order #' + escapeHtml(order.phone_ending || '');
+                item.onclick = () => selectOrderFromList(orderId);
+            }
 
             item.innerHTML = ''
                 + '<div class="order-list-item-header">'
-                + '  <div class="order-list-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
+                + '  <div class="order-list-id">' + heading + '</div>'
                 + '  <span class="order-list-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
                 + '</div>'
                 + '<div class="order-list-detail">' + detailParts.join(' &nbsp;·&nbsp; ') + '</div>'
                 + '<div class="order-list-date">Placed ' + escapeHtml(created) + '</div>';
 
-            item.onclick = () => selectOrderFromList(orderId);
             list.appendChild(item);
         });
+
+        if (statusOnly) {
+            const note = document.createElement('div');
+            note.className = 'order-list-detail';
+            note.style.marginTop = '1em';
+            note.style.opacity = '.75';
+            note.innerHTML = 'This shows progress only, so nobody can read your order by ' +
+                'guessing a phone number. Open the private link we sent you to see your full ' +
+                'order, repairs and courier details.';
+            list.appendChild(note);
+        }
 
         card.classList.add('show');
     }
@@ -613,8 +650,10 @@
         if (!currentOrders || currentOrders.length < 2) return;
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
-        renderOrderList(currentOrders);
-        const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone);
+        renderOrderList(currentOrders, !currentToken);
+        const url = window.location.pathname + (currentToken
+            ? '?t=' + encodeURIComponent(currentToken)
+            : '?phone=' + encodeURIComponent(currentPhone));
         window.history.pushState({}, '', url);
         if (currentPhone) setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(currentPhone));
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -623,6 +662,8 @@
     window.addEventListener('popstate', function(e) {
         const params = new URLSearchParams(window.location.search);
         const id = params.get('id');
+        const token = params.get('t');
+        if (token && token !== currentToken) { trackByToken(token); return; }
         if (!currentPhone || !currentOrders) return;
         if (id) {
             const order = currentOrders.find(o => String(o.id || o.order_id) === String(id));
@@ -637,21 +678,22 @@
         }
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
-        if (currentOrders.length >= 2) renderOrderList(currentOrders);
+        if (currentOrders.length >= 2) renderOrderList(currentOrders, !currentToken);
         if (currentPhone) setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(currentPhone));
     });
 
     async function refreshOrder() {
-        if (!currentPhone || !currentOrderId) return;
+        if (!currentToken) return;
         const btn = $('refreshBtn');
         btn.disabled = true;
         btn.classList.add('loading');
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', currentOrderId).limit(1);
+            const { data, error } = await supabaseClient.rpc('order_by_token', { p_token: currentToken });
             if (error) throw error;
-            if (data && data.length > 0) {
-                currentOrder = data[0];
-                renderTracker(data[0]);
+            if (data) {
+                currentOrder = data;
+                currentOrders = [data];
+                renderTracker(data);
                 setStatus('Status updated.', '#00e676', 3000);
             } else {
                 setStatus('This order is no longer available.', '#e57373', 5000);

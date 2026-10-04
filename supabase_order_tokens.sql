@@ -100,7 +100,11 @@ begin
         -- forced: no discount, no waived games at order time
         'discount_rm',      0,
         'free_games_count', 0,
-        'status',           coalesce(nullif(p_order ->> 'status', ''), 'Pending'),
+        -- forced: a customer may not choose their own status. admin.html's
+        -- default "Needs Action" view skips Completed/Cancelled orders, so
+        -- accepting a caller-supplied status would let someone place an order
+        -- the shop never sees.
+        'status',           'Pending',
         'progress_stage',   'Order Received',
         'created_at',       v_now,
         'updated_at',       v_now,
@@ -119,7 +123,7 @@ begin
         v_row.sd_card_size, v_row.free_storage_gb, v_row.sd_source, v_row.service_type,
         v_row.console_model, v_row.total_size_gb, v_row.android_mode, v_row.linux_mode,
         v_row.estimated_price, v_row.price_subtotal, 0, 0,
-        v_row.status, 'Order Received', v_now, v_now, v_now
+        'Pending', 'Order Received', v_now, v_now, v_now
     )
     returning id, public_token into v_id, v_token;
 
@@ -231,7 +235,11 @@ begin
            android_mode    = v_row.android_mode,
            linux_mode      = v_row.linux_mode,
            updated_at      = now()
-     where o.public_token = p_token;
+     where o.public_token = p_token
+       -- A cancelled order is closed. Editing it would change what the shop is
+       -- meant to do about a job it already stood down from, so it is refused
+       -- here rather than trusted to the browser's disabled button.
+       and coalesce(o.status, '') is distinct from 'Cancelled';
 
     if not found then
         return null;

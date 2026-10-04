@@ -948,6 +948,10 @@
         usableStorageLimit: 0,
         isStorageConfigured: false,
         currentEditingOrderId: null,
+        // The unguessable value that proves this browser may edit this order.
+        // Never sent anywhere except as the p_token argument to save_order /
+        // cancel_order. See supabase_order_tokens.sql.
+        currentEditingToken: null,
         pendingLoadedOrder: null,
         pendingOrderList: [],
         currentLoadedPhone: null,
@@ -1458,16 +1462,19 @@
         if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
 
         try {
-            const orderId = order.id || order.order_id;
-            const nowIso = new Date().toISOString();
-            const { error } = await supabaseClient.from('orders').update({
-                status: 'Cancelled',
-                progress_stage: 'Cancelled',
-                progress_updated_at: nowIso,
-                updated_at: nowIso
-            }).eq('id', orderId);
-            if (error) throw error;
+            const token = state.currentEditingToken || order.public_token;
+            if (!token) throw new Error('This order was not opened from a private link, so it cannot be cancelled here.');
 
+            // The cancellable check is repeated inside the function. This one is
+            // only to save the customer a pointless round trip.
+            const { data, error } = await supabaseClient.rpc('cancel_order', { p_token: token });
+            if (error) throw error;
+            if (!data || data.cancelled !== true) {
+                alert('This order can no longer be cancelled here. Please message us on WhatsApp.');
+                return;
+            }
+
+            const nowIso = new Date().toISOString();
             order.status = 'Cancelled';
             order.progress_stage = 'Cancelled';
             order.progress_updated_at = nowIso;
@@ -1623,14 +1630,21 @@
         await loadRepairServices(supabaseClient);
 
         const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('t');
+        const legacyOrderId = params.get('order');
         const urlPhone = params.get('phone');
-        const urlOrderId = params.get('order');
 
-        if (urlOrderId) {
-            setTimeout(() => loadOrderAndShowSummary(urlOrderId), 400);
-        } else if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
+        if (urlToken) {
+            setTimeout(() => loadOrderByToken(urlToken), 400);
+        } else if (legacyOrderId) {
+            // Links sent before the private-token change used ?order=<id>, where
+            // id is a sequential integer. That is exactly why the token exists,
+            // so these links stop working at cutover. Point the customer at the
+            // shop rather than showing an error they cannot act on.
+            setTimeout(showLegacyLinkNotice, 400);
+        } else if (urlPhone && /^\d{4}$/.test(urlPhone)) {
             $('phoneInput').value = urlPhone;
-            setTimeout(() => fetchExistingOrder(), 400);
+            try { localStorage.removeItem('userPhone4'); } catch (e) {}
         } else {
             $('phoneInput').value = '';
             try { localStorage.removeItem('userPhone4'); } catch (e) {}
@@ -1643,20 +1657,21 @@
         renderRepairSection();
     };
 
-    async function loadOrderAndShowSummary(orderId) {
+    async function loadOrderByToken(token) {
         setStatusMessage('Loading your order...', '#7dd3fc', 0);
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).limit(1);
+            const { data, error } = await supabaseClient.rpc('order_by_token', { p_token: token });
             if (error) throw error;
 
-            if (!data || data.length === 0) {
+            if (!data) {
                 hideSummaryShowForm();
                 clearStatusMessage();
                 showMissingOrderNotice();
                 return;
             }
-            const order = data[0];
+            const order = data;
             state.currentEditingOrderId = order.id;
+            state.currentEditingToken = order.public_token || token;
             state.currentLoadedPhone = order.phone_ending || null;
             $('phoneInput').value = order.phone_ending || '';
             showSummaryView(order);
@@ -1668,6 +1683,23 @@
             clearStatusMessage();
             showMissingOrderNotice();
         }
+    }
+
+    // ?order=<id> links predate the private tokens. See the URL handling above.
+    function showLegacyLinkNotice() {
+        const waNumber = getWhatsAppNumber();
+        const text = encodeURIComponent("Hi, my old order link doesn't work any more. Could you send me a new tracking link?");
+        const notice = document.createElement('div');
+        notice.className = 'missing-order-notice';
+        notice.innerHTML = `
+            <strong>This link is no longer valid.</strong>
+            <p>For everyone's privacy, order links now use a private code instead of a
+            sequential order number. Message us and we'll send you a new link for your order.</p>
+            ${waNumber ? `<p><a class="btn" style="background:#25D366;color:#14110a;" target="_blank" rel="noopener noreferrer"
+                href="https://wa.me/${waNumber}?text=${text}">Message us on WhatsApp</a></p>` : ''}`;
+        const anchor = document.querySelector('.form-view, #formView') || document.body;
+        anchor.insertBefore(notice, anchor.firstChild);
+        notice.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     function showMissingOrderNotice() {
@@ -2071,6 +2103,7 @@
 
     function resetFormForNewOrder() {
         state.currentEditingOrderId = null;
+        state.currentEditingToken = null;
         state.currentLoadedPhone = null;
         state.selectedGames.clear();
         state.selectedRepairs.clear();
@@ -2346,6 +2379,10 @@
         sub.innerHTML = subHtml;
     }
 
+    // Status-only view of whatever is on this phone number. It cannot load an
+    // order into the form: that would mean handing over the whole order to
+    // anyone who can guess 4 digits. The private link is the only way in, and
+    // orders_by_phone deliberately returns just enough to recognise an order.
     async function fetchExistingOrder() {
         const input = $('phoneInput');
         const phone = input.value.trim();
@@ -2367,12 +2404,13 @@
         setStatusMessage('Searching for your saved orders...', '#7dd3fc', 0);
 
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('phone_ending', phone).order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.rpc('orders_by_phone', { p_phone: phone });
             if (error) throw error;
-            const orders = data || [];
+            const orders = Array.isArray(data) ? data : [];
 
             if (orders.length === 0) {
                 state.currentEditingOrderId = null;
+                state.currentEditingToken = null;
                 state.currentLoadedPhone = null;
                 hideEditModeBanner();
                 alert(`No previous order found for phone "${phone}".\n\nYou can start a new order below.`);
@@ -2380,16 +2418,7 @@
                 return;
             }
 
-            if (orders.length === 1) {
-                state.pendingLoadedOrder = orders[0];
-                showLoadChoiceModal(orders[0]);
-                setStatusMessage('Choose an option in the popup to continue.', '#e8dcc0', 0);
-                return;
-            }
-
-            state.pendingOrderList = orders;
-            showOrderPickModal(orders);
-            setStatusMessage('Pick an order from the popup to continue.', '#e8dcc0', 0);
+            showFoundOrdersByPhone(phone, orders);
         } catch (err) {
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#e57373', 5000);
@@ -2398,6 +2427,45 @@
             btnIcon.textContent = origIcon;
             btnText.textContent = origText;
         }
+    }
+
+    const SERVICE_LABELS = {
+        'jailbreak': 'Full Jailbreak', 'system_setup': 'System Setup',
+        'games_only': 'Games Only', 'system_update': 'System Update',
+        'repair_only': 'Repair Only'
+    };
+
+    function showFoundOrdersByPhone(phone, orders) {
+        const existing = document.querySelector('.found-orders-panel');
+        if (existing) existing.remove();
+
+        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+        const rows = orders.map(function (o) {
+            const when = o.created_at ? new Date(o.created_at).toLocaleDateString('en-MY', dateOpts) : 'unknown date';
+            const label = SERVICE_LABELS[o.service_type] || 'Order';
+            const model = o.console_model ? ' (' + escapeHtml(o.console_model) + ')' : '';
+            const stage = escapeHtml(o.progress_stage || 'Order Received');
+            const status = escapeHtml(o.status || 'Pending');
+            return `<li><strong>${escapeHtml(label)}${model}</strong> &middot; ${when}<br>
+                <span style="opacity:.8;">${stage} &middot; ${status}</span></li>`;
+        }).join('');
+
+        const trackUrl = window.location.origin + window.location.pathname.replace('index.html', 'track.html') + '?phone=' + encodeURIComponent(phone);
+
+        const panel = document.createElement('div');
+        panel.className = 'found-orders-panel missing-order-notice';
+        panel.innerHTML = `
+            <strong>We found ${orders.length} order${orders.length > 1 ? 's' : ''} on this number</strong>
+            <ul style="margin:.6em 0;padding-left:1.2em;line-height:1.7;">${rows}</ul>
+            <p style="margin:.4em 0;">To see full details or make changes, open the private
+            link we sent you. It is the only thing that opens an order, so nobody
+            can reach yours by guessing a number.</p>
+            <p style="margin:.4em 0;"><a class="btn" style="background:#7dd3fc;color:#14110a;" href="${trackUrl}">Check progress</a></p>`;
+
+        const anchor = document.querySelector('.form-view, #formView') || document.body;
+        anchor.insertBefore(panel, anchor.firstChild);
+        panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setStatusMessage('Found your order. Open your private link to view or change it.', '#00e676', 8000);
     }
 
     function showLoadChoiceModal(order) {
@@ -2860,12 +2928,16 @@
         updateSaveButtonLabel();
     }
 
+    // The private link. The token is the only thing that opens an order, so it
+    // goes nowhere except back to this customer - not into any other request.
     function buildShareUrl() {
         const base = window.location.origin + window.location.pathname;
-        if (state.currentEditingOrderId) return `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}`;
-        const phone = valOf('phoneInput').trim();
-        if (!phone || phone.length !== 4) return `${base}?phone=____`;
-        return `${base}?phone=${encodeURIComponent(phone)}`;
+        return state.currentEditingToken ? `${base}?t=${encodeURIComponent(state.currentEditingToken)}` : '';
+    }
+
+    function buildTrackUrl(token) {
+        const base = window.location.origin + window.location.pathname.replace('index.html', 'track.html');
+        return token ? `${base}?t=${encodeURIComponent(token)}` : '';
     }
 
     function copyShareLink(btnEl) {
@@ -2916,14 +2988,13 @@
     function showPostSavePanel(phone) {
         const panel = $('postSavePanel');
         if (!panel) return;
-        const base = window.location.origin + window.location.pathname;
-        const editUrl = state.currentEditingOrderId ? `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}` : `${base}?phone=${encodeURIComponent(phone)}`;
-        const trackUrl = window.location.origin + window.location.pathname.replace('index.html', 'track.html') + '?phone=' + encodeURIComponent(phone);
+        const editUrl = buildShareUrl();
+        const trackUrl = buildTrackUrl(state.currentEditingToken);
         $('postSaveEditInput').value = editUrl;
         $('postSaveTrackInput').value = trackUrl;
-        $('postSaveTrackBtn').href = trackUrl;
+        $('postSaveTrackBtn').href = trackUrl || 'track.html';
         const trackLink = $('headerTrackLink');
-        if (trackLink) trackLink.href = trackUrl;
+        if (trackLink) trackLink.href = trackUrl || 'track.html';
         panel.style.display = 'block';
     }
 
@@ -3046,11 +3117,12 @@
                 updated_at: nowIso
             };
 
-            // Shop-controlled pricing. Set on first save only. On a re-save these
-            // are deliberately left out of the UPDATE: the customer is not
-            // allowed to write them, and omitting them means whatever admin.html
-            // last granted — a discount, a free-game waiver, or a hand-set repair
-            // price — survives the edit untouched.
+            // Shop-controlled pricing. Sent only when placing a new order, as the
+            // customer's own estimate of what it will cost. save_order does not
+            // read any of these keys, so on a re-save whatever the shop set - a
+            // discount, a free-game waiver, a hand-set repair price - survives
+            // the edit untouched. That is enforced by the function's column
+            // whitelist, not by this comment.
             const shopPricing = {
                 price_subtotal: subtotal,
                 discount_rm: state.discountRm,
@@ -3058,10 +3130,24 @@
                 estimated_price: Math.max(0, subtotal - state.discountRm)
             };
 
-            if (state.currentEditingOrderId) {
-                const res = await supabaseClient.from('orders').update(customerEdits).eq('id', state.currentEditingOrderId);
+            if (state.currentEditingToken) {
+                const res = await supabaseClient.rpc('save_order', {
+                    p_token: state.currentEditingToken,
+                    p_order: customerEdits
+                });
                 if (res.error) throw res.error;
-                state.currentLoadedPhone = phone;
+                if (!res.data) {
+                    // save_order returns null both for an unknown link and for an
+                    // order that has already been cancelled. We cannot tell the
+                    // two apart from here, so the message must not pick one.
+                    alert('This order can no longer be changed here, so nothing was saved.\n\nThat happens if the order was cancelled, or if the link is no longer valid.\n\nPlease message us on WhatsApp and we will help.');
+                    return;
+                }
+                // Re-render from what the database actually stored, not from what
+                // was sent, so the summary shows the shop's real pricing.
+                state.currentEditingOrderId = res.data.id;
+                state.currentEditingToken = res.data.public_token;
+                state.currentLoadedPhone = res.data.phone_ending || null;
                 alert('Order updated successfully.');
             } else {
                 const orderData = Object.assign({}, customerEdits, shopPricing, {
@@ -3070,15 +3156,12 @@
                     progress_stage: 'Order Received',
                     progress_updated_at: nowIso
                 });
-                const res = await supabaseClient.from('orders').insert([orderData]).select();
+                const res = await supabaseClient.rpc('create_order', { p_order: orderData });
                 if (res.error) throw res.error;
-                let savedId = null;
-                if (res.data && res.data.length > 0 && res.data[0].id) savedId = res.data[0].id;
-                else {
-                    const fb = await supabaseClient.from('orders').select('id').eq('phone_ending', phone).eq('created_at', nowIso).limit(1);
-                    if (fb.data && fb.data.length > 0) savedId = fb.data[0].id;
-                }
-                if (savedId) { state.currentEditingOrderId = savedId; state.currentLoadedPhone = phone; }
+                if (!res.data || !res.data.public_token) throw new Error('Order was placed but no private link came back. Please message us.');
+                state.currentEditingOrderId = res.data.id;
+                state.currentEditingToken = res.data.public_token;
+                state.currentLoadedPhone = phone;
                 alert('New order saved successfully.');
             }
 
@@ -3151,8 +3234,9 @@
         if (details.repairQuoteCount > 0) msg += ` (+${details.repairQuoteCount} quote)`;
 
         const shareUrl = buildShareUrl();
-        if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\nView or edit your order anytime:\n${shareUrl}`;
-        msg += `\n\nTrack your order progress:\n${window.location.origin + window.location.pathname.replace('index.html', 'track.html')}?phone=${phone}`;
+        const trackUrl = buildTrackUrl(state.currentEditingToken);
+        if (shareUrl) msg += `\n\nYour private link - keep this, it is the only way to view or change your order:\n${shareUrl}`;
+        if (trackUrl) msg += `\n\nCheck your progress here:\n${trackUrl}`;
 
         const wa = getWhatsAppNumber();
         if (!wa) return alert('WhatsApp number is not configured in APP_CONFIG.');
