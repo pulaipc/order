@@ -297,7 +297,7 @@
             <div class="brand">Pulai PC</div>
             <div>Jailbreak &amp; Game Installation Service</div>
             <div style="margin-top: 6px;">
-                WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
+                WhatsApp: <a href="#" id="footerWaLink" target="_blank" rel="noopener noreferrer">Message us</a>
             </div>
             <div class="note">All orders are processed manually. Payment on pickup.</div>
         </footer>
@@ -414,6 +414,11 @@
         applyRateLimitUI();
         await loadRepairServices(supabaseClient);
 
+        // Footer contact link: label only, never the number. The href carries
+        // it so WhatsApp opens the chat, but nothing on the page displays it.
+        const footerWa = $('footerWaLink');
+        if (footerWa) footerWa.href = 'https://wa.me/' + getWhatsAppNumber();
+
         const params = new URLSearchParams(window.location.search);
         const urlPhone = params.get('phone');
         const urlId = params.get('id');
@@ -523,7 +528,7 @@
         clearAllViews();
         const card = $('noActiveCard');
         const body = $('noActiveBody');
-        const wa = APP_CONFIG.whatsappNumber || '';
+        const wa = getWhatsAppNumber();
 
         if (hadAnyOrders) {
             body.innerHTML = 'We found past orders for <strong>' + escapeHtml(phone) + '</strong>, but none are currently active — they\'ve either been completed or cancelled.<br><br>If you need to check a completed order, message us and we\'ll look it up.';
@@ -920,7 +925,7 @@
         // Shipping (stage-aware)
         renderShipping(order);
 
-        const wa = APP_CONFIG.whatsappNumber || '';
+        const wa = getWhatsAppNumber();
         const waBtn = $('waChatBtn');
         if (wa) {
             const prefill = `Hi, I'd like to ask about my order #${order.phone_ending || ''}.`;

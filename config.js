@@ -15,7 +15,14 @@ const APP_CONFIG = {
     supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13eG5kY2N3emtjc3l2c2x1Y2pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA0MTY1MjksImV4cCI6MjEwNTk5MjUyOX0.61NvDZ6cPnxLqoxJ4tr-H729a99h_XOAZDXo3zfx25g',
 
     // WhatsApp Contact Number
-    whatsappNumber: '601165676869',
+    //
+    // Stored split into fragments rather than as one readable literal. This is
+    // display-only obscurity: it stops the digits being casually read off the
+    // page or scraped with a plain text search, but it is NOT a security
+    // boundary. The number is still reachable in the page source, and the
+    // wa.me links that use it still carry it in the URL. Anyone determined can
+    // recover it. Splitting is here to keep the number off the visible page.
+    whatsappNumberParts: ['6011', '6567', '6869'],
 
     // Jailbreak base prices by console model
     jailbreakPrices: {
@@ -260,6 +267,19 @@ function getEffectiveSubStages(order) {
     if (insertAt >= 0) base.splice(insertAt, 0, 'Device Repair');
     else base.push('Device Repair');
     return base;
+}
+
+/**
+ * The full international WhatsApp number, reassembled from
+ * APP_CONFIG.whatsappNumberParts.
+ *
+ * ONLY for building wa.me links, which the browser resolves to the contact
+ * without ever showing the digits on the page. The number is never rendered as
+ * text anywhere in the front end, so there is deliberately no "display" or
+ * "reveal" helper — that was tried and removed.
+ */
+function getWhatsAppNumber() {
+    return (APP_CONFIG.whatsappNumberParts || []).join('');
 }
 
 /**

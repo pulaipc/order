@@ -476,9 +476,12 @@
             .checkout-bar { flex-direction: row; align-items: center; padding: 14px 20px; }
             .checkout-info { text-align: left; flex: 1; font-size: 14px; }
             .submit-btn { width: auto; min-width: 180px; padding: 12px 24px; }
-            .post-save-links { flex-direction: row; gap: 12px; }
-            .post-save-link-row { flex: 1; }
-            .post-save-link-label { display: none; }
+            .post-save-links { flex-direction: column; gap: 12px; }
+            .post-save-link-row { flex: 1; flex-wrap: wrap; }
+            /* Keep the labels on desktop too: two side-by-side URL boxes with no
+               labels are indistinguishable. They are the only thing telling the
+               customer which link edits the order and which tracks it. */
+            .post-save-link-label { min-width: 0; flex: 1 0 100%; }
         }
         @media (min-width: 900px) { .field-group { flex: 1; } }
         @media (max-width: 380px) {
@@ -766,7 +769,7 @@
                 <div class="brand">Pulai PC</div>
                 <div>Jailbreak &amp; Game Installation Service</div>
                 <div style="margin-top: 6px;">
-                    WhatsApp: <a href="https://wa.me/601165676869">+60 11-6567 6869</a>
+                    WhatsApp: <a href="#" id="footerWaLink" target="_blank" rel="noopener noreferrer">Message us</a>
                 </div>
                 <div class="note">All orders are processed manually. Payment on pickup.</div>
             </footer>
@@ -794,12 +797,12 @@
             </div>
             <div class="post-save-links">
                 <div class="post-save-link-row">
-                    <span class="post-save-link-label">Edit link</span>
+                    <span class="post-save-link-label">To edit or change this order</span>
                     <input type="text" class="post-save-input" id="postSaveEditInput" readonly value="">
                     <button class="post-save-copy-btn" onclick="copyPostSaveLink('edit', this)">Copy</button>
                 </div>
                 <div class="post-save-link-row">
-                    <span class="post-save-link-label">Tracking link</span>
+                    <span class="post-save-link-label">To check your progress</span>
                     <input type="text" class="post-save-input" id="postSaveTrackInput" readonly value="">
                     <button class="post-save-copy-btn" onclick="copyPostSaveLink('track', this)">Copy</button>
                 </div>
@@ -1375,7 +1378,7 @@
 
         if (isCancelled) {
             const cancelPrefill = 'Hi, I cancelled order #' + (order.phone_ending || '') + ' and I\'d like to ask about it.';
-            const waNumberC = APP_CONFIG.whatsappNumber || '';
+            const waNumberC = getWhatsAppNumber();
             const waUrlC = 'https://wa.me/' + waNumberC + '?text=' + encodeURIComponent(cancelPrefill);
             html += '<div class="cancelled-banner" style="margin-top:0;"><span class="icon">' + svgXIcon(22) + '</span><div class="msg"><strong>Order Cancelled.</strong><br>This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div></div>';
             html += '<div class="summary-actions">';
@@ -1383,7 +1386,7 @@
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else if (isCompleted) {
-            const waNumberDone = APP_CONFIG.whatsappNumber || '';
+            const waNumberDone = getWhatsAppNumber();
             const prefillDone = 'Hi, I would like to ask about my completed order #' + (order.phone_ending || '') + '.';
             const waUrlDone = 'https://wa.me/' + waNumberDone + '?text=' + encodeURIComponent(prefillDone);
             html += '<div class="completed-banner" style="margin-top:0;"><span class="icon">' + svgCheckIcon(22) + '</span><div class="msg"><strong>Order complete.</strong><br>Thanks for your business. If you need anything else, message us or start a new order below.</div></div>';
@@ -1395,7 +1398,7 @@
             html += '<div class="locked-notice"><span class="locked-notice-icon">&#128274;</span><div><strong>This order is locked for changes.</strong><br>We\'ve already confirmed the details with you. If you need to make a change or cancel, message us on WhatsApp and we\'ll take care of it.</div></div>';
             html += '<div class="summary-actions">';
             const prefill = 'Hi, I would like to ask about my order #' + (order.phone_ending || '') + '.';
-            const waNumber = APP_CONFIG.whatsappNumber || '';
+            const waNumber = getWhatsAppNumber();
             const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(prefill);
             html += '<a class="summary-btn whatsapp" href="' + waUrl + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
@@ -1611,6 +1614,11 @@
             if (el) BodyLock.attachBackdropGuard(el);
         });
 
+        // Footer contact link: label only, never the number. The href carries
+        // it so WhatsApp opens the chat, but nothing on the page displays it.
+        const footerWa = $('footerWaLink');
+        if (footerWa) footerWa.href = 'https://wa.me/' + getWhatsAppNumber();
+
         // Load repair catalog first
         await loadRepairServices(supabaseClient);
 
@@ -1667,7 +1675,7 @@
         if (existing) existing.remove();
         const notice = document.createElement('div');
         notice.className = 'missing-order-notice';
-        const waNumber = APP_CONFIG.whatsappNumber || '';
+        const waNumber = getWhatsAppNumber();
         const waText = encodeURIComponent('Hi, I clicked my order link and it says the order is no longer valid. Can you check for me?');
         notice.innerHTML = ''
             + '<div class="missing-order-title">This order link is no longer valid</div>'
@@ -3135,7 +3143,7 @@
         if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\nView or edit your order anytime:\n${shareUrl}`;
         msg += `\n\nTrack your order progress:\n${window.location.origin + window.location.pathname.replace('index.html', 'track.html')}?phone=${phone}`;
 
-        const wa = APP_CONFIG.whatsappNumber || '';
+        const wa = getWhatsAppNumber();
         if (!wa) return alert('WhatsApp number is not configured in APP_CONFIG.');
         const url = `https://wa.me/${wa}?text=${encodeURIComponent(msg)}`;
         try {
