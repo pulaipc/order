@@ -2130,6 +2130,17 @@
         if (order.service_type === 'repair_only') {
             return base + ' Check the service fee and any repair prices for this order.';
         }
+
+        // A customer editing their own order can change the game count, which
+        // changes the price. They are not allowed to update the stored total
+        // themselves, so this mismatch is expected rather than suspicious.
+        var created = Date.parse(order.created_at || '') || 0;
+        var updated = Date.parse(order.updated_at || '') || 0;
+        if (created && updated && (updated - created) > 60 * 1000) {
+            return base + ' The customer has edited this order since it was placed, which may have ' +
+                'changed the game count or storage size. Check their current selections before saving.';
+        }
+
         return base + ' This usually means the price list changed after the order was placed. ' +
             'Check the game count and any add-ons before saving.';
     }

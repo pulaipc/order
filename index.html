@@ -3023,7 +3023,11 @@
 
         try {
             const nowIso = new Date().toISOString();
-            const orderData = {
+
+            // The only columns the public anon key may write. The database
+            // rejects anything outside this list with a 401 — see
+            // supabase_rls_policies.sql. Keep in sync with the GRANT there.
+            const customerEdits = {
                 phone_ending: phone,
                 games: gameNames,
                 total_games: count,
@@ -3037,28 +3041,35 @@
                 service_type: serviceType,
                 console_model: (serviceType === 'jailbreak' || isRepairOnly) ? consoleModel : null,
                 total_size_gb: gSize,
-                // Subtotal is recomputed from the customer's current selection;
-                // any shop discount / free-game waiver granted in admin.html is
-                // carried over so re-saving never wipes it.
-                price_subtotal: subtotal,
-                discount_rm: state.discountRm,
-                free_games_count: state.freeGamesCount,
-                estimated_price: Math.max(0, subtotal - state.discountRm),
                 android_mode: androidSel,
                 linux_mode: linuxSel,
-                status: 'Pending',
                 updated_at: nowIso
             };
 
+            // Shop-controlled pricing. Set on first save only. On a re-save these
+            // are deliberately left out of the UPDATE: the customer is not
+            // allowed to write them, and omitting them means whatever admin.html
+            // last granted — a discount, a free-game waiver, or a hand-set repair
+            // price — survives the edit untouched.
+            const shopPricing = {
+                price_subtotal: subtotal,
+                discount_rm: state.discountRm,
+                free_games_count: state.freeGamesCount,
+                estimated_price: Math.max(0, subtotal - state.discountRm)
+            };
+
             if (state.currentEditingOrderId) {
-                const res = await supabaseClient.from('orders').update(orderData).eq('id', state.currentEditingOrderId);
+                const res = await supabaseClient.from('orders').update(customerEdits).eq('id', state.currentEditingOrderId);
                 if (res.error) throw res.error;
                 state.currentLoadedPhone = phone;
                 alert('Order updated successfully.');
             } else {
-                orderData.created_at = nowIso;
-                orderData.progress_stage = 'Order Received';
-                orderData.progress_updated_at = nowIso;
+                const orderData = Object.assign({}, customerEdits, shopPricing, {
+                    status: 'Pending',
+                    created_at: nowIso,
+                    progress_stage: 'Order Received',
+                    progress_updated_at: nowIso
+                });
                 const res = await supabaseClient.from('orders').insert([orderData]).select();
                 if (res.error) throw res.error;
                 let savedId = null;
