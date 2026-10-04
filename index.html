@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -132,6 +132,13 @@
         .order-pick-detail { font-size: 12.5px; color: #b8b0a0; line-height: 1.5; }
         .order-pick-detail strong { color: #e8dcc0; }
         .order-pick-date { font-size: 11px; color: #8a8272; }
+        /* Read-only variant: these rows are shown by a phone lookup, which cannot
+           open an order. They reuse the pick styling but must not look tappable,
+           because clicking one does nothing. */
+        .order-pick-item.readonly { cursor: default; }
+        .order-pick-item.readonly:hover { border-color: #2e2716; }
+        .order-pick-item.readonly:active { background: #221c10; }
+        .order-pick-group { font-size: 11px; font-weight: bold; letter-spacing: 0.06em; text-transform: uppercase; color: #8a8272; margin: 6px 0 -2px; }
 
         .form-view { display: block; }
         .form-view.hidden { display: none; }
@@ -373,6 +380,19 @@
         .post-save-close-btn { flex: 0 0 auto; background: transparent; color: #a8c4b0; border: 1px solid #2a4530; padding: 11px 18px; border-radius: 6px; font-weight: 600; font-size: 13.5px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-height: 44px; }
         .post-save-close-btn:hover { border-color: #00e676; color: #00e676; }
 
+        /* Compact form, used when the customer arrives on their own private link.
+           They already have the link and only need to copy it again, so this is
+           one row instead of the full first-time-save panel. */
+        .post-save-panel.compact { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); border-top-width: 1px; }
+        .post-save-panel.compact .post-save-card { gap: 8px; }
+        .post-save-panel.compact .post-save-desc,
+        .post-save-panel.compact .post-save-link-label,
+        .post-save-panel.compact .post-save-link-row + .post-save-link-row,
+        .post-save-panel.compact .post-save-title::before { display: none; }
+        .post-save-panel.compact .post-save-title { font-size: 12.5px; }
+        .post-save-panel.compact .post-save-copy-btn,
+        .post-save-panel.compact .post-save-close-btn { padding: 9px 13px; min-height: 38px; font-size: 12px; }
+
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; padding: 12px; box-sizing: border-box; overscroll-behavior: contain; }
         .modal-content { background: #221c10; border-radius: 8px; width: 100%; max-width: 520px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; border: 1px solid #3a3018; box-sizing: border-box; overflow: hidden; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding: 14px 16px; flex-shrink: 0; gap: 10px; }
@@ -437,17 +457,6 @@
         .modal-alert.danger { background: #2d2212; border: 1px solid #7a4a1a; border-left: 3px solid #ffb74d; color: #ffd9a0; }
         .modal-alert.danger strong { color: #ffb74d; }
 
-        .load-choice-content { max-width: 460px; }
-        .load-choice-btn { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 8px; cursor: pointer; font-family: inherit; text-align: left; min-height: 62px; width: 100%; transition: background 0.2s, border-color 0.2s; }
-        .load-choice-btn.edit { background: #2a2108; border: 1px solid #7a6820; color: #ffe9a8; }
-        .load-choice-btn.edit:hover { background: #3a2d0a; border-color: #ffc000; }
-        .load-choice-btn.new { background: #1f2d1a; border: 1px solid #2a4530; color: #c3ffdb; }
-        .load-choice-btn.new:hover { background: #2b3d22; border-color: #00e676; }
-        .load-choice-btn .choice-icon { font-size: 26px; flex-shrink: 0; line-height: 1; }
-        .load-choice-btn .choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
-        .load-choice-btn .choice-text strong { font-size: 14.5px; font-weight: 700; color: #f0e9d8; }
-        .load-choice-btn .choice-text small { font-size: 11.5px; opacity: 0.85; line-height: 1.35; }
-
         .trust-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #2e2716; text-align: center; font-size: 12px; color: #8a8272; line-height: 1.7; }
         .trust-footer .brand { color: #e8dcc0; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
         .trust-footer a { color: #25D366; text-decoration: none; }
@@ -510,7 +519,7 @@
                 <a href="#" class="logo-link" onclick="scrollToTop(event)" aria-label="Back to home">
                     <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
                 </a>
-                <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
+                <h1>Pulai PC â€” Jailbreak &amp; Game Service</h1>
             </div>
             <div class="header-actions">
                 <a href="track.html" class="btn-action" id="headerTrackLink">Track Order</a>
@@ -543,7 +552,7 @@
                         <div class="how-num">3</div>
                         <div class="how-step-body">
                             <div class="how-step-title">We prepare it</div>
-                            <div class="how-step-desc">Jailbreak, repairs, and game installation — typically 1–3 days.</div>
+                            <div class="how-step-desc">Jailbreak, repairs, and game installation â€” typically 1â€“3 days.</div>
                         </div>
                     </div>
                     <div class="how-step">
@@ -601,29 +610,29 @@
 
                 <div class="returning-hint">
                     <span class="hint-icon">&#8617;</span>
-                    <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to retrieve your previous order.</span>
+                    <span><strong>Returning customer?</strong> Enter your phone digits and tap <strong>Load Order</strong> to check your order's progress.</span>
                 </div>
 
                 <div id="editModeBanner" class="edit-mode-banner" style="display:none;">
                     <span class="edit-icon">&#9998;</span>
-                    <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Load Order</strong> again and choose <strong>Start New Order</strong>.</span>
+                    <span><strong>You're editing your saved order.</strong> Want to create a new one instead? Tap <strong>Start New Order</strong> at the bottom of the screen.</span>
                 </div>
 
                 <div class="config-row">
                     <div class="field-group">
                         <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
-                            <option value="" disabled selected>— Please select service —</option>
+                            <option value="" disabled selected>â€” Please select service â€”</option>
                             <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
                             <option value="system_setup">System Setup</option>
                             <option value="system_update">System Update (Console already modded)</option>
                             <option value="games_only">Games Only</option>
                             <option value="repair_only">Repair Only (No jailbreak/games)</option>
                         </select>
-                        <span class="field-hint">Choose a service type — update, setup, jailbreak, games, or repairs</span>
+                        <span class="field-hint">Choose a service type â€” update, setup, jailbreak, games, or repairs</span>
                     </div>
                     <div class="field-group" id="consoleModelGroup">
                         <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>— Please select model —</option>
+                            <option value="" disabled selected>â€” Please select model â€”</option>
                             <option value="OLED">OLED</option>
                             <option value="V1_V2">V1/V2</option>
                             <option value="LITE">LITE</option>
@@ -631,15 +640,15 @@
                             <span class="field-hint" id="consoleModelHint">Select your Nintendo Switch model variant</span></div>
                     <div class="field-group" id="sdSourceGroup">
                         <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>— Please select —</option>
+                            <option value="" disabled selected>â€” Please select â€”</option>
                             <option value="own">I'll bring my own SD card</option>
                             <option value="buy">I want to buy an SD card from you</option>
                         </select>
-                        <span class="field-hint">Own card = you provide it · Buy = we supply a pre-configured card</span>
+                        <span class="field-hint">Own card = you provide it Â· Buy = we supply a pre-configured card</span>
                     </div>
                     <div class="field-group" id="sdCardGroup">
                         <select id="sdCardSelect" class="sd-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>— Please select card —</option>
+                            <option value="" disabled selected>â€” Please select card â€”</option>
                         </select>
                         <span class="field-hint">Total capacity of memory card used</span>
                     </div>
@@ -652,7 +661,7 @@
                 <div id="storageGuideBox" class="storage-guide-box">
                     <h4>How to check your remaining microSD card free space:</h4>
                     <p><strong>Method 1: Official Switch Settings</strong><br>
-                    1. Go to Home Menu → <strong>System Settings</strong> (gear icon).<br>
+                    1. Go to Home Menu â†’ <strong>System Settings</strong> (gear icon).<br>
                     2. Scroll down to <strong>Data Management</strong>.<br>
                     3. Look under <strong>microSD Card</strong> on the right for <strong>Free Space</strong> (e.g. 145 GB).</p>
                     <p style="margin-bottom:0;"><strong>Method 2: Via DBI App (Modded Console)</strong><br>
@@ -784,15 +793,15 @@
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
             <span id="checkoutRepairSummary"></span>
             <br><span id="checkoutSubtext" style="font-size: 11px; color: #8a8272;">Tap to review and add remarks</span>
-            <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup — no upfront payment required.</span>
+            <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup â€” no upfront payment required.</span>
         </div>
         <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review &amp; Submit</button>
     </div>
 
     <div id="postSavePanel" class="post-save-panel" style="display:none;">
         <div class="post-save-card">
-            <div class="post-save-title">Order saved</div>
-            <div class="post-save-desc">
+            <div class="post-save-title" id="postSaveTitle">Order saved</div>
+            <div class="post-save-desc" id="postSaveDesc">
                 Your order has been submitted. We'll be in touch on WhatsApp to arrange drop-off. Save the link below to edit it later, or track its progress at any time.
             </div>
             <div class="post-save-links">
@@ -808,6 +817,9 @@
                 </div>
             </div>
             <div class="post-save-actions">
+                <a id="postSaveEditBtn" class="post-save-track-btn" href="#" target="_blank" rel="noopener noreferrer">
+                    Edit or Cancel
+                </a>
                 <a id="postSaveTrackBtn" class="post-save-track-btn" href="#" target="_blank" rel="noopener noreferrer">
                     Open Tracker
                 </a>
@@ -856,55 +868,6 @@
         </div>
     </div>
 
-    <div id="loadChoiceModal" class="modal">
-        <div class="modal-content load-choice-content">
-            <div class="modal-header">
-                <h2>Found Your Order</h2>
-                <button class="close-modal" onclick="dismissLoadChoiceModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div id="loadChoiceInfo" style="background:#17120a; border:1px solid #2e2716; border-radius:6px; padding:12px 14px; font-size:13px; color:#c9c1af; line-height:1.6;"></div>
-                <p style="margin:0; font-size:14px; color:#f0e9d8; font-weight:600; text-align:center;">What would you like to do?</p>
-                <button class="load-choice-btn edit" onclick="chooseEditOrder()">
-                    <span class="choice-icon">&#9998;</span>
-                    <span class="choice-text">
-                        <strong>View / Edit Order</strong>
-                        <small>See the summary or make changes</small>
-                    </span>
-                </button>
-                <button class="load-choice-btn new" onclick="chooseNewOrder()">
-                    <span class="choice-icon">&#10024;</span>
-                    <span class="choice-text">
-                        <strong>Start New Order</strong>
-                        <small>Begin a fresh order from scratch</small>
-                    </span>
-                </button>
-                <button style="background:transparent; border:none; color:#8a8272; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="dismissLoadChoiceModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="orderPickModal" class="modal">
-        <div class="modal-content load-choice-content">
-            <div class="modal-header">
-                <h2>Pick an Order</h2>
-                <button class="close-modal" onclick="dismissOrderPickModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p id="orderPickSubtitle" style="margin:0; font-size:13px; color:#b8b0a0; line-height:1.5;">We found multiple orders for this phone. Tap one to view or edit it.</p>
-                <div id="orderPickList" class="order-pick-list"></div>
-                <button class="load-choice-btn new" onclick="pickStartNewOrder()">
-                    <span class="choice-icon">&#10024;</span>
-                    <span class="choice-text">
-                        <strong>Start a New Order</strong>
-                        <small>Begin a fresh order from scratch</small>
-                    </span>
-                </button>
-                <button style="background:transparent; border:none; color:#8a8272; padding:8px; font-size:13px; cursor:pointer; font-family:inherit; width:100%;" onclick="dismissOrderPickModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
     <script src="gameslist.js"></script>
     <script src="config.js"></script>
     <script>
@@ -948,8 +911,10 @@
         usableStorageLimit: 0,
         isStorageConfigured: false,
         currentEditingOrderId: null,
-        pendingLoadedOrder: null,
-        pendingOrderList: [],
+        // The unguessable value that proves this browser may edit this order.
+        // Never sent anywhere except as the p_token argument to save_order /
+        // cancel_order. See supabase_order_tokens.sql.
+        currentEditingToken: null,
         currentLoadedPhone: null,
         savedRemarksText: '',
         modalGamesExpanded: false,
@@ -1118,7 +1083,7 @@
         bar.style.display = 'flex';
         const { total, quoteCount } = getSelectedRepairTotal();
         $('repairCountLabel').textContent = count + ' repair' + (count === 1 ? '' : 's');
-        $('repairQuoteLabel').textContent = quoteCount > 0 ? ' · ' + quoteCount + ' needing quote' : '';
+        $('repairQuoteLabel').textContent = quoteCount > 0 ? ' Â· ' + quoteCount + ' needing quote' : '';
         $('repairTotalLabel').textContent = 'RM' + total + (quoteCount > 0 ? ' + TBC' : '');
 
         // Soft warnings
@@ -1126,10 +1091,10 @@
         const warnText = $('repairSoftWarningText');
         if (count >= 6) {
             warn.classList.add('show');
-            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> This is a major refurb. Make sure you\'ve discussed this with us on WhatsApp first — it may be more economical to consider a replacement unit.';
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> This is a major refurb. Make sure you\'ve discussed this with us on WhatsApp first â€” it may be more economical to consider a replacement unit.';
         } else if (count >= 4) {
             warn.classList.add('show');
-            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> That\'s a lot — make sure you know this is a major refurbishment. We\'ll confirm everything on WhatsApp.';
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> That\'s a lot â€” make sure you know this is a major refurbishment. We\'ll confirm everything on WhatsApp.';
         } else {
             warn.classList.remove('show');
         }
@@ -1217,9 +1182,13 @@
         summaryEl.classList.add('active');
         document.body.classList.add('summary-active');
 
+        // Prefer the private tracker link. Falling back to the phone lookup is
+        // only correct when there is no token yet, which cannot happen for a
+        // loaded order.
         const trackLink = $('headerTrackLink');
-        if (trackLink && order.phone_ending) {
-            trackLink.href = 'track.html?phone=' + encodeURIComponent(order.phone_ending);
+        if (trackLink) {
+            trackLink.href = buildTrackUrl(state.currentEditingToken)
+                || (order.phone_ending ? 'track.html?phone=' + encodeURIComponent(order.phone_ending) : 'track.html');
         }
 
         const locked = isOrderLocked(order);
@@ -1273,7 +1242,7 @@
             const sourceStr = order.sd_source === 'buy'
                 ? '<span style="color:#ffc000;">New card from us</span>'
                 : (order.sd_source === 'own' ? 'Customer\'s own card' : '');
-            storageLabel = sourceStr ? (sizeStr + ' · ' + sourceStr) : sizeStr;
+            storageLabel = sourceStr ? (sizeStr + ' Â· ' + sourceStr) : sizeStr;
         } else if (order.service_type === 'system_update' && order.free_storage_gb) {
             storageLabel = order.free_storage_gb + ' GB free space';
         } else if (order.free_storage_gb) {
@@ -1305,7 +1274,7 @@
         if (order.android_mode) addons.push('Android Mode (+RM30)');
         if (order.linux_mode) addons.push('Linux Mode (+RM30)');
         if (addons.length > 0) {
-            html += '<div class="summary-section"><div class="summary-label">Add-ons</div><div class="summary-value">' + addons.join(' &nbsp;·&nbsp; ') + '</div></div>';
+            html += '<div class="summary-section"><div class="summary-label">Add-ons</div><div class="summary-value">' + addons.join(' &nbsp;Â·&nbsp; ') + '</div></div>';
         }
 
         // Repairs section
@@ -1325,8 +1294,8 @@
         if (order.service_type !== 'repair_only') {
             html += '<div>';
             html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
-            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
-            html += '<span class="chev">▼</span>';
+            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' Â· ' + totalGb.toFixed(1) + ' GB</span>';
+            html += '<span class="chev">â–¼</span>';
             html += '</div>';
             html += '<div class="summary-games-list" id="summaryGamesList">';
             if (gamesWithSize.length === 0) {
@@ -1401,13 +1370,13 @@
             const waNumber = getWhatsAppNumber();
             const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(prefill);
             html += '<a class="summary-btn whatsapp" href="' + waUrl + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
-            html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '<a class="summary-btn secondary" href="' + (buildTrackUrl(state.currentEditingToken) || 'track.html?phone=' + encodeURIComponent(order.phone_ending || '')) + '">Track Progress</a>';
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else {
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
-            html += '<a class="summary-btn secondary" href="track.html?phone=' + encodeURIComponent(order.phone_ending || '') + '">Track Progress</a>';
+            html += '<a class="summary-btn secondary" href="' + (buildTrackUrl(state.currentEditingToken) || 'track.html?phone=' + encodeURIComponent(order.phone_ending || '')) + '">Track Progress</a>';
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             if (cancellable) html += '<button class="summary-btn cancel" onclick="cancelOrder()">Cancel Order</button>';
             html += '</div>';
@@ -1458,16 +1427,19 @@
         if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
 
         try {
-            const orderId = order.id || order.order_id;
-            const nowIso = new Date().toISOString();
-            const { error } = await supabaseClient.from('orders').update({
-                status: 'Cancelled',
-                progress_stage: 'Cancelled',
-                progress_updated_at: nowIso,
-                updated_at: nowIso
-            }).eq('id', orderId);
-            if (error) throw error;
+            const token = state.currentEditingToken || order.public_token;
+            if (!token) throw new Error('This order was not opened from a private link, so it cannot be cancelled here.');
 
+            // The cancellable check is repeated inside the function. This one is
+            // only to save the customer a pointless round trip.
+            const { data, error } = await supabaseClient.rpc('cancel_order', { p_token: token });
+            if (error) throw error;
+            if (!data || data.cancelled !== true) {
+                alert('This order can no longer be cancelled here. Please message us on WhatsApp.');
+                return;
+            }
+
+            const nowIso = new Date().toISOString();
             order.status = 'Cancelled';
             order.progress_stage = 'Cancelled';
             order.progress_updated_at = nowIso;
@@ -1609,7 +1581,7 @@
     }
 
     window.onload = async function() {
-        ['cartModal', 'loadChoiceModal', 'orderPickModal'].forEach(id => {
+        ['cartModal'].forEach(id => {
             const el = $(id);
             if (el) BodyLock.attachBackdropGuard(el);
         });
@@ -1623,14 +1595,21 @@
         await loadRepairServices(supabaseClient);
 
         const params = new URLSearchParams(window.location.search);
+        const urlToken = params.get('t');
+        const legacyOrderId = params.get('order');
         const urlPhone = params.get('phone');
-        const urlOrderId = params.get('order');
 
-        if (urlOrderId) {
-            setTimeout(() => loadOrderAndShowSummary(urlOrderId), 400);
-        } else if (urlPhone && urlPhone.length === 4 && /^\d{4}$/.test(urlPhone)) {
+        if (urlToken) {
+            setTimeout(() => loadOrderByToken(urlToken), 400);
+        } else if (legacyOrderId) {
+            // Links sent before the private-token change used ?order=<id>, where
+            // id is a sequential integer. That is exactly why the token exists,
+            // so these links stop working at cutover. Point the customer at the
+            // shop rather than showing an error they cannot act on.
+            setTimeout(showLegacyLinkNotice, 400);
+        } else if (urlPhone && /^\d{4}$/.test(urlPhone)) {
             $('phoneInput').value = urlPhone;
-            setTimeout(() => fetchExistingOrder(), 400);
+            try { localStorage.removeItem('userPhone4'); } catch (e) {}
         } else {
             $('phoneInput').value = '';
             try { localStorage.removeItem('userPhone4'); } catch (e) {}
@@ -1643,31 +1622,61 @@
         renderRepairSection();
     };
 
-    async function loadOrderAndShowSummary(orderId) {
+    async function loadOrderByToken(token) {
         setStatusMessage('Loading your order...', '#7dd3fc', 0);
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('id', orderId).limit(1);
+            const { data, error } = await supabaseClient.rpc('order_by_token', { p_token: token });
             if (error) throw error;
 
-            if (!data || data.length === 0) {
+            if (!data) {
                 hideSummaryShowForm();
                 clearStatusMessage();
                 showMissingOrderNotice();
                 return;
             }
-            const order = data[0];
+            const order = data;
             state.currentEditingOrderId = order.id;
+            state.currentEditingToken = order.public_token || token;
             state.currentLoadedPhone = order.phone_ending || null;
             $('phoneInput').value = order.phone_ending || '';
             showSummaryView(order);
             updateSaveButtonLabel();
             clearStatusMessage();
+            // Show the links straight away. Someone opening their private link is
+            // usually doing it to find or re-copy it, and the panel is the only
+            // place on the page that offers it.
+            showPostSavePanel(order.phone_ending, 'loaded', order);
         } catch (err) {
             console.error(err);
             hideSummaryShowForm();
             clearStatusMessage();
             showMissingOrderNotice();
         }
+    }
+
+    // ?order=<id> links predate the private tokens. See the URL handling above.
+    function showLegacyLinkNotice() {
+        dismissFoundOrdersNotice();
+        const waNumber = getWhatsAppNumber();
+        const text = encodeURIComponent("Hi, my old order link doesn't work any more. Could you send me a new tracking link?");
+        const notice = document.createElement('div');
+        notice.className = 'missing-order-notice found-orders-panel';
+        notice.innerHTML = ''
+            + '<div class="missing-order-title">This link is no longer valid</div>'
+            + '<div class="missing-order-body">'
+            + 'For everyone\'s privacy, order links now use a private code instead of a sequential order number. '
+            + 'If this link came from us it may have been mistyped, or the order may have been removed. '
+            + 'Message us and we\'ll send you a fresh link.'
+            + '</div>'
+            + '<div class="missing-order-actions">'
+            + (waNumber
+                ? '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + text + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>'
+                : '')
+            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">Start a new order</button>'
+            + '</div>';
+        document.body.appendChild(notice);
+        const bar = $('checkoutBar');
+        if (bar) bar.classList.add('hidden');
     }
 
     function showMissingOrderNotice() {
@@ -1707,7 +1716,7 @@
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.disabled = true;
-        placeholder.textContent = '— Please select card —';
+        placeholder.textContent = 'â€” Please select card â€”';
         if (!currentValue) placeholder.selected = true;
         sdSelect.appendChild(placeholder);
 
@@ -1786,7 +1795,7 @@
             return;
         }
 
-        // Repair Only: no SD, no games — just repairs
+        // Repair Only: no SD, no games â€” just repairs
         if (isRepairOnly) {
             $('consoleModelGroup').style.display = 'flex'; // model affects per_model repair prices
             $('sdSourceGroup').style.display = 'none';
@@ -1867,7 +1876,7 @@
         var modelHint = $('consoleModelHint');
         if (modelHint) {
             if (isRepairOnly) {
-                modelHint.textContent = 'Select your Switch model — repair prices vary by model';
+                modelHint.textContent = 'Select your Switch model â€” repair prices vary by model';
             } else if (serviceType === 'jailbreak') {
                 modelHint.textContent = 'Select your Switch model variant (affects jailbreak + repair pricing)';
             } else if (serviceType === 'system_setup') {
@@ -1910,7 +1919,7 @@
             state.isStorageConfigured = hasFreeSpace;
 
             if (hasFreeSpace) {
-                // Free space given → unlock game list
+                // Free space given â†’ unlock game list
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.remove('locked');
@@ -1919,7 +1928,7 @@
                 state.selectedGames.forEach(s => gSize += s);
                 $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
             } else {
-                // No free space → freeze game list, clear any games, update-only state
+                // No free space â†’ freeze game list, clear any games, update-only state
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.add('locked');
@@ -2071,12 +2080,12 @@
 
     function resetFormForNewOrder() {
         state.currentEditingOrderId = null;
+        state.currentEditingToken = null;
         state.currentLoadedPhone = null;
         state.selectedGames.clear();
         state.selectedRepairs.clear();
         state.savedRemarksText = '';
         state.loadedOrderForSummary = null;
-        state.pendingOrderList = [];
         state.freeGamesCount = 0;
         state.discountRm = 0;
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
@@ -2141,7 +2150,7 @@
             const noticeId = 'hiddenNotice_' + Date.now() + Math.random().toString(36).slice(2);
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
-            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
+            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden â€” won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
             container.appendChild(notice);
 
             const hiddenContainer = document.createElement('div');
@@ -2285,7 +2294,7 @@
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`, nudge: '' };
+            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> â€” you can select <strong>${3 - count} more</strong>.`, nudge: '' };
             if (count === 3) return empty;
             if (count > 13 && count < 23) { const rem = 23 - count; return { hasWarning: true, targetCount: 23, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`, nudge: { remaining: rem, rate: 'RM2.50' } }; }
             if (count === 23) return empty;
@@ -2333,19 +2342,23 @@
         if (serviceType === 'repair_only') {
             subHtml = repairInfo.count === 0 ? 'Select your repairs above' : 'Tap to review and add remarks';
         } else if (tierRec.hasWarning && tierRec.nudge) {
-            subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> — ' + tierRec.nudge.rate + '/game rate · Tap to review';
+            subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> â€” ' + tierRec.nudge.rate + '/game rate Â· Tap to review';
         } else if (tierRec.hasWarning && tierRec.remaining > 0 && (serviceType === 'jailbreak' || serviceType === 'system_setup') && count < 3) {
-            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) · Tap to review`;
+            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) Â· Tap to review`;
         } else if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             if (count === 0) subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
-            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
-            else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`; }
+            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) Â· Tap to review`;
+            else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) Â· Tap to review`; }
         } else {
             subHtml = 'Tap here to review & add remarks';
         }
         sub.innerHTML = subHtml;
     }
 
+    // Status-only view of whatever is on this phone number. It cannot load an
+    // order into the form: that would mean handing over the whole order to
+    // anyone who can guess 4 digits. The private link is the only way in, and
+    // orders_by_phone deliberately returns just enough to recognise an order.
     async function fetchExistingOrder() {
         const input = $('phoneInput');
         const phone = input.value.trim();
@@ -2354,7 +2367,7 @@
         const btnIcon = $('loadOrderIcon');
 
         if (phone.length !== 4) {
-            alert('"Load Order" is for returning customers who previously submitted an order.\n\nPlease enter the last 4 digits of your phone number first.');
+            alert('"Load Order" is for returning customers who want to check an order they placed before.\n\nPlease enter the last 4 digits of your phone number first.');
             input.focus();
             input.classList.add('required-missing');
             return;
@@ -2367,12 +2380,13 @@
         setStatusMessage('Searching for your saved orders...', '#7dd3fc', 0);
 
         try {
-            const { data, error } = await supabaseClient.from('orders').select('*').eq('phone_ending', phone).order('created_at', { ascending: false });
+            const { data, error } = await supabaseClient.rpc('orders_by_phone', { p_phone: phone });
             if (error) throw error;
-            const orders = data || [];
+            const orders = Array.isArray(data) ? data : [];
 
             if (orders.length === 0) {
                 state.currentEditingOrderId = null;
+                state.currentEditingToken = null;
                 state.currentLoadedPhone = null;
                 hideEditModeBanner();
                 alert(`No previous order found for phone "${phone}".\n\nYou can start a new order below.`);
@@ -2380,16 +2394,7 @@
                 return;
             }
 
-            if (orders.length === 1) {
-                state.pendingLoadedOrder = orders[0];
-                showLoadChoiceModal(orders[0]);
-                setStatusMessage('Choose an option in the popup to continue.', '#e8dcc0', 0);
-                return;
-            }
-
-            state.pendingOrderList = orders;
-            showOrderPickModal(orders);
-            setStatusMessage('Pick an order from the popup to continue.', '#e8dcc0', 0);
+            showFoundOrdersByPhone(phone, orders);
         } catch (err) {
             console.error(err);
             setStatusMessage('Failed to lookup order.', '#e57373', 5000);
@@ -2400,131 +2405,97 @@
         }
     }
 
-    function showLoadChoiceModal(order) {
-        const info = $('loadChoiceInfo');
-        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true };
-        const created = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', dateOpts) : 'unknown';
-        const updated = order.updated_at ? new Date(order.updated_at).toLocaleString('en-MY', dateOpts) : created;
-        const lastTouched = (order.updated_at && order.updated_at !== order.created_at) ? `Last edited: <strong>${updated}</strong>` : `Created: <strong>${created}</strong>`;
-        const count = Array.isArray(order.games) ? order.games.length : 0;
-        const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
-        const serviceLabels = { 'jailbreak': `Full Jailbreak (${order.console_model || 'N/A'})`, 'system_setup': 'System Setup', 'games_only': 'Games Only', 'repair_only': 'Repair Only' };
-        const label = serviceLabels[order.service_type] || 'Order';
-        let infoText = `We found your previous order:<br>• Service: <strong>${label}</strong>`;
-        if (order.service_type !== 'repair_only') infoText += `<br>• Games: <strong>${count}</strong> selected`;
-        if (rCount > 0) infoText += `<br>• Repairs: <strong>${rCount}</strong> selected`;
-        infoText += `<br>• ${lastTouched}`;
-        info.innerHTML = infoText;
-        $('loadChoiceModal').style.display = 'flex';
-        BodyLock.lock();
+    const SERVICE_LABELS = {
+        'jailbreak': 'Full Jailbreak', 'system_setup': 'System Setup',
+        'games_only': 'Games Only', 'system_update': 'System Update',
+        'repair_only': 'Repair Only'
+    };
+
+    const INACTIVE_STATUSES = ['Completed', 'Cancelled'];
+
+    function stagePillClass(stage, status) {
+        if (status === 'Cancelled' || stage === 'Cancelled') return 'cancelled';
+        if (status === 'Completed' || stage === 'Completed') return 'completed';
+        if (stage === 'In Progress') return 'in-progress';
+        if (stage === 'Confirmed') return 'confirmed';
+        return '';
     }
 
-    function dismissLoadChoiceModal() {
-        $('loadChoiceModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingLoadedOrder = null;
-        clearStatusMessage();
-    }
+    // A phone lookup returns status-only records, so these rows are labelled
+    // "Order 1", "Order 2" rather than by order number - the number is not part
+    // of what a phone lookup is allowed to reveal. They are deliberately not
+    // clickable: opening an order needs the private token, which this lookup
+    // never sees.
+    function showFoundOrdersByPhone(phone, orders) {
+        dismissFoundOrdersNotice();
 
-    function chooseEditOrder() {
-        if (!state.pendingLoadedOrder) { dismissLoadChoiceModal(); return; }
-        const order = state.pendingLoadedOrder;
-        state.currentEditingOrderId = order.id;
-        state.currentLoadedPhone = order.phone_ending || null;
-        $('loadChoiceModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingLoadedOrder = null;
-        setStatusMessage('');
-        showSummaryView(order);
-        updateSaveButtonLabel();
-        const url = window.location.pathname + '?order=' + encodeURIComponent(order.id);
-        window.history.replaceState({}, '', url);
-    }
-
-    function chooseNewOrder() {
-        if (state.selectedGames.size > 0 || state.selectedRepairs.size > 0) {
-            const parts = [];
-            if (state.selectedGames.size > 0) parts.push(state.selectedGames.size + ' game' + (state.selectedGames.size === 1 ? '' : 's'));
-            if (state.selectedRepairs.size > 0) parts.push(state.selectedRepairs.size + ' repair' + (state.selectedRepairs.size === 1 ? '' : 's'));
-            const msg = 'You have ' + parts.join(' and ') + ' selected. Starting a new order will clear them.\n\nContinue?';
-            if (!confirm(msg)) return;
-        }
-        resetFormForNewOrder();
-        $('loadChoiceModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingLoadedOrder = null;
-        setStatusMessage('New order started. Pick your selection below.', '#00e676', 5000);
-    }
-
-    function showOrderPickModal(orders) {
-        const list = $('orderPickList');
-        const subtitle = $('orderPickSubtitle');
-        list.innerHTML = '';
-        subtitle.textContent = 'We found ' + orders.length + ' orders for ' + (orders[0].phone_ending || '') + '. Tap one to view or edit it.';
-
-        orders.forEach(order => {
-            const item = document.createElement('div');
-            item.className = 'order-pick-item';
-            const stage = order.progress_stage || 'Order Received';
-            let pillClass = '';
-            if (order.status === 'Cancelled') pillClass = 'cancelled';
-            else if (stage === 'Completed') pillClass = 'completed';
-            else if (stage === 'In Progress') pillClass = 'in-progress';
-            else if (stage === 'Confirmed') pillClass = 'confirmed';
-
-            const serviceLabels = { 'jailbreak': 'Full Jailbreak' + (order.console_model ? ' (' + order.console_model + ')' : ''), 'system_setup': 'System Setup', 'games_only': 'Games Only', 'repair_only': 'Repair Only' };
-            const serviceLabel = serviceLabels[order.service_type] || 'Order';
-            const gameCount = Array.isArray(order.games) ? order.games.length : 0;
-            const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
-            const total = order.estimated_price ? 'RM' + Math.round(order.estimated_price) : '';
-            const created = order.created_at ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) : '';
-
-            let detailParts = [escapeHtml(serviceLabel)];
-            if (order.service_type !== 'repair_only') detailParts.push('<strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : ''));
-            if (rCount > 0) detailParts.push('<strong>' + rCount + '</strong> repair' + (rCount !== 1 ? 's' : ''));
-            if (total) detailParts.push('<strong>' + total + '</strong>');
-
-            item.innerHTML = ''
+        const dateOpts = { day: 'numeric', month: 'short', year: 'numeric' };
+        let n = 0;
+        const row = function (o) {
+            n++;
+            const when = o.created_at ? new Date(o.created_at).toLocaleDateString('en-MY', dateOpts) : 'unknown date';
+            const label = SERVICE_LABELS[o.service_type] || 'Order';
+            const model = o.console_model ? ' (' + escapeHtml(o.console_model) + ')' : '';
+            const stage = o.progress_stage || 'Order Received';
+            const status = o.status || 'Pending';
+            const pill = stagePillClass(stage, status);
+            return '<div class="order-pick-item readonly">'
                 + '<div class="order-pick-item-header">'
-                + '  <div class="order-pick-id">Order #' + escapeHtml(order.phone_ending || '') + '</div>'
-                + '  <span class="order-pick-stage-pill ' + pillClass + '">' + escapeHtml(stage) + '</span>'
+                + '  <div class="order-pick-id">Order ' + n + ' &middot; ' + escapeHtml(label) + model + '</div>'
+                + '  <span class="order-pick-stage-pill ' + pill + '">' + escapeHtml(stage) + '</span>'
                 + '</div>'
-                + '<div class="order-pick-detail">' + detailParts.join(' &nbsp;·&nbsp; ') + '</div>'
-                + '<div class="order-pick-date">Placed ' + escapeHtml(created) + '</div>';
-            item.onclick = () => pickOrderFromList(order.id);
-            list.appendChild(item);
-        });
-        $('orderPickModal').style.display = 'flex';
-        BodyLock.lock();
+                + '<div class="order-pick-detail">' + escapeHtml(status) + ' &middot; placed ' + escapeHtml(when) + '</div>'
+                + '</div>';
+        };
+
+        const active = orders.filter(function (o) { return INACTIVE_STATUSES.indexOf(o.status || 'Pending') === -1; });
+        const past = orders.filter(function (o) { return INACTIVE_STATUSES.indexOf(o.status || 'Pending') !== -1; });
+
+        let list = '';
+        if (active.length) {
+            list += '<div class="order-pick-group">Active</div>' + active.map(row).join('');
+        }
+        if (past.length) {
+            list += '<div class="order-pick-group">Finished</div>' + past.map(row).join('');
+        }
+
+        const trackUrl = window.location.origin + window.location.pathname.replace('index.html', 'track.html') + '?phone=' + encodeURIComponent(phone);
+        const waNumber = getWhatsAppNumber();
+        const waText = encodeURIComponent("Hi, I can't find the private link for my order (phone ending " + phone + '). Could you send it to me?');
+
+        const panel = document.createElement('div');
+        panel.className = 'missing-order-notice found-orders-panel';
+        panel.innerHTML = ''
+            + '<div class="missing-order-title">We found ' + orders.length + ' order' + (orders.length > 1 ? 's' : '') + ' on this number</div>'
+            + '<div class="missing-order-body">'
+            + 'For everyone\'s privacy, a phone number only ever shows progress &mdash; not the order itself. '
+            + 'To see full details or make changes, open the private link we sent you. '
+            + 'That link is the only thing that opens an order, so nobody can reach yours by guessing a number.'
+            + '</div>'
+            + '<div class="order-pick-list">' + list + '</div>'
+            + '<div class="missing-order-actions">'
+            + (active.length
+                ? '  <a class="missing-order-btn secondary" href="' + trackUrl + '">Check progress</a>'
+                : '')
+            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">Start a new order</button>'
+            + (waNumber
+                ? '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + waText + '" target="_blank" rel="noopener noreferrer">Send me my link</a>'
+                : '')
+            + '</div>';
+
+        document.body.appendChild(panel);
+        const bar = $('checkoutBar');
+        if (bar) bar.classList.add('hidden');
+        setStatusMessage('Found your order. Open your private link to view or change it.', '#00e676', 8000);
     }
 
-    function pickOrderFromList(orderId) {
-        const order = state.pendingOrderList.find(o => String(o.id) === String(orderId));
-        if (!order) return;
-        state.currentEditingOrderId = order.id;
-        state.currentLoadedPhone = order.phone_ending || null;
-        $('orderPickModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingOrderList = [];
-        setStatusMessage('');
-        showSummaryView(order);
-        updateSaveButtonLabel();
-        const url = window.location.pathname + '?order=' + encodeURIComponent(order.id);
-        window.history.replaceState({}, '', url);
-    }
-
-    function pickStartNewOrder() {
-        $('orderPickModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingOrderList = [];
-        chooseNewOrder();
-    }
-
-    function dismissOrderPickModal() {
-        $('orderPickModal').style.display = 'none';
-        BodyLock.unlock();
-        state.pendingOrderList = [];
-        clearStatusMessage();
+    // Removes whichever "card" notice is on screen. These cards are mutually
+    // exclusive by nature, and they all share .missing-order-notice, so this
+    // clears every one of them rather than only our own.
+    function dismissFoundOrdersNotice() {
+        document.querySelectorAll('.missing-order-notice').forEach(function (el) { el.remove(); });
+        const bar = $('checkoutBar');
+        if (bar) bar.classList.remove('hidden');
     }
 
     function applyLoadedOrder(order) {
@@ -2644,7 +2615,7 @@
         let servicePrice = details.serviceBasePrice;
         if (serviceType === 'jailbreak') { serviceLabel = `Full Jailbreak (${consoleModel})`; serviceSub = 'Console modification + 3 games included'; }
         else if (serviceType === 'system_setup') { serviceLabel = 'System Setup'; serviceSub = 'Console modding & configuration + 3 games included'; }
-        else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod — no SD config needed'; }
+        else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod â€” no SD config needed'; }
         else if (serviceType === 'repair_only') {
             serviceLabel = 'Repair Service';
             const hasPaid = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
@@ -2728,7 +2699,7 @@
 
             const gamesSummary = document.createElement('summary');
             gamesSummary.className = 'cart-details-summary';
-            gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
+            gamesSummary.innerHTML = `<span>Selected Games (${count} Â· ${gSize.toFixed(1)} GB)</span><span class="chev">â–¼</span>`;
             gamesDetails.appendChild(gamesSummary);
 
             const gamesBody = document.createElement('div');
@@ -2778,8 +2749,8 @@
         const remarksSummary = document.createElement('summary');
         remarksSummary.className = 'cart-details-summary';
         const hasContent = (state.savedRemarksText || '').trim().length > 0;
-        const label = hasContent ? 'Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>' : 'Add Remarks (Optional)';
-        remarksSummary.innerHTML = `<span>${label}</span><span class="chev">▼</span>`;
+        const label = hasContent ? 'Add Remarks Â· <span style="color:#ffc000; font-size:12px;">(has content)</span>' : 'Add Remarks (Optional)';
+        remarksSummary.innerHTML = `<span>${label}</span><span class="chev">â–¼</span>`;
         remarksDetails.appendChild(remarksSummary);
 
         const remarksBody = document.createElement('div');
@@ -2826,9 +2797,9 @@
         if (state.selectedRepairs.size > 0) {
             state.selectedRepairs.forEach(r => {
                 if (r.isQuote) {
-                    html += `<div class="price-breakdown-row repair-row quote-row"><span>🔧 ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
+                    html += `<div class="price-breakdown-row repair-row quote-row"><span>ðŸ”§ ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
                 } else {
-                    html += `<div class="price-breakdown-row repair-row"><span>🔧 ${escapeHtml(r.name)}</span><span>RM${r.price}</span></div>`;
+                    html += `<div class="price-breakdown-row repair-row"><span>ðŸ”§ ${escapeHtml(r.name)}</span><span>RM${r.price}</span></div>`;
                 }
             });
         }
@@ -2838,7 +2809,7 @@
             if (isJbOrSetup) {
                 const c = Math.max(0, count - 3);
                 const freePart = state.freeGamesCount > 0 ? `, ${state.freeGamesCount} free` : '';
-                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} Â· 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             } else {
                 const freePart = state.freeGamesCount > 0 ? ` (${state.freeGamesCount} free)` : '';
                 html += `<div class="price-breakdown-row"><span>Games Installation${freePart} (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
@@ -2860,12 +2831,16 @@
         updateSaveButtonLabel();
     }
 
+    // The private link. The token is the only thing that opens an order, so it
+    // goes nowhere except back to this customer - not into any other request.
     function buildShareUrl() {
         const base = window.location.origin + window.location.pathname;
-        if (state.currentEditingOrderId) return `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}`;
-        const phone = valOf('phoneInput').trim();
-        if (!phone || phone.length !== 4) return `${base}?phone=____`;
-        return `${base}?phone=${encodeURIComponent(phone)}`;
+        return state.currentEditingToken ? `${base}?t=${encodeURIComponent(state.currentEditingToken)}` : '';
+    }
+
+    function buildTrackUrl(token) {
+        const base = window.location.origin + window.location.pathname.replace('index.html', 'track.html');
+        return token ? `${base}?t=${encodeURIComponent(token)}` : '';
     }
 
     function copyShareLink(btnEl) {
@@ -2913,18 +2888,53 @@
         BodyLock.unlock();
     }
 
-    function showPostSavePanel(phone) {
+    // mode 'saved' = we just placed it, 'loaded' = the customer arrived on their
+    // own private link. Both need the links on screen: arriving on the link is
+    // exactly when someone wants to copy it again or send it to another device.
+    function showPostSavePanel(phone, mode, order) {
         const panel = $('postSavePanel');
         if (!panel) return;
-        const base = window.location.origin + window.location.pathname;
-        const editUrl = state.currentEditingOrderId ? `${base}?order=${encodeURIComponent(state.currentEditingOrderId)}` : `${base}?phone=${encodeURIComponent(phone)}`;
-        const trackUrl = window.location.origin + window.location.pathname.replace('index.html', 'track.html') + '?phone=' + encodeURIComponent(phone);
+        const editUrl = buildShareUrl();
+        const trackUrl = buildTrackUrl(state.currentEditingToken);
+        const current = order || state.loadedOrderForSummary;
+        // A customer can only change or cancel an order while the shop has not
+        // started work, so on a locked order that button leads nowhere. Checked
+        // in every mode: save_order refuses cancelled orders server-side, but the
+        // button should never be offered for one either.
+        const locked = !!current && isOrderLocked(current);
+
+        // Arriving on your own link is not a save. One row is enough there; the
+        // full panel otherwise covers half the screen on every single visit.
+        panel.classList.toggle('compact', mode === 'loaded');
+
+        if (mode === 'loaded') {
+            $('postSaveTitle').textContent = 'Your private link';
+            $('postSaveDesc').textContent = '';
+        } else {
+            $('postSaveTitle').textContent = 'Order saved';
+            $('postSaveDesc').textContent =
+                'Your order has been submitted. We\'ll be in touch on WhatsApp to arrange drop-off. ' +
+                'Save the link below to edit it later, or track its progress at any time.';
+        }
+
         $('postSaveEditInput').value = editUrl;
         $('postSaveTrackInput').value = trackUrl;
-        $('postSaveTrackBtn').href = trackUrl;
+        $('postSaveTrackBtn').href = trackUrl || 'track.html';
+        $('postSaveEditBtn').href = editUrl || window.location.pathname;
+        $('postSaveEditBtn').style.display = locked ? 'none' : '';
         const trackLink = $('headerTrackLink');
-        if (trackLink) trackLink.href = trackUrl;
+        if (trackLink) trackLink.href = trackUrl || 'track.html';
         panel.style.display = 'block';
+    }
+
+    // Put the token in the address bar. Without this, a refresh or a bookmark
+    // after saving drops the customer back on an empty form and the order is
+    // only reachable from the copy button above.
+    function syncUrlToToken(token) {
+        if (!token) return;
+        try {
+            window.history.replaceState({}, '', window.location.pathname + '?t=' + encodeURIComponent(token));
+        } catch (e) { /* history is not essential here */ }
     }
 
     function closePostSavePanel() {
@@ -2971,7 +2981,7 @@
         if (tierRec.hasWarning && tierRec.msg) {
             let msg;
             if (isJbOrSetup && count < 3) msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\nPick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
-            else msg = `You've selected ${count} games.\n\nAdd ${tierRec.remaining} more to unlock the lower rate — every game you've picked gets cheaper.\n\nSave now with ${count} games, or go back and add more?`;
+            else msg = `You've selected ${count} games.\n\nAdd ${tierRec.remaining} more to unlock the lower rate â€” every game you've picked gets cheaper.\n\nSave now with ${count} games, or go back and add more?`;
             if (!confirm(msg)) return;
         }
 
@@ -2989,7 +2999,7 @@
         }
 
         if (state.currentEditingOrderId) {
-            if (!confirm('You are EDITING an existing order.\n\nTap OK to update that order with your current selection.\n\nWant to keep BOTH? Cancel this, then tap "Load Order" and choose "Start New Order".')) return;
+            if (!confirm('You are EDITING an existing order.\n\nTap OK to update that order with your current selection.\n\nWant to keep BOTH? Cancel this, then tap "Start New Order" instead.')) return;
         }
 
         const remarksText = (state.savedRemarksText || '').trim();
@@ -3025,7 +3035,7 @@
             const nowIso = new Date().toISOString();
 
             // The only columns the public anon key may write. The database
-            // rejects anything outside this list with a 401 — see
+            // rejects anything outside this list with a 401 â€” see
             // supabase_rls_policies.sql. Keep in sync with the GRANT there.
             const customerEdits = {
                 phone_ending: phone,
@@ -3046,11 +3056,12 @@
                 updated_at: nowIso
             };
 
-            // Shop-controlled pricing. Set on first save only. On a re-save these
-            // are deliberately left out of the UPDATE: the customer is not
-            // allowed to write them, and omitting them means whatever admin.html
-            // last granted — a discount, a free-game waiver, or a hand-set repair
-            // price — survives the edit untouched.
+            // Shop-controlled pricing. Sent only when placing a new order, as the
+            // customer's own estimate of what it will cost. save_order does not
+            // read any of these keys, so on a re-save whatever the shop set - a
+            // discount, a free-game waiver, a hand-set repair price - survives
+            // the edit untouched. That is enforced by the function's column
+            // whitelist, not by this comment.
             const shopPricing = {
                 price_subtotal: subtotal,
                 discount_rm: state.discountRm,
@@ -3058,10 +3069,25 @@
                 estimated_price: Math.max(0, subtotal - state.discountRm)
             };
 
-            if (state.currentEditingOrderId) {
-                const res = await supabaseClient.from('orders').update(customerEdits).eq('id', state.currentEditingOrderId);
+            if (state.currentEditingToken) {
+                const res = await supabaseClient.rpc('save_order', {
+                    p_token: state.currentEditingToken,
+                    p_order: customerEdits
+                });
                 if (res.error) throw res.error;
-                state.currentLoadedPhone = phone;
+                if (!res.data) {
+                    // save_order returns null both for an unknown link and for an
+                    // order that has already been cancelled. We cannot tell the
+                    // two apart from here, so the message must not pick one.
+                    alert('This order can no longer be changed here, so nothing was saved.\n\nThat happens if the order was cancelled, or if the link is no longer valid.\n\nPlease message us on WhatsApp and we will help.');
+                    return;
+                }
+                // Re-render from what the database actually stored, not from what
+                // was sent, so the summary shows the shop's real pricing.
+                state.currentEditingOrderId = res.data.id;
+                state.currentEditingToken = res.data.public_token;
+                state.currentLoadedPhone = res.data.phone_ending || null;
+                syncUrlToToken(res.data.public_token);
                 alert('Order updated successfully.');
             } else {
                 const orderData = Object.assign({}, customerEdits, shopPricing, {
@@ -3070,22 +3096,20 @@
                     progress_stage: 'Order Received',
                     progress_updated_at: nowIso
                 });
-                const res = await supabaseClient.from('orders').insert([orderData]).select();
+                const res = await supabaseClient.rpc('create_order', { p_order: orderData });
                 if (res.error) throw res.error;
-                let savedId = null;
-                if (res.data && res.data.length > 0 && res.data[0].id) savedId = res.data[0].id;
-                else {
-                    const fb = await supabaseClient.from('orders').select('id').eq('phone_ending', phone).eq('created_at', nowIso).limit(1);
-                    if (fb.data && fb.data.length > 0) savedId = fb.data[0].id;
-                }
-                if (savedId) { state.currentEditingOrderId = savedId; state.currentLoadedPhone = phone; }
+                if (!res.data || !res.data.public_token) throw new Error('Order was placed but no private link came back. Please message us.');
+                state.currentEditingOrderId = res.data.id;
+                state.currentEditingToken = res.data.public_token;
+                state.currentLoadedPhone = phone;
+                syncUrlToToken(res.data.public_token);
                 alert('New order saved successfully.');
             }
 
             closeCartModal();
             setStatusMessage('Order successfully saved.', '#00e676', 5000);
             showEditModeBanner();
-            showPostSavePanel(phone);
+            showPostSavePanel(phone, 'saved');
             shareOrderViaWhatsApp();
         } catch (err) {
             console.error(err);
@@ -3136,7 +3160,7 @@
         if (state.selectedRepairs.size > 0) {
             msg += `\n*Repair Jobs:*\n`;
             state.selectedRepairs.forEach(r => {
-                msg += `• ${r.name} — ${r.isQuote ? 'TBC after inspection' : 'RM' + r.price}\n`;
+                msg += `â€¢ ${r.name} â€” ${r.isQuote ? 'TBC after inspection' : 'RM' + r.price}\n`;
             });
         }
 
@@ -3151,8 +3175,9 @@
         if (details.repairQuoteCount > 0) msg += ` (+${details.repairQuoteCount} quote)`;
 
         const shareUrl = buildShareUrl();
-        if (shareUrl && !shareUrl.includes('phone=____')) msg += `\n\nView or edit your order anytime:\n${shareUrl}`;
-        msg += `\n\nTrack your order progress:\n${window.location.origin + window.location.pathname.replace('index.html', 'track.html')}?phone=${phone}`;
+        const trackUrl = buildTrackUrl(state.currentEditingToken);
+        if (shareUrl) msg += `\n\nYour private link - keep this, it is the only way to view or change your order:\n${shareUrl}`;
+        if (trackUrl) msg += `\n\nCheck your progress here:\n${trackUrl}`;
 
         const wa = getWhatsAppNumber();
         if (!wa) return alert('WhatsApp number is not configured in APP_CONFIG.');

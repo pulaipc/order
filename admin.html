@@ -1153,6 +1153,7 @@
                     <div>
                         <button class="notify-btn" id="modalNotifyBtn" onclick="notifyCustomerFromModal()">Notify on WhatsApp</button>
                         <button class="action-btn" id="modalViewTrackingBtn" onclick="openTrackingFromModal()">View Tracking</button>
+                        <button class="action-btn" id="modalCopyLinkBtn" onclick="copyPrivateLinkFromModal()">Copy Private Link</button>
                     </div>
                     <div>
                         <button class="delete-btn" onclick="deleteOrderFromModal()">Delete Order</button>
@@ -1344,6 +1345,26 @@
         if (!currentModalOrder) return;
         var url = buildTrackLink(currentModalOrder);
         window.open(url, '_blank', 'noopener,noreferrer');
+    }
+
+    // Since the id stopped working as a link, this is how a customer gets back
+    // into an order they no longer have the link for.
+    function copyPrivateLinkFromModal() {
+        if (!currentModalOrder) return;
+        var url = buildTrackingUrl(currentModalOrder);
+        if (!url) { alert('This order has no private link yet. Save the order once and try again.'); return; }
+        var btn = document.getElementById('modalCopyLinkBtn');
+        var original = btn ? btn.textContent : '';
+        var done = function () {
+            if (!btn) return;
+            btn.textContent = 'Copied';
+            setTimeout(function () { btn.textContent = original; }, 1800);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(done).catch(function () { prompt('Copy this link:', url); });
+        } else {
+            prompt('Copy this link:', url);
+        }
     }
 
     function login() {
@@ -2707,7 +2728,9 @@
             trackLines.push('• Outbound (' + cout.label + '): ' + order.tracking_outbound_number);
         }
         if (trackLines.length > 0) msg += '\nParcel Tracking:\n' + trackLines.join('\n') + '\n';
-        msg += '\nTrack live here: ' + buildTrackingUrl(order.phone_ending);
+        msg += '\nTrack live here: ' + (buildTrackingUrl(order) || 'message us and we will look it up');
+        msg += '\n\nYour private link — keep this, it is the only way to view or change your order:\n'
+            + (buildEditUrl(order) || 'message us and we will send you one');
 
         var encoded = encodeURIComponent(msg);
         var digitsOnly = waUsername.replace(/[^\d]/g, '');
@@ -2722,18 +2745,34 @@
         window.open(waUrl, '_blank');
     }
 
-    function buildTrackingUrl(phoneEnding) {
-        if (!phoneEnding) return '';
-        return window.location.origin + window.location.pathname.replace('admin.html', 'track.html') + '?phone=' + encodeURIComponent(phoneEnding);
+    // Full absolute private link, for pasting into a message.
+    function buildTrackingUrl(order) {
+        var token = order && order.public_token;
+        if (!token) return '';
+        return window.location.origin + window.location.pathname.replace('admin.html', 'track.html')
+            + '?t=' + encodeURIComponent(token);
     }
 
+    // Same link, but for the order form rather than the tracker.
+    function buildEditUrl(order) {
+        var token = order && order.public_token;
+        if (!token) return '';
+        return window.location.origin + window.location.pathname.replace('admin.html', 'index.html')
+            + '?t=' + encodeURIComponent(token);
+    }
+
+    // Customers can only open an order through its private token. The id is a
+    // sequential integer and is not a secret, so it is never used in a link.
     function buildTrackLink(order) {
-        var phone = order.phone_ending || '';
-        if (!phone) return 'track.html';
-        var id = order.id || order.order_id || '';
-        var url = 'track.html?phone=' + encodeURIComponent(phone);
-        if (order.id) url += '&id=' + encodeURIComponent(order.id);
-        return url;
+        var token = order && order.public_token;
+        if (!token) return 'track.html';
+        return 'track.html?t=' + encodeURIComponent(token);
+    }
+
+    function buildOrderLink(order) {
+        var token = order && order.public_token;
+        if (!token) return 'index.html';
+        return 'index.html?t=' + encodeURIComponent(token);
     }
 
     function editWhatsappUsername(orderId) {
