@@ -60,6 +60,11 @@
         .summary-total { background: #251d08; border: 1px solid #7a6820; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
         .summary-total-label { font-size: 13px; color: #b8b0a0; font-weight: 600; }
         .summary-total-value { font-size: 20px; color: #ffc000; font-weight: bold; }
+        .summary-adjustments { background: #17120a; border: 1px solid #2a4530; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
+        .summary-adjustment-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #b8b0a0; line-height: 1.45; }
+        .summary-adjustment-row span:first-child { min-width: 0; word-break: break-word; }
+        .summary-adjustment-row span:last-child { white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+        .summary-adjustment-row.discount span:last-child { color: #00e676; }
 
         .summary-games-toggle { background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13.5px; color: #f0e9d8; font-weight: 600; user-select: none; }
         .summary-games-toggle:hover { border-color: #3a3018; }
@@ -414,6 +419,9 @@
         .price-breakdown-row.total-row { border-top: 1px solid #3a3018; padding-top: 8px; margin-top: 2px; color: #f0e9d8; font-weight: bold; font-size: 16px; }
         .price-breakdown-row.quote-row span:last-child { color: #ffb74d; font-style: italic; font-weight: 600; }
         .price-breakdown-row.repair-row span:first-child { color: #ffd9a0; }
+        .price-breakdown-row.discount-row span:first-child { color: #7ee39b; }
+        .price-breakdown-row.discount-row span:last-child { color: #7ee39b; }
+        .price-breakdown-row.discount-line { border-top: 1px dashed #2a4530; padding-top: 6px; }
 
         .payment-note { display: flex; align-items: flex-start; gap: 8px; padding: 10px 12px; background: #1a2a1a; border: 1px solid #2a4530; border-radius: 6px; font-size: 12.5px; color: #c3ffdb; line-height: 1.5; }
         .payment-note-icon { color: #00e676; font-size: 14px; flex-shrink: 0; line-height: 1.4; font-weight: bold; }
@@ -945,7 +953,11 @@
         modalRemarksExpanded: false,
         statusMsgTimeout: null,
         gamesRerenderTimer: null,
-        loadedOrderForSummary: null
+        loadedOrderForSummary: null,
+        // Shop-side adjustments applied by the admin (admin.html). Preserved
+        // across customer re-saves so a granted discount is never lost.
+        freeGamesCount: 0,
+        discountRm: 0
     };
 
     const $ = id => document.getElementById(id);
@@ -1189,6 +1201,10 @@
 
     function showSummaryView(order) {
         state.loadedOrderForSummary = order;
+        // Adopt any shop-side adjustments so a later save preserves them.
+        const shopAdj = getOrderTotals(order);
+        state.freeGamesCount = shopAdj.freeGames;
+        state.discountRm = shopAdj.discount;
         const summaryEl = $('summaryView');
         const formEl = $('formView');
         const checkoutBar = $('checkoutBar');
@@ -1331,10 +1347,23 @@
             html += '</div>';
         }
 
+        const shopTotals = getOrderTotals(order);
         html += '<div class="summary-total">';
         html += '<span class="summary-total-label">Total estimated' + (repairSum.quoteCount > 0 ? ' (+ ' + repairSum.quoteCount + ' quote)' : '') + '</span>';
-        html += '<span class="summary-total-value">RM' + Math.round(order.estimated_price || 0) + '</span>';
+        html += '<span class="summary-total-value">RM' + shopTotals.total + '</span>';
         html += '</div>';
+
+        if (shopTotals.hasDiscount || shopTotals.freeGames > 0) {
+            html += '<div class="summary-adjustments">';
+            if (shopTotals.freeGames > 0) {
+                html += '<div class="summary-adjustment-row"><span>Free games included</span><span>' + shopTotals.freeGames + '</span></div>';
+            }
+            if (shopTotals.hasDiscount) {
+                html += '<div class="summary-adjustment-row"><span>Subtotal</span><span>RM' + shopTotals.subtotal + '</span></div>';
+                html += '<div class="summary-adjustment-row discount"><span>Discount</span><span>&minus;RM' + shopTotals.discount + '</span></div>';
+            }
+            html += '</div>';
+        }
 
         if (updated) {
             html += '<div style="font-size:11.5px; color:#8a8272;">Last updated: ' + updatedStr + '</div>';
@@ -2040,6 +2069,8 @@
         state.savedRemarksText = '';
         state.loadedOrderForSummary = null;
         state.pendingOrderList = [];
+        state.freeGamesCount = 0;
+        state.discountRm = 0;
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
         ['serviceTypeSelect', 'consoleModelSelect', 'sdSourceSelect', 'userFreeStorageInput', 'searchInput'].forEach(id => $(id).value = '');
         window.history.replaceState({}, '', window.location.pathname);
@@ -2223,69 +2254,20 @@
     }
 
     function calculatePriceDetails(count, totalGb) {
-        const serviceType = valOf('serviceTypeSelect');
-        const consoleModel = valOf('consoleModelSelect');
-        let androidPrice = 0, linuxPrice = 0, sdCardPrice = 0, basePrice = 0;
-
-        if (serviceType === 'jailbreak') basePrice = (APP_CONFIG.jailbreakPrices && APP_CONFIG.jailbreakPrices[consoleModel]) || 190;
-        else if (serviceType === 'system_setup') basePrice = APP_CONFIG.systemSetupPrice || 50;
-        else if (serviceType === 'system_update') basePrice = APP_CONFIG.systemUpdatePrice || 30;
-        else if (serviceType === 'repair_only') basePrice = APP_CONFIG.repairOnlyBaseFee || 30;
-
-        const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
-        if (isJbOrSetup) {
-            if ($('androidModeCheck').checked) androidPrice = APP_CONFIG.addonPrices.android || 30;
-            if ($('linuxModeCheck').checked) linuxPrice = APP_CONFIG.addonPrices.linux || 30;
-            if (valOf('sdSourceSelect') === 'buy') sdCardPrice = (APP_CONFIG.sdCardRetailPrices && APP_CONFIG.sdCardRetailPrices[state.maxSdSize]) || 0;
-        }
-        const baseOnly = androidPrice + linuxPrice;
-
-        // Repairs
-        const repairSum = getSelectedRepairTotal();
-
-        // Repair Only: diagnostic fee is waived if any paid (non-quote, non-diagnostic) repair is selected
-        let effectiveBase = basePrice;
-        if (serviceType === 'repair_only') {
-            const hasPaidRepair = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
-            if (hasPaidRepair) effectiveBase = 0;
-        }
-
-        if (count <= 0) {
-            return {
-                serviceBasePrice: effectiveBase,
-                sdCardPrice, androidPrice, linuxPrice,
-                gamesPrice: 0,
-                repairTotal: repairSum.total,
-                repairQuoteCount: repairSum.quoteCount,
-                price: effectiveBase + sdCardPrice + baseOnly + repairSum.total,
-                exceeded: false
-            };
-        }
-
-        let chargeable = isJbOrSetup ? Math.max(0, count - 3) : count;
-        let countPrice, targetLimit;
-        if (chargeable <= 10) { countPrice = chargeable * 3; targetLimit = 125; }
-        else if (chargeable <= 19) { countPrice = chargeable * 3; targetLimit = 240; }
-        else if (chargeable <= 39) { countPrice = chargeable * 2.5; targetLimit = 460; }
-        else { countPrice = chargeable * 2; targetLimit = totalGb; }
-
-        let sizePrice;
-        if (totalGb <= 100) sizePrice = (totalGb / 100) * 30;
-        else if (totalGb <= 200) sizePrice = 30 + ((totalGb - 100) / 100) * 20;
-        else if (totalGb <= 400) sizePrice = 50 + ((totalGb - 200) / 200) * 30;
-        else sizePrice = 80 + ((totalGb - 400) / 100) * 20;
-
-        let gamesPrice = countPrice, exceeded = false;
-        if (totalGb > targetLimit && sizePrice > countPrice) { gamesPrice = sizePrice; exceeded = true; }
-
-        return {
-            serviceBasePrice: effectiveBase,
-            sdCardPrice, androidPrice, linuxPrice, gamesPrice,
-            repairTotal: repairSum.total,
-            repairQuoteCount: repairSum.quoteCount,
-            price: Math.round(effectiveBase + sdCardPrice + gamesPrice + baseOnly + repairSum.total),
-            exceeded
-        };
+        // Delegates to the shared pricing engine in config.js so admin.html can
+        // recompute an identical subtotal when applying free games / discounts.
+        return computePricing({
+            serviceType: valOf('serviceTypeSelect'),
+            consoleModel: valOf('consoleModelSelect'),
+            count: count,
+            totalGb: totalGb,
+            freeGames: state.freeGamesCount,
+            repairs: Array.from(state.selectedRepairs.values()),
+            hasAndroid: !!$('androidModeCheck') && $('androidModeCheck').checked,
+            hasLinux: !!$('linuxModeCheck') && $('linuxModeCheck').checked,
+            sdSource: valOf('sdSourceSelect'),
+            maxSdSize: state.maxSdSize
+        });
     }
 
     function checkTierRecommendation(count, serviceType) {
@@ -2323,7 +2305,7 @@
         $('selectedCount').innerText = count;
         $('selectedSize').innerText = gSize.toFixed(1);
         $('remainderSize').innerText = remainder.toFixed(1);
-        $('selectedPrice').innerText = 'RM' + Math.round(details.price);
+        $('selectedPrice').innerText = 'RM' + Math.max(0, Math.round(details.subtotal) - state.discountRm);
 
         // Repair summary line in checkout bar
         const rSummary = $('checkoutRepairSummary');
@@ -2847,13 +2829,23 @@
         if (!isRepairOnly) {
             if (isJbOrSetup) {
                 const c = Math.max(0, count - 3);
-                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+                const freePart = state.freeGamesCount > 0 ? `, ${state.freeGamesCount} free` : '';
+                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             } else {
-                html += `<div class="price-breakdown-row"><span>Games Installation (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+                const freePart = state.freeGamesCount > 0 ? ` (${state.freeGamesCount} free)` : '';
+                html += `<div class="price-breakdown-row"><span>Games Installation${freePart} (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             }
         }
 
-        html += `<div class="price-breakdown-row total-row"><span>Total${details.repairQuoteCount > 0 ? ' (+' + details.repairQuoteCount + ' quote)' : ''}</span><span style="color:#ffc000;">RM${Math.round(details.price)}</span></div>`;
+        // Shop-side discount granted in admin.html
+        const cartSubtotal = Math.round(details.subtotal);
+        const cartTotal = Math.max(0, cartSubtotal - state.discountRm);
+        if (state.discountRm > 0) {
+            html += `<div class="price-breakdown-row discount-row"><span>Subtotal</span><span>RM${cartSubtotal}</span></div>`;
+            html += `<div class="price-breakdown-row discount-row discount-line"><span>Discount</span><span>&minus;RM${Math.min(state.discountRm, cartSubtotal)}</span></div>`;
+        }
+
+        html += `<div class="price-breakdown-row total-row"><span>Total${details.repairQuoteCount > 0 ? ' (+' + details.repairQuoteCount + ' quote)' : ''}</span><span style="color:#ffc000;">RM${cartTotal}</span></div>`;
         priceBox.innerHTML = html;
 
         $('sizeWarningBox').style.display = details.exceeded ? 'block' : 'none';
@@ -3009,6 +3001,7 @@
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         const details = calculatePriceDetails(count, gSize);
+        const subtotal = Math.round(details.subtotal);
 
         // Snapshot repairs
         const repairsSnapshot = Array.from(state.selectedRepairs.values()).map(r => ({
@@ -3036,7 +3029,13 @@
                 service_type: serviceType,
                 console_model: (serviceType === 'jailbreak' || isRepairOnly) ? consoleModel : null,
                 total_size_gb: gSize,
-                estimated_price: Math.round(details.price),
+                // Subtotal is recomputed from the customer's current selection;
+                // any shop discount / free-game waiver granted in admin.html is
+                // carried over so re-saving never wipes it.
+                price_subtotal: subtotal,
+                discount_rm: state.discountRm,
+                free_games_count: state.freeGamesCount,
+                estimated_price: Math.max(0, subtotal - state.discountRm),
                 android_mode: androidSel,
                 linux_mode: linuxSel,
                 status: 'Pending',
@@ -3124,7 +3123,12 @@
 
         if (!isRepairOnly) msg += `Selected Games: ${count} games (${gSize.toFixed(1)} GB total)\n`;
         if (remarks) msg += `Remarks: ${remarks}\n`;
-        msg += `Total Estimated Price: RM${Math.round(details.price)}`;
+        if (state.freeGamesCount > 0) msg += `Free Games Included: ${state.freeGamesCount}\n`;
+        if (state.discountRm > 0) {
+            msg += `Subtotal: RM${Math.round(details.subtotal)}\n`;
+            msg += `Discount: -RM${Math.min(state.discountRm, Math.round(details.subtotal))}\n`;
+        }
+        msg += `Total Estimated Price: RM${Math.max(0, Math.round(details.subtotal) - state.discountRm)}`;
         if (details.repairQuoteCount > 0) msg += ` (+${details.repairQuoteCount} quote)`;
 
         const shareUrl = buildShareUrl();

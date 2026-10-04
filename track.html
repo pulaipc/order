@@ -565,7 +565,8 @@
 
             const gameCount = Array.isArray(order.games) ? order.games.length : 0;
             const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
-            const total = order.estimated_price ? 'RM' + Math.round(order.estimated_price) : '';
+            const totals = getOrderTotals(order);
+            const total = totals.total ? 'RM' + totals.total : '';
             const created = order.created_at
                 ? new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true })
                 : '';
@@ -827,25 +828,18 @@
             currentCard.style.display = 'block';
             $('currentIcon').innerText = STAGE_ICONS[currentStage] || '\u25CF';
             $('currentStageName').innerText = currentStage;
-            var stageDesc = (APP_CONFIG.progressDescriptions && APP_CONFIG.progressDescriptions[currentStage]) || '';
-            if (currentStage === 'Confirmed' && order.progress_substage === 'Received') {
-                stageDesc = "We have your console. It's in our queue — we'll message you here when we start work.";
-            }
-            $('currentStageDesc').innerText = stageDesc;
+
+            // All stage copy comes from getStageMessages() in config.js, which
+            // also swaps in the "shipped" wording once a tracking number exists
+            // and keeps the status line distinct from the next-step line.
+            const msg = getStageMessages(order);
+            $('currentStageDesc').innerText = msg.description;
+
             const nextStepEl = $('nextStepHint');
             const nextStepTextEl = $('nextStepText');
-            const nextStepMap = {
-                'Order Received':   'No action needed yet — we\'ll be in touch on WhatsApp to confirm and arrange a drop-off time.',
-                'Confirmed':        'Please drop off your console at the agreed time so we can begin work.',
-                'In Progress':      'No action needed — we\'re working on your console and will update this page as we progress.',
-                'Ready':            'Your console is ready. Come collect it, or wait for us to ship it — we\'ll confirm on WhatsApp.',
-                'Completed':        'All done. Enjoy your games.'
-            };
-            let nextStepMsg = nextStepMap[currentStage];
-            if (currentStage === 'Confirmed' && order.progress_substage === 'Received') {
-                nextStepMsg = 'Nothing to do right now — we have your console and you\'re in the queue.';
-            }
-            if (nextStepMsg) { nextStepTextEl.innerHTML = nextStepMsg; nextStepEl.classList.remove('hidden'); }
+            // No next step (e.g. a completed order) -> hide the box entirely
+            // rather than showing filler under an identical status line.
+            if (msg.nextStep) { nextStepTextEl.innerHTML = msg.nextStep; nextStepEl.classList.remove('hidden'); }
             else nextStepEl.classList.add('hidden');
 
             if (order.progress_updated_at) {

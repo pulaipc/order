@@ -547,6 +547,90 @@
             border-color: #ffc000;
         }
 
+        /* ===== PRICE ADJUSTMENTS (free games + discount) ===== */
+        .adjust-grid { display: flex; flex-direction: column; gap: 10px; }
+        .adjust-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .adjust-row .lbl { font-size: 12.5px; color: #b8b0a0; flex: 1 1 130px; min-width: 0; line-height: 1.4; }
+        .stepper { display: flex; align-items: stretch; flex: 0 0 auto; }
+        .stepper-btn {
+            width: 38px; flex-shrink: 0; background: #2e2716; color: #ffc000;
+            border: 1px solid #3a3018; font-size: 17px; font-weight: bold;
+            font-family: inherit; cursor: pointer; min-height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s, color 0.2s;
+        }
+        .stepper-btn:first-child { border-radius: 6px 0 0 6px; }
+        .stepper-btn:last-child { border-radius: 0 6px 6px 0; }
+        .stepper-btn:hover:not(:disabled) { background: #ffc000; color: #14110a; }
+        .stepper-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .adjust-input {
+            width: 74px; flex-shrink: 0; padding: 9px 10px; text-align: center;
+            background: #221c10; border: 1px solid #3a3018; color: #f0e9d8;
+            border-radius: 0; font-size: 15px; font-weight: bold;
+            font-family: inherit; outline: none; box-sizing: border-box;
+            min-height: 40px; -moz-appearance: textfield;
+        }
+        .adjust-input::-webkit-outer-spin-button,
+        .adjust-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .adjust-input:focus { border-color: #ffc000; }
+        .adjust-input.rm { width: 96px; text-align: left; }
+        .adjust-unit { font-size: 12.5px; color: #8a8272; flex: 0 0 auto; }
+
+        .adjust-preview {
+            background: #191309; border: 1px solid #2e2716; border-radius: 6px;
+            padding: 10px 12px; display: flex; flex-direction: column; gap: 5px;
+        }
+        .adjust-preview-row {
+            display: flex; justify-content: space-between; gap: 10px;
+            font-size: 12.5px; color: #b8b0a0; line-height: 1.45;
+        }
+        .adjust-preview-row span:first-child { min-width: 0; word-break: break-word; }
+        .adjust-preview-row span:last-child { white-space: nowrap; flex-shrink: 0; font-weight: 600; }
+        .adjust-preview-row.discount span:last-child { color: #00e676; }
+        .adjust-preview-row.final {
+            border-top: 1px solid #3a3018; padding-top: 7px; margin-top: 3px;
+            font-size: 15px; color: #f0e9d8; font-weight: bold;
+        }
+        .adjust-preview-row.final span:last-child { color: #ffc000; }
+
+        .adjust-note {
+            display: none; align-items: flex-start; gap: 8px;
+            background: #2d2612; border: 1px solid #7a6820; border-left: 3px solid #ffc000;
+            color: #fff8e1; padding: 9px 11px; border-radius: 6px;
+            font-size: 12px; line-height: 1.5;
+        }
+        .adjust-note.show { display: flex; }
+        .adjust-note.warn {
+            background: #2a1e0a; border-color: #7a5420; border-left-color: #ffb74d; color: #ffd9a0;
+        }
+        .adjust-note.danger {
+            background: #2a0f0f; border-color: #8a2a2a; border-left-color: #ff5252; color: #ffcdd2;
+        }
+        .adjust-note .note-icon { flex-shrink: 0; line-height: 1.4; }
+        .adjust-note strong { color: #ffc000; }
+
+        .adjust-save-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .adjust-save-btn {
+            background: #ffc000; color: #14110a; border: none; padding: 10px 18px;
+            border-radius: 6px; font-size: 13px; font-weight: bold; font-family: inherit;
+            cursor: pointer; min-height: 42px; transition: background 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .adjust-save-btn:hover:not(:disabled) { background: #e6ac00; }
+        .adjust-save-btn:disabled { background: #4a4020; color: #888; cursor: not-allowed; }
+        .adjust-reset-btn {
+            background: transparent; color: #e8dcc0; border: 1px solid #3a3018;
+            padding: 10px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; min-height: 42px;
+            transition: all 0.2s;
+            display: inline-flex; align-items: center; justify-content: center;
+        }
+        .adjust-reset-btn:hover:not(:disabled) { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .adjust-reset-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .adjust-save-status { font-size: 12px; color: #8a8272; flex: 1 1 100%; line-height: 1.4; }
+        .adjust-save-status.ok { color: #00e676; }
+        .adjust-save-status.err { color: #e57373; }
+
         /* ===== REPAIR CATALOG TAB ===== */
         .catalog-header { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
         .catalog-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; }
@@ -970,6 +1054,66 @@
                     <div class="modal-info-row">
                         <span class="lbl">Last updated:</span>
                         <span class="val" id="modalUpdatedVal" style="color:#ffb74d;">—</span>
+                    </div>
+                </div>
+
+                <!-- PRICE ADJUSTMENTS -->
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span>Price Adjustments</span>
+                        <button class="action-btn" onclick="resetPriceAdjustments()">Reset</button>
+                    </div>
+                    <div class="adjust-grid">
+                        <div class="adjust-row">
+                            <span class="lbl">Free games<br><span style="color:#6a6357;font-size:11px;" id="freeGamesHint">Waived from the chargeable count</span></span>
+                            <div class="stepper">
+                                <button type="button" class="stepper-btn" id="freeGamesMinus" onclick="bumpFreeGames(-1)" aria-label="Fewer free games">&minus;</button>
+                                <input type="number" id="modalFreeGamesInput" class="adjust-input" min="0" step="1" value="0" inputmode="numeric" oninput="onAdjustInputChange()">
+                                <button type="button" class="stepper-btn" id="freeGamesPlus" onclick="bumpFreeGames(1)" aria-label="More free games">+</button>
+                            </div>
+                        </div>
+                        <div class="adjust-row">
+                            <span class="lbl">Discount<br><span style="color:#6a6357;font-size:11px;">Flat amount off the subtotal</span></span>
+                            <input type="number" id="modalDiscountInput" class="adjust-input rm" min="0" step="1" value="0" inputmode="decimal" oninput="onAdjustInputChange()">
+                            <span class="adjust-unit">RM</span>
+                        </div>
+
+                        <div class="adjust-note" id="adjustSchemaNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span>Price adjustment columns are missing. Run <strong>supabase_price_adjustments.sql</strong> in your Supabase SQL editor, then reload.</span>
+                        </div>
+                        <div class="adjust-note" id="adjustNoGamesNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span id="adjustNoGamesText">There is nothing to waive on this order. Use the RM discount instead.</span>
+                        </div>
+                        <div class="adjust-note warn" id="adjustVolumeNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span>Volume pricing applies on this order, so the total is driven by game size in GB &mdash; waiving games will <strong>not</strong> reduce the price. Use the RM discount instead.</span>
+                        </div>
+                        <div class="adjust-note warn" id="adjustClampNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span id="adjustClampText">Some free games exceed the chargeable count and were ignored.</span>
+                        </div>
+                        <div class="adjust-note danger" id="adjustIncreaseNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span id="adjustIncreaseText">Waiving games would increase the price.</span>
+                        </div>
+                        <div class="adjust-note warn" id="adjustMismatchNote">
+                            <span class="note-icon">&#9889;</span>
+                            <span id="adjustMismatchText">The stored total does not match a fresh recalculation.</span>
+                        </div>
+
+                        <div class="adjust-preview">
+                            <div class="adjust-preview-row"><span>Subtotal</span><span id="adjustSubtotalVal">RM0</span></div>
+                            <div class="adjust-preview-row discount" id="adjustDiscountRow" style="display:none;"><span id="adjustDiscountLabel">Discount</span><span id="adjustDiscountVal">&minus;RM0</span></div>
+                            <div class="adjust-preview-row final"><span>Total charged</span><span id="adjustTotalVal">RM0</span></div>
+                        </div>
+
+                        <div class="adjust-save-row">
+                            <button type="button" class="adjust-save-btn" id="adjustSaveBtn" onclick="savePriceAdjustments()">Save Adjustments</button>
+                            <button type="button" class="adjust-reset-btn" id="adjustClearBtn" onclick="clearPriceAdjustments()">Clear All</button>
+                            <span class="adjust-save-status" id="adjustSaveStatus"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -1872,6 +2016,356 @@
         });
     }
 
+    // ===== PRICE ADJUSTMENTS (free games + subtotal discount) =====
+    var adjustState = { orderId: null, schemaOk: true };
+
+    function el(id) { return document.getElementById(id); }
+
+    /** True once the price adjustment columns exist on the orders table. */
+    function detectAdjustSchema() {
+        if (!allOrders || allOrders.length === 0) return true;
+        var o = allOrders[0];
+        return ('price_subtotal' in o) || ('discount_rm' in o) || ('free_games_count' in o);
+    }
+
+    /** Shape an existing order into computePricing() inputs. */
+    function pricingInputsForOrder(order, freeGames) {
+        var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
+        return {
+            serviceType: order.service_type || '',
+            consoleModel: order.console_model || '',
+            count: gameListOf(order).length,
+            totalGb: Number(order.total_size_gb) || 0,
+            freeGames: freeGames || 0,
+            repairs: getRepairsOfOrder(order),
+            hasAndroid: isJbOrSetup && !!order.android_mode,
+            hasLinux: isJbOrSetup && !!order.linux_mode,
+            sdSource: isJbOrSetup ? (order.sd_source || '') : '',
+            maxSdSize: Number(order.sd_card_size) || 0
+        };
+    }
+
+    function currentFreeGamesInput() {
+        var v = parseInt(el('modalFreeGamesInput').value, 10);
+        return (isFinite(v) && v > 0) ? v : 0;
+    }
+    function currentDiscountInput() {
+        var v = parseFloat(el('modalDiscountInput').value);
+        return (isFinite(v) && v > 0) ? Math.round(v) : 0;
+    }
+
+    /** Most games that can actually be waived on this order. */
+    function freeGamesCeiling() {
+        var order = findOrder(adjustState.orderId);
+        if (!order) return 0;
+        var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
+        return Math.max(0, gameListOf(order).length - (isJbOrSetup ? 3 : 0));
+    }
+
+    /**
+     * Largest waiver that cannot raise the price.
+     *
+     * Game pricing is tiered (RM3.00 each up to 19 chargeable, RM2.50 up to 39),
+     * so the tiers are NOT monotonic: waiving enough games can drop the count
+     * into a pricier tier and *increase* the subtotal. "Give free games" must
+     * never cost the customer more, so the ceiling is tightened to the highest
+     * waiver that keeps the subtotal at or below the un-waived baseline.
+     */
+    function freeGamesSafeMax() {
+        var order = findOrder(adjustState.orderId);
+        if (!order) return 0;
+        var ceiling = freeGamesCeiling();
+        if (ceiling <= 0) return 0;
+        var baseline = computePricing(pricingInputsForOrder(order, 0)).subtotal;
+        // The tiers are non-monotonic (dropping into the RM3.00 tier can cost
+        // more than the RM2.50 tier it left), so scan the whole range and keep
+        // the highest waiver that still does not exceed the baseline.
+        var safe = 0;
+        for (var n = 1; n <= ceiling; n++) {
+            if (computePricing(pricingInputsForOrder(order, n)).subtotal <= baseline) safe = n;
+        }
+        return safe;
+    }
+
+    function bumpFreeGames(delta) {
+        var v = currentFreeGamesInput() + delta;
+        if (v < 0) v = 0;
+        // Clamp to the hard ceiling (chargeable games) only. Clamping to the
+        // price-safe maximum as well would make "+" do nothing at all on
+        // orders where every waiver is price-safe only at zero.
+        var ceiling = freeGamesCeiling();
+        if (v > ceiling) v = ceiling;
+        el('modalFreeGamesInput').value = String(v);
+        updateAdjustPreview();
+    }
+
+    function onAdjustInputChange() {
+        // keep the discount field normalised (no stray decimals / negatives)
+        el('modalDiscountInput').value = String(currentDiscountInput());
+        updateAdjustPreview();
+    }
+
+    function setAdjustStatus(msg, kind) {
+        var s = el('adjustSaveStatus');
+        s.textContent = msg || '';
+        s.className = 'adjust-save-status' + (kind ? ' ' + kind : '');
+    }
+
+    /**
+     * Explain why a stored total disagrees with a fresh recalculation, in terms
+     * that match the service the order is actually for. Mismatches come from
+     * hand-set repair prices or, for non-repair work, from a tariff change
+     * after the order was placed.
+     */
+    function mismatchReasonText(order, stored, baseline, dir) {
+        var base = 'This order stores RM' + stored.subtotal + ' but recalculates to RM' + baseline +
+            ' (' + dir + '). Saving will REPLACE the stored total with the recalculated one.';
+
+        var repairs = getRepairsOfOrder(order);
+        var priceableRepairs = repairs.filter(function (r) { return !r.isQuote && r.id !== 'diagnostic'; });
+
+        if (priceableRepairs.length > 0) {
+            return base + ' A repair price was most likely set by hand — check the repair prices in this order.';
+        }
+        if (order.service_type === 'repair_only') {
+            return base + ' Check the service fee and any repair prices for this order.';
+        }
+        return base + ' This usually means the price list changed after the order was placed. ' +
+            'Check the game count and any add-ons before saving.';
+    }
+
+    function updateAdjustPreview() {
+        var order = findOrder(adjustState.orderId);
+        if (!order) return;
+
+        var freeGames = currentFreeGamesInput();
+        var discount = currentDiscountInput();
+        var baseline = computePricing(pricingInputsForOrder(order, 0)).subtotal;
+        var detail = computePricing(pricingInputsForOrder(order, freeGames));
+
+        var subtotal = detail.subtotal;
+        var appliedDiscount = Math.min(discount, subtotal);
+        var total = Math.max(0, subtotal - appliedDiscount);
+
+        // Waiving games pushed the subtotal above the un-waived baseline because
+        // the count fell into a pricier per-game tier. Block the save rather
+        // than silently charging the customer more for a "free games" discount.
+        var wouldIncrease = subtotal > baseline;
+        var increaseBy = subtotal - baseline;
+
+        // The stored total may not equal a fresh recalculation, e.g. a repair
+        // price was hand-set via "Set Price", or the order predates a tariff
+        // change. Saving would silently overwrite it, so make the admin confirm.
+        var stored = getOrderTotals(order);
+        var mismatchBy = baseline - stored.subtotal;
+        var mismatch = mismatchBy !== 0;
+
+        el('adjustSubtotalVal').textContent = 'RM' + subtotal;
+        el('adjustTotalVal').textContent = 'RM' + total;
+
+        if (appliedDiscount > 0) {
+            el('adjustDiscountRow').style.display = 'flex';
+            el('adjustDiscountVal').textContent = '−RM' + appliedDiscount;
+            el('adjustDiscountLabel').textContent = (appliedDiscount < discount)
+                ? 'Discount (capped at subtotal)'
+                : 'Discount';
+        } else {
+            el('adjustDiscountRow').style.display = 'none';
+        }
+
+        // --- warnings ---
+        el('adjustSchemaNote').classList.toggle('show', !adjustState.schemaOk);
+        // (the "nothing to waive" case is handled in the stepper-bounds block below)
+        el('adjustVolumeNote').classList.toggle('show', !!detail.freeGamesNoEffect);
+        el('adjustClampNote').classList.toggle('show', detail.freeGamesUnused > 0);
+        if (detail.freeGamesUnused > 0) {
+            el('adjustClampText').textContent = detail.freeGamesUnused +
+                ' of the free games exceed the chargeable count and will be ignored.';
+        }
+        el('adjustIncreaseNote').classList.toggle('show', wouldIncrease);
+        el('adjustMismatchNote').classList.toggle('show', mismatch && !wouldIncrease);
+        if (mismatch && !wouldIncrease) {
+            var dir = mismatchBy > 0 ? 'RM' + mismatchBy + ' lower' : 'RM' + (-mismatchBy) + ' higher';
+            el('adjustMismatchText').textContent = mismatchReasonText(order, stored, baseline, dir);
+        }
+        if (wouldIncrease) {
+            // Recommend the nearest waiver below the current value that is safe.
+            var suggestion = 0;
+            for (var n = 1; n < freeGames; n++) {
+                if (computePricing(pricingInputsForOrder(order, n)).subtotal <= baseline) suggestion = n;
+            }
+            el('adjustIncreaseText').textContent =
+                'Giving ' + freeGames + ' free game' + (freeGames === 1 ? '' : 's') +
+                ' would INCREASE the subtotal by RM' + increaseBy +
+                ' because the lower count falls into a pricier per-game tier. ' +
+                (suggestion > 0
+                    ? 'Use ' + suggestion + ' or fewer free games, or apply an RM discount instead.'
+                    : 'Use no free games, or apply an RM discount instead.');
+        }
+
+        // --- stepper bounds ---
+        var ceiling = freeGamesCeiling();
+
+        // "+" stays live whenever the chargeable count allows more, so the
+        // control never feels dead on arrival. The price-safe cap is enforced
+        // on save (and explained by adjustIncreaseNote) rather than by
+        // silently refusing to increment.
+        el('freeGamesMinus').disabled = (freeGames <= 0);
+        el('freeGamesPlus').disabled = (freeGames >= ceiling);
+
+        // Explain a dead stepper instead of leaving it looking broken.
+        var gameCount = gameListOf(order).length;
+        var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
+        var noWaivable = el('adjustNoGamesNote');
+        if (ceiling === 0) {
+            noWaivable.classList.add('show');
+            if (gameCount === 0) {
+                el('adjustNoGamesText').textContent =
+                    'This order has no games, so there is nothing to waive. Use the RM discount instead.';
+            } else {
+                el('adjustNoGamesText').textContent =
+                    'All ' + gameCount + ' game' + (gameCount === 1 ? '' : 's') +
+                    ' on this order are already included in the package' +
+                    (isJbOrSetup ? ' (first 3 are free)' : '') +
+                    ', so there is nothing left to waive. Use the RM discount instead.';
+            }
+            el('freeGamesHint').textContent = 'No chargeable games to waive';
+        } else {
+            noWaivable.classList.remove('show');
+            // Show the real ceiling so the cap is never a mystery.
+            el('freeGamesHint').textContent = 'Waived from the chargeable count (max ' + ceiling + ')';
+        }
+
+        el('adjustSaveBtn').disabled = !adjustState.schemaOk || wouldIncrease;
+        el('adjustClearBtn').disabled = !adjustState.schemaOk;
+
+        // keep the summary row at the top of the modal in sync
+        var priceVal = el('modalPriceVal');
+        if (priceVal) {
+            priceVal.textContent = 'RM' + total + (appliedDiscount > 0 ? ' (was RM' + subtotal + ')' : '');
+        }
+    }
+
+    function renderPriceAdjustments(order) {
+        adjustState.orderId = order ? (order.id || order.order_id) : null;
+        adjustState.schemaOk = detectAdjustSchema();
+        var totals = getOrderTotals(order || {});
+        el('modalFreeGamesInput').value = String(totals.freeGames);
+        el('modalDiscountInput').value = String(totals.discount);
+        setAdjustStatus('');
+        updateAdjustPreview();
+    }
+
+    function clearPriceAdjustments() {
+        el('modalFreeGamesInput').value = '0';
+        el('modalDiscountInput').value = '0';
+        updateAdjustPreview();
+        setAdjustStatus('');
+    }
+
+    function resetPriceAdjustments() {
+        var order = findOrder(adjustState.orderId);
+        if (!order) return;
+        var totals = getOrderTotals(order);
+        el('modalFreeGamesInput').value = String(totals.freeGames);
+        el('modalDiscountInput').value = String(totals.discount);
+        updateAdjustPreview();
+        setAdjustStatus('');
+    }
+
+    function savePriceAdjustments() {
+        var order = findOrder(adjustState.orderId);
+        if (!order) return;
+        if (!adjustState.schemaOk) {
+            setAdjustStatus('Database columns missing. Run the SQL migration first.', 'err');
+            return;
+        }
+
+        var freeGames = currentFreeGamesInput();
+        var discount = currentDiscountInput();
+        var detail = computePricing(pricingInputsForOrder(order, freeGames));
+        var subtotal = detail.subtotal;
+        var appliedDiscount = Math.min(discount, subtotal);
+        var total = Math.max(0, subtotal - appliedDiscount);
+
+        var btn = el('adjustSaveBtn');
+        btn.disabled = true;
+        setAdjustStatus('Saving…');
+
+        var baselineNow = computePricing(pricingInputsForOrder(order, 0)).subtotal;
+        if (subtotal > baselineNow) {
+            // Restore the button: leaving it disabled here makes Save look
+            // permanently broken until the admin edits another field.
+            btn.disabled = false;
+            setAdjustStatus('Refused: these free games would raise the subtotal. Reduce the count first.', 'err');
+            return;
+        }
+
+        // Overwriting a stored total that disagrees with the recalculation is
+        // destructive and silent. Require an explicit confirmation.
+        var storedNow = getOrderTotals(order);
+        if (baselineNow !== storedNow.subtotal) {
+            var diff = baselineNow - storedNow.subtotal;
+            var dirNow = diff > 0 ? 'RM' + diff + ' higher' : 'RM' + (-diff) + ' lower';
+            var msg = mismatchReasonText(order, storedNow, baselineNow, dirNow) + '\n\nSave anyway?';
+            if (!confirm(msg)) {
+                btn.disabled = false;
+                setAdjustStatus('Cancelled. Stored total left unchanged.', 'err');
+                return;
+            }
+        }
+
+        var orderId = order.id || order.order_id;
+        var idField = order.id ? 'id' : 'order_id';
+        var nowIso = new Date().toISOString();
+
+        // Persist the waiver count that was actually applied, not the number
+        // that was typed in. On a 4-game jailbreak order only 1 game is
+        // chargeable, so requesting 3 applies 1 and ignores 2 — storing the
+        // requested number would tell the customer they got 3 free games when
+        // they got 1. computePricing already clamps for us.
+        var appliedFreeGames = detail.freeGamesApplied;
+        var clampNote = appliedFreeGames < freeGames
+            ? ' Only ' + appliedFreeGames + ' of the ' + freeGames + ' free games could be applied' +
+              ' (the rest are already included in the package).'
+            : '';
+
+        var payload = {
+            price_subtotal: subtotal,
+            discount_rm: appliedDiscount,
+            free_games_count: appliedFreeGames,
+            estimated_price: total,
+            updated_at: nowIso
+        };
+
+        supabaseClient.from('orders').update(payload).eq(idField, orderId).then(function(res) {
+            btn.disabled = false;
+            if (res.error) {
+                setAdjustStatus('Failed: ' + res.error.message, 'err');
+                return;
+            }
+            var local = findOrder(orderId);
+            if (local) {
+                local.price_subtotal = subtotal;
+                local.discount_rm = appliedDiscount;
+                local.free_games_count = appliedFreeGames;
+                local.estimated_price = total;
+                local.updated_at = nowIso;
+            }
+            adjustState.schemaOk = true;
+            updateAdjustPreview();
+            // Reflect the applied waiver back into the stepper, so reopening the
+            // modal shows what was actually granted rather than what was typed.
+            el('modalFreeGamesInput').value = String(appliedFreeGames);
+            setAdjustStatus('Saved. Customer total is now RM' + total + '.' + clampNote, 'ok');
+            updateStats();
+            filterAndRenderOrders();
+        }).catch(function(err) {
+            btn.disabled = false;
+            setAdjustStatus('Failed: ' + (err && err.message ? err.message : String(err)), 'err');
+        });
+    }
+
     // ===== FULL ORDER MODAL =====
     function openOrderModal(orderId) {
         var order = findOrder(orderId);
@@ -1916,7 +2410,9 @@
             sdSourceEl.innerText = '—';
             sdSourceEl.className = 'val muted';
         }
-        document.getElementById('modalPriceVal').innerText = 'RM' + Math.round(order.estimated_price || 0);
+        var totalsRow = getOrderTotals(order);
+        document.getElementById('modalPriceVal').innerText = 'RM' + totalsRow.total +
+            (totalsRow.hasDiscount ? ' (was RM' + totalsRow.subtotal + ')' : '');
         document.getElementById('modalDateVal').innerText = order.created_at ? new Date(order.created_at).toLocaleString() : 'N/A';
         var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
         document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
@@ -1932,6 +2428,9 @@
 
         // Shipping
         renderModalShipping(order);
+
+        // Price adjustments (free games + discount)
+        renderPriceAdjustments(order);
 
         // Notify button state
         var notifyBtn = document.getElementById('modalNotifyBtn');
@@ -2113,7 +2612,11 @@
     function setRepairPrice(repairId) {
         if (!currentModalOrder) return;
         var order = currentModalOrder;
-        var repairs = Array.isArray(order.repairs) ? order.repairs.slice() : [];
+        var repairs = (Array.isArray(order.repairs) ? order.repairs : []).map(function(r) {
+            return (r && typeof r === 'object')
+                ? { id: r.id, name: r.name, category: r.category || '', price: r.price, is_quote: r.is_quote, note: r.note || '' }
+                : r;
+        });
         var idx = -1;
         for (var i = 0; i < repairs.length; i++) {
             if (repairs[i] && typeof repairs[i] === 'object' && repairs[i].id === repairId) { idx = i; break; }
@@ -2133,17 +2636,20 @@
                 if (isNaN(price) || price < 0) { alert('Please enter a valid non-negative number.'); return; }
 
                 repairs[idx] = { id: existing.id, name: existing.name, category: existing.category || '', price: price, is_quote: false, note: existing.note || '' };
-                var oldEstimated = Number(order.estimated_price) || 0;
-                var newEstimated = oldEstimated + price;
+                // Adjust by the delta only. Adding the full price again would inflate the
+                // total every time a repair price is edited.
+                var oldPrice = Number(existing.price) || 0;
+                var delta = price - oldPrice;
+
+                var patch = { repairs: repairs, updated_at: new Date().toISOString() };
+                if (delta !== 0) patch.estimated_price = Math.max(0, (Number(order.estimated_price) || 0) + delta);
+
                 var idField = order.id ? 'id' : 'order_id';
-                supabaseClient.from('orders').update({
-                    repairs: repairs,
-                    estimated_price: newEstimated,
-                    updated_at: new Date().toISOString()
-                }).eq(idField, order.id || order.order_id).then(function(res) {
+                supabaseClient.from('orders').update(patch).eq(idField, order.id || order.order_id).then(function(res) {
                     if (res.error) { alert('Failed: ' + res.error.message); return; }
                     order.repairs = repairs;
-                    order.estimated_price = newEstimated;
+                    if (patch.estimated_price !== undefined) order.estimated_price = patch.estimated_price;
+                    if (currentModalOrder) renderPriceAdjustments(currentModalOrder);
                     renderModalRepairs(order);
                     filterAndRenderOrders();
                     updateStats();

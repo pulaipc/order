@@ -56,13 +56,41 @@ const APP_CONFIG = {
         'Completed'
     ],
 
-    // Customer-facing descriptions for each stage
+    // Customer-facing STATUS for each stage (shown in the "current stage" box).
+    // This answers "where is my console?" — it must never repeat the next step.
     progressDescriptions: {
-        'Order Received':   "We've received your order. We'll confirm the details on WhatsApp and arrange a drop-off time.",
-        'Confirmed':        "Details confirmed. Please drop off your console so we can begin work.",
-        'In Progress':      "Your console is being prepared. See details below.",
-        'Ready':            "Your console is ready. Pick it up or wait for us to ship it — we'll confirm on WhatsApp.",
+        'Order Received':   "We've received your order.",
+        'Confirmed':        "Your booking is confirmed — we're ready for your console.",
+        'In Progress':      "Your console is being prepared. See the detailed steps below.",
+        'Ready':            "Your console is ready and waiting for you.",
         'Completed':        "Thanks for your business. Enjoy your games."
+    },
+
+    // What the customer should DO next (the "next step" box). This is an
+    // instruction, not a status. Leave a stage out (or set it to '') and the
+    // box is hidden entirely — a finished order has no next step, and showing
+    // "All done" under "Thanks for your business" is just noise.
+    progressNextSteps: {
+        'Order Received':   "No action needed yet. We'll message you on WhatsApp to confirm the details and arrange a drop-off time.",
+        'Confirmed':        "Please drop off your console at the agreed time so we can begin work.",
+        'In Progress':      "No action needed — we're working on your console and will update this page as we progress.",
+        'Ready':            "Collect it from us, or let us ship it to you — message us on WhatsApp to let us know which.",
+        'Completed':        ""
+    },
+
+    // Alternate status used once an outbound tracking number exists. The
+    // console has already left the shop, so "come collect it or we'll ship
+    // it" is factually wrong at that point.
+    shippedDescriptions: {
+        'Ready':            "Your console is on its way to you.",
+        'Completed':        "Your console has been delivered. Thanks for your business!"
+    },
+
+    // Matching next step for a shipped order: there is nothing to arrange,
+    // only a parcel to follow.
+    shippedNextSteps: {
+        'Ready':            "Track your parcel with the tracking number on this page.",
+        'Completed':        ""
     },
 
     // Sub-stages per service type.
@@ -235,6 +263,52 @@ function getEffectiveSubStages(order) {
 }
 
 /**
+ * True once the shop has given the console back to the customer by post.
+ *
+ * Deliberately mirrors renderShipping()'s visibility rules in track.html — if
+ * the parcel card is not on screen, we must not tell the customer to track it.
+ */
+function isOrderShippedOut(order) {
+    const o = order || {};
+    const stage = o.progress_stage || 'Order Received';
+    if (o.status === 'Cancelled') return false;
+    const outboundVisible = (stage === 'Ready' || stage === 'Completed');
+    if (!outboundVisible) return false;
+    return !!(o.tracking_outbound_number && String(o.tracking_outbound_number).trim());
+}
+
+/**
+ * Resolve the customer-facing copy for an order's current stage.
+ *
+ * The status line and the next-step line are deliberately different jobs:
+ * status says where the console is, next step says what to do about it. They
+ * must not repeat each other, and they change once a tracking number exists.
+ *
+ * All wording lives in APP_CONFIG so it is edited in exactly one place.
+ *
+ * @returns {{description:string, nextStep:string, shipped:boolean}}
+ */
+function getStageMessages(order) {
+    const o = order || {};
+    const stage = o.progress_stage || 'Order Received';
+    const shipped = isOrderShippedOut(o);
+
+    const pool = shipped ? APP_CONFIG.shippedDescriptions : APP_CONFIG.progressDescriptions;
+    const nextPool = shipped ? APP_CONFIG.shippedNextSteps : APP_CONFIG.progressNextSteps;
+    let description = (pool && pool[stage]) || '';
+    let nextStep = (nextPool && nextPool[stage]) || '';
+
+    // Console is already with us but still queued: say that instead of asking
+    // the customer to drop it off again.
+    if (stage === 'Confirmed' && o.progress_substage === 'Received') {
+        description = "We have your console. It's in our queue — we'll message you here when we start work.";
+        nextStep = "Nothing to do right now — we have your console and you're in the queue.";
+    }
+
+    return { description: description, nextStep: nextStep, shipped: shipped };
+}
+
+/**
  * Enriched repairs array for an order.
  * Handles both snapshot objects ({ id, name, price, is_quote, ... })
  * and legacy id-only strings by looking them up in the live catalog.
@@ -268,4 +342,183 @@ function sumRepairs(repairs) {
         else total += Number(r && r.price) || 0;
     });
     return { total: total, quoteCount: quoteCount };
+}
+
+// ===========================================================================
+// PRICING ENGINE — shared by index.html (order builder) and admin.html
+// (free-game / discount adjustments).
+//
+// This is the single source of truth for how an order is priced. It is pure:
+// no DOM reads, so admin.html can recompute an existing order's subtotal the
+// exact same way the customer-facing builder did.
+// ===========================================================================
+
+/** Games included at no extra cost on jailbreak / system setup packages. */
+const INCLUDED_GAME_ALLOWANCE = 3;
+
+/**
+ * Compute the full price breakdown for an order.
+ *
+ * @param {Object} opts
+ * @param {string} opts.serviceType   jailbreak|system_setup|system_update|games_only|repair_only
+ * @param {string} [opts.consoleModel] OLED|V1_V2|LITE
+ * @param {number} opts.count         total games on the order
+ * @param {number} opts.totalGb       summed game size in GB
+ * @param {number} [opts.freeGames]   games waived by the shop (reduces chargeable count)
+ * @param {Array}  [opts.repairs]     enriched repairs ({ price, isQuote, id })
+ * @param {boolean}[opts.hasAndroid]
+ * @param {boolean}[opts.hasLinux]
+ * @param {string} [opts.sdSource]    'buy' | 'own'
+ * @param {number} [opts.maxSdSize]   SD size in GB
+ * @returns {Object} breakdown incl. `subtotal` (pre-discount)
+ */
+function computePricing(opts) {
+    const o = opts || {};
+    const cfg = APP_CONFIG;
+    const serviceType = o.serviceType || '';
+    const consoleModel = o.consoleModel || '';
+    const count = Math.max(0, Number(o.count) || 0);
+    const totalGb = Math.max(0, Number(o.totalGb) || 0);
+    const repairs = Array.isArray(o.repairs) ? o.repairs : [];
+
+    const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
+
+    // ---- Service base ----
+    let basePrice = 0;
+    if (serviceType === 'jailbreak') {
+        basePrice = (cfg.jailbreakPrices && cfg.jailbreakPrices[consoleModel]) || 190;
+    } else if (serviceType === 'system_setup') {
+        basePrice = cfg.systemSetupPrice || 50;
+    } else if (serviceType === 'system_update') {
+        basePrice = cfg.systemUpdatePrice || 30;
+    } else if (serviceType === 'repair_only') {
+        basePrice = cfg.repairOnlyBaseFee || 30;
+    }
+
+    // ---- Add-ons (jailbreak / system setup only) ----
+    const androidPrice = (isJbOrSetup && o.hasAndroid) ? (cfg.addonPrices.android || 30) : 0;
+    const linuxPrice = (isJbOrSetup && o.hasLinux) ? (cfg.addonPrices.linux || 30) : 0;
+    const sdCardPrice = (isJbOrSetup && o.sdSource === 'buy')
+        ? ((cfg.sdCardRetailPrices && cfg.sdCardRetailPrices[o.maxSdSize]) || 0)
+        : 0;
+
+    // ---- Repairs ----
+    let repairTotal = 0, repairQuoteCount = 0;
+    repairs.forEach(function (r) {
+        if (r && r.isQuote) repairQuoteCount++;
+        else repairTotal += Number(r && r.price) || 0;
+    });
+
+    // Diagnostic / bench fee is waived once a paid repair is selected.
+    let serviceBasePrice = basePrice;
+    if (serviceType === 'repair_only') {
+        const hasPaidRepair = repairs.some(function (r) {
+            return r && !r.isQuote && r.id !== 'diagnostic';
+        });
+        if (hasPaidRepair) serviceBasePrice = 0;
+    }
+
+    const fixedTotal = serviceBasePrice + sdCardPrice + androidPrice + linuxPrice + repairTotal;
+
+    // No games -> nothing to charge for games.
+    if (count <= 0) {
+        return {
+            serviceBasePrice: serviceBasePrice,
+            sdCardPrice: sdCardPrice,
+            androidPrice: androidPrice,
+            linuxPrice: linuxPrice,
+            gamesPrice: 0,
+            repairTotal: repairTotal,
+            repairQuoteCount: repairQuoteCount,
+            freeGamesApplied: 0,
+            freeGamesUnused: Math.max(0, Number(o.freeGames) || 0),
+            freeGamesNoEffect: false,
+            subtotal: Math.round(fixedTotal),
+            // `price` kept as an alias of the pre-discount subtotal for callers
+            // that predate the subtotal/discount split.
+            price: Math.round(fixedTotal),
+            exceeded: false
+        };
+    }
+
+    // ---- Chargeable games = beyond the included allowance, minus free waivers ----
+    const allowance = isJbOrSetup ? INCLUDED_GAME_ALLOWANCE : 0;
+    const beforeWaiver = Math.max(0, count - allowance);
+    const requestedFree = Math.max(0, Number(o.freeGames) || 0);
+    const freeApplied = Math.min(requestedFree, beforeWaiver);
+    const chargeable = beforeWaiver - freeApplied;
+
+    let countPrice, targetLimit;
+    if (chargeable <= 10) { countPrice = chargeable * 3; targetLimit = 125; }
+    else if (chargeable <= 19) { countPrice = chargeable * 3; targetLimit = 240; }
+    else if (chargeable <= 39) { countPrice = chargeable * 2.5; targetLimit = 460; }
+    else { countPrice = chargeable * 2; targetLimit = totalGb; }
+
+    // Size-based pricing scales with the real GB total regardless of waivers.
+    let sizePrice;
+    if (totalGb <= 100) sizePrice = (totalGb / 100) * 30;
+    else if (totalGb <= 200) sizePrice = 30 + ((totalGb - 100) / 100) * 20;
+    else if (totalGb <= 400) sizePrice = 50 + ((totalGb - 200) / 200) * 30;
+    else sizePrice = 80 + ((totalGb - 400) / 100) * 20;
+
+    let gamesPrice = countPrice, exceeded = false, sizeWins = false;
+    if (totalGb > targetLimit && sizePrice > countPrice) {
+        gamesPrice = sizePrice;
+        exceeded = true;
+        sizeWins = true;
+    }
+
+    return {
+        serviceBasePrice: serviceBasePrice,
+        sdCardPrice: sdCardPrice,
+        androidPrice: androidPrice,
+        linuxPrice: linuxPrice,
+        gamesPrice: gamesPrice,
+        repairTotal: repairTotal,
+        repairQuoteCount: repairQuoteCount,
+        freeGamesApplied: freeApplied,
+        freeGamesUnused: requestedFree - freeApplied,
+        // Volume pricing overrides the per-game rate, so waivers may not
+        // actually change the total. Callers should surface this.
+        freeGamesNoEffect: (freeApplied > 0 && sizeWins),
+        subtotal: Math.round(fixedTotal + gamesPrice),
+        price: Math.round(fixedTotal + gamesPrice),
+        exceeded: exceeded
+    };
+}
+
+/**
+ * Order totals with the shop's manual discount applied.
+ * Falls back to `estimated_price` for orders created before price_subtotal
+ * existed, so old rows keep displaying correctly.
+ *
+ * @returns {{ subtotal:number, discount:number, total:number, hasDiscount:boolean,
+ *             freeGames:number, hasAdjustment:boolean }}
+ */
+function getOrderTotals(order) {
+    const o = order || {};
+    // Fall back to estimated_price whenever price_subtotal is absent or unusable
+    // (null / undefined / empty / non-numeric), so pre-migration and corrupted
+    // rows keep showing the right total. Note Number(null) is 0, so the
+    // emptiness check has to come before the numeric coercion.
+    const hasSubtotal = !(o.price_subtotal === null || o.price_subtotal === undefined || o.price_subtotal === '');
+    let rawSubtotal = hasSubtotal ? Number(o.price_subtotal) : NaN;
+    if (!Number.isFinite(rawSubtotal)) rawSubtotal = Number(o.estimated_price);
+    const subtotal = Number.isFinite(rawSubtotal) ? Math.max(0, Math.round(rawSubtotal)) : 0;
+
+    const rawDiscount = Number(o.discount_rm);
+    const discount = Number.isFinite(rawDiscount) ? Math.max(0, Math.round(rawDiscount)) : 0;
+    const total = Math.max(0, subtotal - discount);
+
+    const rawFree = Number(o.free_games_count);
+    const freeGames = Number.isFinite(rawFree) ? Math.max(0, Math.round(rawFree)) : 0;
+
+    return {
+        subtotal: subtotal,
+        discount: Math.min(discount, subtotal),
+        total: total,
+        freeGames: freeGames,
+        hasDiscount: discount > 0,
+        hasAdjustment: discount > 0 || freeGames > 0
+    };
 }
