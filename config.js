@@ -1,4 +1,4 @@
-﻿// config.js
+// config.js
 // ---------------------------------------------------------------------------
 // Central configuration for pricing, service types, progress stages, and
 // backend credentials.
@@ -347,7 +347,7 @@ function getEnrichedRepairs(order) {
                 note: r.note || ''
             };
         }
-        const svc = window.REPAIR_SERVICES.find(s => s.id === r) || null;
+        const svc = (window.REPAIR_SERVICES || []).find(s => s.id === r) || null;
         if (!svc) return { id: String(r), name: String(r), category: '', price: 0, isQuote: false, note: '' };
         const p = computeRepairPrice(svc, consoleModel);
         return { id: svc.id, name: svc.name, category: svc.category || '', price: p.amount, isQuote: p.isQuote, note: svc.note || '' };

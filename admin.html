@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Pulai PC Admin Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="shared.css">
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         body {
@@ -41,8 +42,11 @@
         .header-left .site-logo { margin: 0; width: 48px; height: 48px; flex-shrink: 0; }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; text-decoration: none; display: inline-block; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; font-family: inherit; }
-        .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        /* .btn-action lives in shared.css. A local copy used to sit here and it
+           overrode only the properties it redeclared: the buttons kept
+           shared.css's 42px min-height but lost its inline-flex centring, so
+           "Main Page" / "Tracker" / "Refresh" / "Logout" sat off-centre in their
+           boxes and lined up with each other badly. Do not redefine it here. */
         .btn-logout { border-color: #4a2525; color: #e57373; }
         .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
@@ -547,6 +551,114 @@
             border-color: #ffc000;
         }
 
+        /* ===== ORDER EDITOR =====
+           The admin can change any part of an order and its price in one go.
+           It exists because the only other way to change an order is the
+           customer's private link, and save_order never writes the price
+           columns - so that route silently leaves the total describing the old
+           selection. */
+        #orderEditPanel > * + * { margin-top: 11px; }
+        .oe-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px; }
+        .oe-field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+        .oe-field > label { font-size: 12px; font-weight: 600; color: #b8b0a0; }
+        .oe-hint { font-size: 11px; color: #6a6357; line-height: 1.4; }
+        .oe-select, .oe-input {
+            background: #1f1a0c; border: 1px solid #3a5a72; color: #f0e9d8;
+            border-radius: 5px; font-size: 13px; font-family: inherit; outline: none;
+            transition: border-color .2s; box-sizing: border-box; width: 100%;
+            min-height: 42px; padding: 10px 11px;
+        }
+        .oe-select:focus, .oe-input:focus { border-color: #7dd3fc; }
+        .oe-select { cursor: pointer; }
+        .oe-checks { display: flex; gap: 8px; flex-wrap: wrap; }
+        .oe-check {
+            display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px;
+            color: #e8dcc0; font-family: inherit; padding: 9px 12px;
+            border: 1px solid #3a3018; border-radius: 6px; min-height: 42px;
+            cursor: pointer; box-sizing: border-box;
+        }
+        .oe-check:hover { background: #241d0e; }
+        .oe-check input { width: 16px; height: 16px; margin: 0; accent-color: #ffc000; flex: 0 0 auto; }
+        .oe-price { color: #8d8674; font-size: 11.5px; }
+        /* Two columns of pickers, stacking on a phone. */
+        .oe-games { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .oe-games > div { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        .oe-list {
+            border: 1px solid #3a3018; border-radius: 6px; background: #191509;
+            max-height: 240px; overflow-y: auto; overscroll-behavior: contain;
+        }
+        .oe-list-head {
+            background: #241d0e; padding: 7px 10px; font-size: 11px; font-weight: 700;
+            letter-spacing: .05em; text-transform: uppercase; color: #b8b0a0;
+            border-bottom: 1px solid #3a3018; position: sticky; top: 0; z-index: 1;
+        }
+        .oe-opt {
+            display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+            background: transparent; border: none; border-bottom: 1px solid #241d0e;
+            color: #e8dcc0; font-family: inherit; font-size: 12.5px; padding: 9px 10px;
+            min-height: 38px; cursor: pointer; box-sizing: border-box;
+        }
+        .oe-opt:hover { background: #2e2716; }
+        .oe-opt-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .oe-opt-size { flex: 0 0 auto; color: #8d8674; font-size: 11.5px; }
+        .oe-opt-remove {
+            flex: 0 0 auto; background: transparent; border: none; color: #e57373;
+            font-size: 17px; line-height: 1; cursor: pointer; padding: 2px 7px;
+            border-radius: 4px; min-height: 28px;
+        }
+        .oe-opt-remove:hover { background: #4a2525; }
+        .oe-opt-empty { padding: 14px 11px; color: #6a6357; font-style: italic; font-size: 12.5px; }
+        .oe-repairs {
+            border: 1px solid #3a3018; border-radius: 6px; background: #191509;
+            max-height: 240px; overflow-y: auto; overscroll-behavior: contain;
+        }
+        .oe-repair {
+            display: flex; align-items: center; gap: 9px; padding: 9px 11px;
+            min-height: 42px; box-sizing: border-box; cursor: pointer;
+            border-bottom: 1px solid #241d0e;
+        }
+        .oe-repair:hover { background: #241d0e; }
+        .oe-repair input { width: 16px; height: 16px; margin: 0; accent-color: #ffc000; flex: 0 0 auto; }
+        .oe-repair-name { flex: 1 1 auto; min-width: 0; font-size: 12.5px; color: #e8dcc0; }
+        .oe-repair-price { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: #ffc000; }
+        .oe-repair-price.quote { color: #ffb74d; }
+        .oe-preview {
+            border: 1px solid #3a3018; border-radius: 6px; background: #191509;
+            padding: 11px 13px; display: flex; flex-direction: column; gap: 6px;
+        }
+        .oe-preview-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #b8b0a0; }
+        .oe-preview-row.total {
+            font-size: 14px; font-weight: bold; color: #ffc000;
+            border-top: 1px solid #3a3018; padding-top: 8px; margin-top: 2px;
+        }
+        .oe-warn {
+            border: 1px solid #5a4a1e; background: #241d0e; border-radius: 6px;
+            padding: 9px 11px; font-size: 12px; color: #ffb74d; line-height: 1.5;
+        }
+        .oe-warn.danger { border-color: #5a2525; background: #241010; color: #e57373; }
+        .oe-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .oe-save-btn {
+            background: #ffc000; color: #14110a; border: none; padding: 10px 18px;
+            border-radius: 6px; cursor: pointer; font-family: inherit; font-size: 13px;
+            font-weight: bold; min-height: 42px; display: inline-flex; align-items: center;
+            justify-content: center; box-sizing: border-box;
+        }
+        .oe-save-btn:hover:not(:disabled) { background: #ffd24d; }
+        .oe-save-btn:disabled { opacity: .45; cursor: not-allowed; }
+        .oe-cancel-btn {
+            background: transparent; color: #e8dcc0; border: 1px solid #3a3018;
+            padding: 10px 16px; border-radius: 6px; cursor: pointer; font-family: inherit;
+            font-size: 13px; font-weight: bold; min-height: 42px; display: inline-flex;
+            align-items: center; justify-content: center; box-sizing: border-box;
+        }
+        .oe-cancel-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        .oe-status { font-size: 12px; flex: 1 1 100%; line-height: 1.5; }
+        .oe-status.ok { color: #00e676; }
+        .oe-status.err { color: #e57373; }
+        @media (max-width: 560px) {
+            .oe-games { grid-template-columns: 1fr; }
+        }
+
         /* ===== PRICE ADJUSTMENTS (free games + discount) ===== */
         .adjust-grid { display: flex; flex-direction: column; gap: 10px; }
         .adjust-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -815,11 +927,11 @@
             .header-left .site-logo { width: 40px; height: 40px; }
             .order-card { padding: 11px 12px; }
             .filter-btn { padding: 7px 12px; font-size: 12px; }
-            .btn-action { padding: 7px 10px; font-size: 11px; }
             .card-select-wrap { width: 28px; height: 28px; top: 10px; right: 10px; }
             .order-card-header { padding-right: 38px; }
         }
     </style>
+    <script src="shared.js"></script>
 </head>
 <body>
 
@@ -1030,30 +1142,107 @@
 
                 <!-- SERVICE -->
                 <div class="modal-section">
-                    <div class="modal-section-title"><span>Service</span></div>
+                    <div class="modal-section-title">
+                        <span>Service</span>
+                        <button class="action-btn" id="modalEditOrderBtn" onclick="startOrderEdit()">Edit Details</button>
+                    </div>
+                    <div id="orderReadOnlyService">
                     <div class="modal-info-row">
                         <span class="lbl">Type:</span>
-                        <span class="val" id="modalServiceVal">—</span>
+                        <span class="val" id="modalServiceVal">&mdash;</span>
                     </div>
                     <div class="modal-info-row">
                         <span class="lbl">Storage:</span>
-                        <span class="val" id="modalStorageVal">—</span>
+                        <span class="val" id="modalStorageVal">&mdash;</span>
                     </div>
                     <div class="modal-info-row">
                         <span class="lbl">SD Source:</span>
-                        <span class="val" id="modalSdSourceVal">—</span>
+                        <span class="val" id="modalSdSourceVal">&mdash;</span>
                     </div>
                     <div class="modal-info-row">
                         <span class="lbl">Estimated total:</span>
-                        <span class="val" id="modalPriceVal" style="color:#ffc000;font-weight:bold;">—</span>
+                        <span class="val" id="modalPriceVal" style="color:#ffc000;font-weight:bold;">&mdash;</span>
                     </div>
                     <div class="modal-info-row">
                         <span class="lbl">Placed:</span>
-                        <span class="val" id="modalDateVal">—</span>
+                        <span class="val" id="modalDateVal">&mdash;</span>
                     </div>
                     <div class="modal-info-row">
                         <span class="lbl">Last updated:</span>
-                        <span class="val" id="modalUpdatedVal" style="color:#ffb74d;">—</span>
+                        <span class="val" id="modalUpdatedVal" style="color:#ffb74d;">&mdash;</span>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- ORDER EDITOR -->
+                <div class="modal-section" id="orderEditPanel" style="display:none;">
+                    <div class="modal-section-title">
+                        <span>Edit order details</span>
+                        <span style="font-size:11px;color:#6a6357;">Applies even after the order is locked</span>
+                    </div>
+
+                    <div class="oe-grid">
+                        <div class="oe-field">
+                            <label for="oeService">Service</label>
+                            <select class="oe-select" id="oeService" onchange="onOrderEditChange()"></select>
+                        </div>
+                        <div class="oe-field oe-only-model">
+                            <label for="oeConsole">Console</label>
+                            <select class="oe-select" id="oeConsole" onchange="onOrderEditChange()"></select>
+                            <span class="oe-hint">Repair prices vary by model</span>
+                        </div>
+                        <div class="oe-field oe-only-jb">
+                            <label for="oeSdSource">SD card</label>
+                            <select class="oe-select" id="oeSdSource" onchange="onOrderEditSdSourceChange()"></select>
+                        </div>
+                        <div class="oe-field oe-only-jb">
+                            <label for="oeSdSize">Card size</label>
+                            <select class="oe-select" id="oeSdSize" onchange="onOrderEditChange()"></select>
+                        </div>
+                        <div class="oe-field oe-only-free">
+                            <label for="oeFreeStorage">Free space needed (GB)</label>
+                            <input class="oe-input" id="oeFreeStorage" type="number" min="0" step="1" inputmode="numeric" placeholder="0" oninput="onOrderEditChange()">
+                        </div>
+                    </div>
+
+                    <div class="oe-checks oe-only-jb">
+                        <label class="oe-check">
+                            <input type="checkbox" id="oeAndroid" onchange="onOrderEditChange()">
+                            <span>Android mode <span class="oe-price">+RM30</span></span>
+                        </label>
+                        <label class="oe-check">
+                            <input type="checkbox" id="oeLinux" onchange="onOrderEditChange()">
+                            <span>Linux mode <span class="oe-price">+RM30</span></span>
+                        </label>
+                    </div>
+
+                    <div class="oe-field" id="oeGamesBlock">
+                        <label for="oeGameSearch">Games</label>
+                        <div class="oe-games">
+                            <div>
+                                <input class="oe-input" id="oeGameSearch" type="search" placeholder="Search the game library&hellip;" autocomplete="off" oninput="renderEditGameOptions()">
+                                <div class="oe-list" id="oeGameOptions"></div>
+                            </div>
+                            <div>
+                                <div class="oe-list-head" id="oeSelectedGamesHead">On this order</div>
+                                <div class="oe-list" id="oeSelectedGames"></div>
+                            </div>
+                        </div>
+                        <div class="oe-warn" id="oeGamesWarn" style="display:none;"></div>
+                    </div>
+
+                    <div class="oe-field">
+                        <label>Repairs</label>
+                        <div class="oe-repairs" id="oeRepairList"></div>
+                    </div>
+
+                    <div class="oe-preview" id="oePreview"></div>
+                    <div class="oe-warn danger" id="oeSaveError" style="display:none;"></div>
+
+                    <div class="oe-actions">
+                        <button type="button" class="oe-save-btn" id="oeSaveBtn" onclick="saveOrderEdit()">Save Changes</button>
+                        <button type="button" class="oe-cancel-btn" onclick="cancelOrderEdit()">Cancel</button>
+                        <span class="oe-status" id="oeStatus"></span>
                     </div>
                 </div>
 
@@ -1484,11 +1673,6 @@
         else if (name === 'repairs') { document.getElementById('tabRepairs').classList.add('active'); renderCatalog(); }
     }
 
-    // ===== HELPERS =====
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
     function findOrder(orderId) {
         var target = String(orderId);
         for (var i = 0; i < allOrders.length; i++) {
@@ -1496,34 +1680,6 @@
             if (String(o.id) === target || String(o.order_id) === target) return o;
         }
         return null;
-    }
-    function gameListOf(order) {
-        var list = [];
-        if (Array.isArray(order.games)) list = order.games;
-        else if (typeof order.games === 'string') {
-            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
-        }
-        return list;
-    }
-    function getRepairsOfOrder(order) {
-        var raw = Array.isArray(order && order.repairs) ? order.repairs : [];
-        return raw.map(function(r) {
-            if (r && typeof r === 'object' && r.id) {
-                return { id: r.id, name: r.name || r.id, category: r.category || '', price: Number(r.price) || 0, isQuote: !!r.is_quote, note: r.note || '' };
-            }
-            var svc = (window.REPAIR_SERVICES || []).find(function(s) { return s.id === r; }) || null;
-            if (!svc) return { id: String(r), name: String(r), category: '', price: 0, isQuote: false, note: '' };
-            var p = computeRepairPrice(svc, (order && order.console_model) || '');
-            return { id: svc.id, name: svc.name, category: svc.category || '', price: p.amount, isQuote: p.isQuote, note: svc.note || '' };
-        });
-    }
-    function sumOrderRepairs(repairs) {
-        var total = 0, quoteCount = 0;
-        (repairs || []).forEach(function(r) {
-            if (r && r.isQuote) quoteCount++;
-            else total += Number(r && r.price) || 0;
-        });
-        return { total: total, quoteCount: quoteCount };
     }
     function serviceLabel(order) {
         var labels = {
@@ -1535,22 +1691,6 @@
         };
         return labels[order.service_type] || 'Order';
     }
-    function sortGameList(gameList) {
-        var masterList = (APP_CONFIG.gamesList || []);
-        var names = masterList.map(function(g) { return typeof g === 'string' ? g : g.name; });
-        if (names.length > 0) {
-            gameList.sort(function(a, b) {
-                var ia = names.indexOf(a), ib = names.indexOf(b);
-                if (ia !== -1 && ib !== -1) return ia - ib;
-                if (ia === -1 && ib !== -1) return 1;
-                if (ia !== -1 && ib === -1) return -1;
-                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-            });
-        } else {
-            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
-        }
-        return gameList;
-    }
 
     // ===== CHECKLIST LOGIC =====
     // Build the ordered checklist for an order, based on:
@@ -1561,7 +1701,7 @@
     // Steps marked autoSub are the ones that set progress_substage.
     function buildChecklist(order) {
         var serviceType = order.service_type || 'jailbreak';
-        var repairs = getRepairsOfOrder(order);
+        var repairs = getEnrichedRepairs(order);
         var repairCount = repairs.length;
         var games = gameListOf(order);
         var gameCount = games.length;
@@ -1800,7 +1940,7 @@
                 var gameList = gameListOf(order);
                 var gameMatch = false;
                 for (var j = 0; j < gameList.length; j++) if (String(gameList[j]).toLowerCase().indexOf(query) !== -1) { gameMatch = true; break; }
-                var repairList = getRepairsOfOrder(order);
+                var repairList = getEnrichedRepairs(order);
                 var repairMatch = false;
                 for (var k = 0; k < repairList.length; k++) if (String(repairList[k].name).toLowerCase().indexOf(query) !== -1) { repairMatch = true; break; }
                 if (!phoneMatch && !waMatch && !gameMatch && !remarksMatch && !stageMatch && !repairMatch) continue;
@@ -1837,7 +1977,7 @@
         if (bulkSelectedIds[String(orderId)]) card.classList.add('selected-for-bulk');
 
         var gameList = gameListOf(order);
-        var repairs = getRepairsOfOrder(order);
+        var repairs = getEnrichedRepairs(order);
         var phoneCount = orderCountByPhone[order.phone_ending] || 1;
         var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
 
@@ -2049,23 +2189,6 @@
         return ('price_subtotal' in o) || ('discount_rm' in o) || ('free_games_count' in o);
     }
 
-    /** Shape an existing order into computePricing() inputs. */
-    function pricingInputsForOrder(order, freeGames) {
-        var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
-        return {
-            serviceType: order.service_type || '',
-            consoleModel: order.console_model || '',
-            count: gameListOf(order).length,
-            totalGb: Number(order.total_size_gb) || 0,
-            freeGames: freeGames || 0,
-            repairs: getRepairsOfOrder(order),
-            hasAndroid: isJbOrSetup && !!order.android_mode,
-            hasLinux: isJbOrSetup && !!order.linux_mode,
-            sdSource: isJbOrSetup ? (order.sd_source || '') : '',
-            maxSdSize: Number(order.sd_card_size) || 0
-        };
-    }
-
     function currentFreeGamesInput() {
         var v = parseInt(el('modalFreeGamesInput').value, 10);
         return (isFinite(v) && v > 0) ? v : 0;
@@ -2142,7 +2265,7 @@
         var base = 'This order stores RM' + stored.subtotal + ' but recalculates to RM' + baseline +
             ' (' + dir + '). Saving will REPLACE the stored total with the recalculated one.';
 
-        var repairs = getRepairsOfOrder(order);
+        var repairs = getEnrichedRepairs(order);
         var priceableRepairs = repairs.filter(function (r) { return !r.isQuote && r.id !== 'diagnostic'; });
 
         if (priceableRepairs.length > 0) {
@@ -2398,6 +2521,512 @@
         });
     }
 
+// ===== ORDER EDITOR =====
+    //
+    // Full editor for an order's contents and price. It exists because the only
+    // other route is the customer's private link, and save_order never writes the
+    // price columns - so editing through that route always leaves the total
+    // describing the OLD selection. The admin is authenticated, so writing the
+    // selection and the price together is safe here, and this is the one place
+    // that can legitimately reprice an order already past "Order Received".
+    var orderEdit = {
+        orderId: null,
+        serviceType: '',
+        consoleModel: '',
+        sdSource: '',
+        sdSize: 0,
+        android: false,
+        linux: false,
+        freeStorage: 0,
+        games: [],
+        repairs: {},
+        lastRepairModel: ''
+    };
+
+    /**
+     * True for the two services that store a console model, matching index.html:
+     * jailbreak needs it, and repair-only needs it because per-model repair prices
+     * cannot be quoted without it. System Setup never prices off the model.
+     */
+    function editNeedsModel() {
+        return orderEdit.serviceType === 'jailbreak' || orderEdit.serviceType === 'repair_only';
+    }
+
+    /** Console picker with a genuine "not chosen yet" option. */
+    var EDIT_CONSOLE_OPTIONS = [{ value: '', label: '— Select console —' }].concat(CONSOLE_OPTIONS);
+
+    var _editGameSizes = null;
+    /** name -> GB, built once from the shared catalogue. */
+    function editGameSizes() {
+        if (_editGameSizes) return _editGameSizes;
+        _editGameSizes = {};
+        ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).forEach(function (g) {
+            _editGameSizes[g.name] = Number(g.size) || 0;
+        });
+        return _editGameSizes;
+    }
+
+    function editGameTotalGb() {
+        var sizes = editGameSizes();
+        return orderEdit.games.reduce(function (sum, n) { return sum + (sizes[n] || 0); }, 0);
+    }
+
+    function fillEditSelect(select, options, value) {
+        select.innerHTML = '';
+        options.forEach(function (o) {
+            var opt = document.createElement('option');
+            opt.value = o.value;
+            opt.textContent = o.label;
+            select.appendChild(opt);
+        });
+        if (value != null && options.some(function (o) { return o.value === value; })) select.value = value;
+    }
+
+    function startOrderEdit() {
+        var order = findOrder(currentModalOrderId);
+        if (!order) return;
+
+        orderEdit.orderId = currentModalOrderId;
+        orderEdit.serviceType = order.service_type || 'jailbreak';
+        // No fallback to OLED. A blank model has to read as "not chosen yet" so the
+        // editor asks for it, rather than quietly pricing every repair at OLED rates.
+        orderEdit.consoleModel = order.console_model || '';
+        orderEdit.sdSource = order.sd_source || 'own';
+        orderEdit.sdSize = Number(order.sd_card_size) || 0;
+        orderEdit.android = !!order.android_mode;
+        orderEdit.linux = !!order.linux_mode;
+        orderEdit.freeStorage = Number(order.free_storage_gb) || 0;
+        orderEdit.games = gameListOf(order);
+        sortGameList(orderEdit.games);
+        orderEdit.repairs = {};
+        orderEdit.lastRepairModel = orderEdit.consoleModel;
+        getEnrichedRepairs(order).forEach(function (r) { orderEdit.repairs[r.id] = r; });
+
+        fillEditSelect(el('oeService'), SERVICE_OPTIONS, orderEdit.serviceType);
+        fillEditSelect(el('oeConsole'), EDIT_CONSOLE_OPTIONS, orderEdit.consoleModel);
+        fillEditSelect(el('oeSdSource'), SD_SOURCE_OPTIONS, orderEdit.sdSource);
+        rebuildEditSdSizes(orderEdit.sdSize);
+        el('oeAndroid').checked = orderEdit.android;
+        el('oeLinux').checked = orderEdit.linux;
+        el('oeFreeStorage').value = orderEdit.freeStorage > 0 ? String(orderEdit.freeStorage) : '';
+        el('oeGameSearch').value = '';
+        el('oeStatus').className = 'oe-status';
+        el('oeStatus').textContent = '';
+
+        // Delegation, re-bound each time so there is nothing to leak.
+        el('oeGameOptions').onclick = function (ev) {
+            var btn = ev.target.closest('.oe-opt');
+            if (btn) addOrderEditGame(btn.getAttribute('data-name'));
+        };
+        el('oeSelectedGames').onclick = function (ev) {
+            var btn = ev.target.closest('.oe-opt-remove');
+            if (btn) removeOrderEditGame(btn.getAttribute('data-name'));
+        };
+        el('oeRepairList').onchange = function (ev) {
+            var cb = ev.target.closest('.oe-repair input');
+            if (cb) toggleOrderEditRepair(cb.getAttribute('data-id'), cb.checked);
+        };
+
+        renderEditRepairList();
+        renderEditGameOptions();
+        renderEditSelectedGames();
+
+        el('orderReadOnlyService').style.display = 'none';
+        el('modalEditOrderBtn').style.display = 'none';
+        el('orderEditPanel').style.display = '';
+        onOrderEditChange();
+    }
+
+    /** Put the modal back into read-only mode. */
+    function resetOrderEditor() {
+        if (!el('orderEditPanel')) return;
+        el('orderEditPanel').style.display = 'none';
+        el('orderReadOnlyService').style.display = '';
+        el('modalEditOrderBtn').style.display = '';
+        orderEdit.orderId = null;
+    }
+
+    function cancelOrderEdit() {
+        resetOrderEditor();
+    }
+
+    /** Rebuild the card-size list for the chosen source, keeping the size in use. */
+    function rebuildEditSdSizes(preferred) {
+        var want = preferred != null ? Number(preferred) : (Number(orderEdit.sdSize) || 0);
+        var opts = sdCardOptionsFor(orderEdit.sdSource);
+        var sel = el('oeSdSize');
+        fillEditSelect(sel, opts, null);
+
+        var values = opts.map(function (o) { return Number(o.value); });
+        if (want && values.indexOf(want) === -1) {
+            // The stored size is not one we sell (legacy or hand-typed row). Snap up
+            // to the next real card rather than leaving nothing selected.
+            want = values.filter(function (v) { return v >= want; })[0] || values[values.length - 1];
+        }
+        if (want && values.indexOf(want) !== -1) sel.value = String(want);
+        orderEdit.sdSize = sel.value ? Number(sel.value) : 0;
+    }
+
+    function onOrderEditSdSourceChange() {
+        orderEdit.sdSource = el('oeSdSource').value;
+        rebuildEditSdSizes(null);
+        onOrderEditChange();
+    }
+
+    function onOrderEditChange() {
+        orderEdit.serviceType = el('oeService').value;
+        orderEdit.sdSize = el('oeSdSize').value ? Number(el('oeSdSize').value) : 0;
+        orderEdit.android = el('oeAndroid').checked;
+        orderEdit.linux = el('oeLinux').checked;
+        var fs = parseFloat(el('oeFreeStorage').value);
+        orderEdit.freeStorage = (isFinite(fs) && fs > 0) ? Math.round(fs) : 0;
+
+        // Repair prices depend on the console model, so a model change has to
+        // re-price whatever is already ticked. An empty model is not a price to
+        // move to - repricing against it would zero every per-model repair - so the
+        // last known prices stand and Save stays blocked until one is picked.
+        var model = el('oeConsole').value;
+        if (model !== orderEdit.lastRepairModel) {
+            orderEdit.consoleModel = model;
+            if (model) repriceEditRepairs(model);
+            orderEdit.lastRepairModel = model;
+            renderEditRepairList();
+        }
+
+        var svc = orderEdit.serviceType;
+        var jb = isJbOrSetup(svc);
+        var wantsFree = (svc === 'games_only' || svc === 'system_update');
+        var needsModel = editNeedsModel();
+        el('orderEditPanel').querySelectorAll('.oe-only-jb').forEach(function (n) { n.style.display = jb ? '' : 'none'; });
+        el('orderEditPanel').querySelectorAll('.oe-only-model').forEach(function (n) { n.style.display = needsModel ? '' : 'none'; });
+        el('orderEditPanel').querySelectorAll('.oe-only-free').forEach(function (n) { n.style.display = wantsFree ? '' : 'none'; });
+        el('oeGamesBlock').style.display = (svc === 'repair_only') ? 'none' : '';
+
+        // Repair Only means no games, and computePricing charges for games on any
+        // service. Left alone, switching to it here would bill for a game list the
+        // admin can no longer see, because the block above is hidden. Drop them,
+        // but say so rather than silently losing the selection.
+        if (svc === 'repair_only' && orderEdit.games.length) {
+            var dropped = orderEdit.games.length;
+            orderEdit.games = [];
+            renderEditGameOptions();
+            renderEditSelectedGames();
+            var s = el('oeStatus');
+            s.className = 'oe-status';
+            s.textContent = 'Cleared ' + dropped + ' game' + (dropped === 1 ? '' : 's') +
+                ' - Repair Only is a repair-only service. Switch the service back if that was not what you wanted.';
+        }
+
+        updateOrderEditPreview();
+    }
+
+    function repriceEditRepairs(model) {
+        var catalogue = window.REPAIR_SERVICES || [];
+        Object.keys(orderEdit.repairs).forEach(function (id) {
+            var svc = catalogue.filter(function (s) { return s.id === id; })[0];
+            if (!svc) return;
+            var p = computeRepairPrice(svc, model || 'OLED');
+            orderEdit.repairs[id].price = p.amount;
+            orderEdit.repairs[id].isQuote = p.isQuote;
+        });
+    }
+
+    function addOrderEditGame(name) {
+        if (!name || orderEdit.games.indexOf(name) !== -1) return;
+        orderEdit.games.push(name);
+        sortGameList(orderEdit.games);
+        renderEditGameOptions();
+        renderEditSelectedGames();
+        updateOrderEditPreview();
+    }
+
+    function removeOrderEditGame(name) {
+        var i = orderEdit.games.indexOf(name);
+        if (i === -1) return;
+        orderEdit.games.splice(i, 1);
+        renderEditGameOptions();
+        renderEditSelectedGames();
+        updateOrderEditPreview();
+    }
+
+    function renderEditGameOptions() {
+        var box = el('oeGameOptions');
+        var q = (el('oeGameSearch').value || '').trim().toLowerCase();
+        var chosen = {};
+        orderEdit.games.forEach(function (n) { chosen[n] = true; });
+
+        var matches = ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).filter(function (g) {
+            return !chosen[g.name] && (!q || g.name.toLowerCase().indexOf(q) !== -1);
+        });
+        // The library is 339 deep, which makes the box unusable on a phone, so cap
+        // it and let the search box narrow things down.
+        var capped = matches.length > 40;
+        if (capped) matches = matches.slice(0, 40);
+
+        if (matches.length === 0) {
+            box.innerHTML = '<div class="oe-opt-empty">' +
+                (q ? 'No game matches &ldquo;' + escapeHtml(q) + '&rdquo;.'
+                   : 'Every game in the library is already on this order.') +
+                '</div>';
+            return;
+        }
+        var html = '';
+        matches.forEach(function (g) {
+            html += '<button type="button" class="oe-opt" data-name="' + escapeHtml(g.name) + '">' +
+                    '<span class="oe-opt-name">' + escapeHtml(g.name) + '</span>' +
+                    '<span class="oe-opt-size">' + g.size + ' GB</span></button>';
+        });
+        if (capped) html += '<div class="oe-opt-empty">' + matches.length +
+                            ' shown &mdash; keep typing to narrow the list.</div>';
+        box.innerHTML = html;
+    }
+
+    function renderEditSelectedGames() {
+        var box = el('oeSelectedGames');
+        var totalGb = editGameTotalGb();
+        el('oeSelectedGamesHead').innerHTML =
+            'On this order (' + orderEdit.games.length + ' &middot; ' + totalGb.toFixed(2) + ' GB)';
+
+        if (orderEdit.games.length === 0) {
+            box.innerHTML = '<div class="oe-opt-empty">No games on this order.</div>';
+            return;
+        }
+        var sizes = editGameSizes();
+        var html = '';
+        orderEdit.games.forEach(function (name) {
+            html += '<div class="oe-opt">' +
+                    '<span class="oe-opt-name">' + escapeHtml(name) + '</span>' +
+                    '<span class="oe-opt-size">' + (sizes[name] != null ? sizes[name] + ' GB' : 'size n/a') + '</span>' +
+                    '<button type="button" class="oe-opt-remove" data-name="' + escapeHtml(name) +
+                    '" aria-label="Remove ' + escapeHtml(name) + '">&times;</button></div>';
+        });
+        box.innerHTML = html;
+    }
+
+    function renderEditRepairList() {
+        var box = el('oeRepairList');
+
+        // A per-model repair price is unknowable without the model, so hold the
+        // whole list back and say what is missing, rather than quoting an OLED
+        // figure that may not apply to this console.
+        if (editNeedsModel() && !orderEdit.consoleModel) {
+            var waiting = Object.keys(orderEdit.repairs).length;
+            box.innerHTML = '<div class="oe-opt-empty">Pick the console model above to see repair prices.' +
+                (waiting ? ' ' + waiting + ' repair' + (waiting === 1 ? '' : 's') + ' on this order ' +
+                           (waiting === 1 ? 'is' : 'are') + ' waiting to be priced.' : '') +
+                '</div>';
+            return;
+        }
+
+        var catalogue = window.REPAIR_SERVICES || [];
+        var model = orderEdit.consoleModel || 'OLED';
+        var inCatalogue = {};
+        var html = '';
+        catalogue.forEach(function (s) {
+            inCatalogue[s.id] = true;
+            var p = computeRepairPrice(s, model);
+            var on = !!orderEdit.repairs[s.id];
+            html += '<label class="oe-repair">' +
+                    '<input type="checkbox" data-id="' + escapeHtml(s.id) + '"' + (on ? ' checked' : '') + '>' +
+                    '<span class="oe-repair-name">' + escapeHtml(s.name) + '</span>' +
+                    '<span class="oe-repair-price' + (p.isQuote ? ' quote' : '') + '">' +
+                    (p.isQuote ? 'TBC' : 'RM' + p.amount) + '</span></label>';
+        });
+
+        // A repair that has been retired from the catalogue, or was hand-added,
+        // still belongs to this order. Show it here anyway, otherwise it is
+        // invisible in the editor and impossible to untick.
+        var orphans = Object.keys(orderEdit.repairs).filter(function (id) { return !inCatalogue[id]; });
+        if (orphans.length) {
+            html += '<div class="oe-opt-empty">No longer in the catalogue, but still on this order:</div>';
+            orphans.forEach(function (id) {
+                var r = orderEdit.repairs[id];
+                html += '<label class="oe-repair">' +
+                        '<input type="checkbox" data-id="' + escapeHtml(id) + '" checked>' +
+                        '<span class="oe-repair-name">' + escapeHtml(r.name) + '</span>' +
+                        '<span class="oe-repair-price' + (r.isQuote ? ' quote' : '') + '">' +
+                        (r.isQuote ? 'TBC' : 'RM' + r.price) + '</span></label>';
+            });
+        }
+        if (!html) html = '<div class="oe-opt-empty">Repair catalogue not loaded.</div>';
+        box.innerHTML = html;
+    }
+
+    function toggleOrderEditRepair(id, on) {
+        if (on) {
+            var svc = (window.REPAIR_SERVICES || []).filter(function (s) { return s.id === id; })[0];
+            if (!svc) return;
+            var p = computeRepairPrice(svc, orderEdit.consoleModel || 'OLED');
+            orderEdit.repairs[id] = {
+                id: svc.id, name: svc.name, category: svc.category || '',
+                price: p.amount, isQuote: p.isQuote, note: svc.note || ''
+            };
+        } else {
+            delete orderEdit.repairs[id];
+        }
+        // Re-render so a row removed above does not linger in the list.
+        renderEditRepairList();
+        updateOrderEditPreview();
+    }
+
+    /**
+     * The editor state as an order-shaped object, so the preview and the save both
+     * go through the same pricing path as the customer form.
+     */
+    function buildEditOrder() {
+        var names = orderEdit.games.slice();
+        var svc = orderEdit.serviceType;
+        var jb = isJbOrSetup(svc);
+        var wantsFree = (svc === 'games_only' || svc === 'system_update');
+        return {
+            service_type: svc,
+            // Stored only where the model changes a price, same as index.html.
+            console_model: editNeedsModel() ? orderEdit.consoleModel : '',
+            sd_source: jb ? orderEdit.sdSource : '',
+            sd_card_size: jb ? orderEdit.sdSize : null,
+            // Only the services that fill existing space store this, same as index.html.
+            free_storage_gb: (!jb && wantsFree && orderEdit.freeStorage > 0) ? orderEdit.freeStorage : null,
+            android_mode: jb ? orderEdit.android : false,
+            linux_mode: jb ? orderEdit.linux : false,
+            games: names,
+            total_games: names.length,
+            total_size_gb: Math.round(editGameTotalGb() * 100) / 100,
+            repairs: repairSnapshot(Object.keys(orderEdit.repairs).map(function (k) { return orderEdit.repairs[k]; }))
+        };
+    }
+
+    /** Storage the games have to fit into. 0 when the service has no card. */
+    function editStorageCapacity() {
+        var svc = orderEdit.serviceType;
+        if (isJbOrSetup(svc)) return orderEdit.sdSize;
+        if (svc === 'games_only' || svc === 'system_update') return orderEdit.freeStorage;
+        return 0;
+    }
+
+    function updateOrderEditPreview() {
+        var pseudo = buildEditOrder();
+        var freeGames = currentFreeGamesInput();
+        var discount = currentDiscountInput();
+        var baseline = computePricing(pricingInputsForOrder(pseudo, 0));
+        var detail = computePricing(pricingInputsForOrder(pseudo, freeGames));
+        var appliedDiscount = Math.min(discount, detail.subtotal);
+        var total = Math.max(0, detail.subtotal - appliedDiscount);
+
+        var html = '';
+        html += '<div class="oe-preview-row"><span>Subtotal</span><span>RM' + detail.subtotal + '</span></div>';
+        if (freeGames > 0) {
+            html += '<div class="oe-preview-row"><span>Free games waived</span><span>' + detail.freeGamesApplied +
+                    (detail.freeGamesApplied < freeGames ? ' of ' + freeGames : '') + '</span></div>';
+        }
+        if (appliedDiscount > 0) {
+            html += '<div class="oe-preview-row"><span>Discount</span><span>&minus;RM' + appliedDiscount + '</span></div>';
+        }
+        html += '<div class="oe-preview-row total"><span>Total charged</span><span>RM' + total + '</span></div>';
+        el('oePreview').innerHTML = html;
+
+        // Capacity check. Warn, never trim: the shop may know something the numbers
+        // do not, and silently dropping games would be worse than a warning.
+        var cap = editStorageCapacity();
+        var gb = pseudo.total_size_gb;
+        var warnEl = el('oeGamesWarn');
+        var over = cap > 0 && gb > cap;
+        var tight = cap > 0 && !over && gb > 0 && (cap - gb) < 20;
+        warnEl.style.display = (over || tight) ? '' : 'none';
+        warnEl.className = 'oe-warn' + (over ? ' danger' : '');
+        warnEl.textContent = over
+            ? 'Games total ' + gb.toFixed(2) + ' GB but only ' + cap + ' GB is available. Trim the list or raise the size before saving.'
+            : (tight ? 'Only ' + (cap - gb).toFixed(2) + ' GB spare. That is very tight for a card.' : '');
+
+        // Same guard as Save Adjustments: game pricing is tiered, so a large
+        // waiver can drop into a pricier tier and RAISE the total.
+        var raises = detail.subtotal > baseline.subtotal;
+        var noModel = editNeedsModel() && !orderEdit.consoleModel;
+        el('oeSaveBtn').disabled = raises || noModel;
+        var errEl = el('oeSaveError');
+        errEl.style.display = (raises || noModel) ? '' : 'none';
+        errEl.textContent = noModel
+            ? 'Pick the console model before saving: repair prices depend on it.'
+            : (raises
+                ? 'Refused: the current free-games count would raise the price on this selection (game pricing is tiered). Reduce it in Price Adjustments first.'
+                : '');
+    }
+
+    function saveOrderEdit() {
+        var order = findOrder(orderEdit.orderId);
+        if (!order) return;
+        var btn = el('oeSaveBtn');
+        var status = el('oeStatus');
+        if (editNeedsModel() && !orderEdit.consoleModel) {
+            status.className = 'oe-status err';
+            status.textContent = 'Refused: pick the console model first, repair prices depend on it.';
+            return;
+        }
+        var pseudo = buildEditOrder();
+
+        var freeGames = currentFreeGamesInput();
+        var discount = currentDiscountInput();
+        var baseline = computePricing(pricingInputsForOrder(pseudo, 0));
+        var detail = computePricing(pricingInputsForOrder(pseudo, freeGames));
+        if (detail.subtotal > baseline.subtotal) {
+            status.className = 'oe-status err';
+            status.textContent = 'Refused: those free games would raise the price. Reduce the count first.';
+            return;
+        }
+        var appliedDiscount = Math.min(discount, detail.subtotal);
+        var total = Math.max(0, detail.subtotal - appliedDiscount);
+
+        var cap = editStorageCapacity();
+        var over = cap > 0 && pseudo.total_size_gb > cap;
+        var msg = 'Save these changes to order #' + (order.phone_ending || '?') + '?\n\n' +
+                  'Games: ' + pseudo.total_games + ' (' + pseudo.total_size_gb.toFixed(2) + ' GB)\n' +
+                  'New total: RM' + total;
+        if (over) msg += '\n\nWARNING: the games do not fit in ' + cap + ' GB. Saving anyway.';
+        if (!confirm(msg)) return;
+
+        btn.disabled = true;
+        status.className = 'oe-status';
+        status.textContent = 'Saving...';
+
+        var payload = {
+            service_type: pseudo.service_type,
+            console_model: pseudo.console_model,
+            sd_source: pseudo.sd_source,
+            sd_card_size: pseudo.sd_card_size,
+            free_storage_gb: pseudo.free_storage_gb,
+            android_mode: pseudo.android_mode,
+            linux_mode: pseudo.linux_mode,
+            games: pseudo.games,
+            total_games: pseudo.total_games,
+            total_size_gb: pseudo.total_size_gb,
+            repairs: pseudo.repairs,
+            price_subtotal: detail.subtotal,
+            discount_rm: appliedDiscount,
+            free_games_count: detail.freeGamesApplied,
+            estimated_price: total,
+            updated_at: new Date().toISOString()
+        };
+
+        var idField = order.id ? 'id' : 'order_id';
+        supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id).then(function (res) {
+            btn.disabled = false;
+            if (res.error) {
+                status.className = 'oe-status err';
+                status.textContent = 'Failed: ' + res.error.message;
+                return;
+            }
+            // Keep the in-memory order in step, then re-render the whole modal from
+            // it so the read-only rows, games, repairs and adjustments all agree.
+            Object.keys(payload).forEach(function (k) { order[k] = payload[k]; });
+            updateStats();
+            filterAndRenderOrders();
+            openOrderModal(orderEdit.orderId);
+        }).catch(function (err) {
+            btn.disabled = false;
+            status.className = 'oe-status err';
+            status.textContent = 'Failed: ' + (err && err.message ? err.message : String(err));
+        });
+    }
+
     // ===== FULL ORDER MODAL =====
     function openOrderModal(orderId) {
         var order = findOrder(orderId);
@@ -2455,6 +3084,11 @@
         // Repairs
         renderModalRepairs(order);
 
+        // Always reopen in read-only mode: after a save the editor would otherwise
+        // stay open showing the state it just left, with no Edit Details button to
+        // get back to.
+        resetOrderEditor();
+
         // Games
         renderModalGames(order);
 
@@ -2484,10 +3118,10 @@
 
     function renderModalRepairs(order) {
         var container = document.getElementById('modalRepairsContainer');
-        var repairs = getRepairsOfOrder(order);
+        var repairs = getEnrichedRepairs(order);
         if (repairs.length === 0) { container.innerHTML = ''; return; }
 
-        var sum = sumOrderRepairs(repairs);
+        var sum = sumRepairs(repairs);
         var html = '<div class="modal-section">';
         html += '<div class="modal-section-title"><span>Repairs (' + repairs.length + (sum.quoteCount > 0 ? ' · ' + sum.quoteCount + ' quote' : '') + ')</span></div>';
         repairs.forEach(function(r) {
@@ -2710,7 +3344,7 @@
 
         var stage = order.progress_stage || 'Order Received';
         var sub = order.progress_substage;
-        var repairs = getRepairsOfOrder(order);
+        var repairs = getEnrichedRepairs(order);
         var msg = 'Hi! Quick update on your order (#' + (order.phone_ending || '') + ').\n\n';
         msg += 'Current stage: ' + stage + '\n';
         if (sub) msg += 'Substage: ' + sub + '\n';

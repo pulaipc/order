@@ -1,7 +1,7 @@
-﻿// gameslist.js
+// gameslist.js
 // ---------------------------------------------------------------------------
 // Auto-generated game catalog. Do NOT edit manually.
-// Regenerate this file by running your PowerShell script â€” it should write
+// Regenerate this file by running your PowerShell script — it should write
 // the entire file, including this header.
 //
 // Consumed by config.js (which sets APP_CONFIG.gamesList = games) and by

@@ -1,10 +1,11 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Pulai PC Jailbreak & Game Service</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="shared.css">
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         html { -webkit-text-size-adjust: 100%; }
@@ -28,7 +29,7 @@
         .logo-link:active { transform: scale(0.96); }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
         .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: inherit; font-size: 12.5px; line-height: normal; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: inline-block; }
+        .btn-action { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: var(--btn-pad); min-height: var(--btn-h); border-radius: var(--btn-radius); cursor: pointer; font-weight: bold; font-family: inherit; font-size: var(--btn-font); line-height: normal; transition: all 0.2s; white-space: nowrap; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
         .btn-action:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
         .how-it-works { background: #1a1814; border: 1px solid #2e2716; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
@@ -60,6 +61,13 @@
         .summary-total { background: #251d08; border: 1px solid #7a6820; border-radius: 6px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
         .summary-total-label { font-size: 13px; color: #b8b0a0; font-weight: 600; }
         .summary-total-value { font-size: 20px; color: #ffc000; font-weight: bold; }
+        .summary-price-note { background: #14210f; border: 1px solid #2a4530; border-left: 3px solid #00e676; border-radius: 6px; padding: 10px 12px; font-size: 12px; color: #a8c4b0; line-height: 1.55; }
+        .summary-price-note strong { color: #7ee39b; }
+        /* The total is a fresh figure, not the one on file, so mark it as such
+           rather than letting it look like a confirmed price. */
+        .summary-total.repriced { border-color: #2a4530; background: #14210f; }
+        .summary-total.repriced .summary-total-label { color: #a8c4b0; }
+        .summary-total.repriced .summary-total-value { color: #7ee39b; }
         .summary-adjustments { background: #17120a; border: 1px solid #2a4530; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
         .summary-adjustment-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #b8b0a0; line-height: 1.45; }
         .summary-adjustment-row span:first-child { min-width: 0; word-break: break-word; }
@@ -84,7 +92,7 @@
         .summary-repair-price.quote { color: #ffb74d; font-style: italic; font-weight: 600; font-size: 11.5px; }
 
         .summary-actions { display: flex; gap: 10px; flex-wrap: wrap; padding-top: 6px; }
-        .summary-btn { flex: 1 1 auto; min-width: 140px; min-height: 48px; border-radius: 6px; font-family: inherit; font-weight: bold; font-size: 14px; cursor: pointer; padding: 12px 18px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+        .summary-btn { flex: 0 1 auto; min-width: 0; min-height: var(--btn-h); border-radius: var(--btn-radius); font-family: inherit; font-weight: bold; font-size: var(--btn-font); cursor: pointer; padding: var(--btn-pad); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
         .summary-btn.primary { background: #ffc000; color: #14110a; border: 1px solid #ffc000; }
         .summary-btn.primary:hover { background: #e6ac00; border-color: #e6ac00; }
         .summary-btn.secondary { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; }
@@ -97,6 +105,15 @@
         .locked-notice { background: #2a1e0a; border: 1px solid #7a5420; border-left: 4px solid #ffb74d; border-radius: 6px; padding: 12px 14px; font-size: 12.5px; color: #ffd9a0; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; }
         .locked-notice-icon { flex-shrink: 0; font-size: 16px; color: #ffb74d; line-height: 1.3; }
         .locked-notice strong { color: #ffb74d; }
+        /* Sits directly under the locked notice. Same card language, green accent
+           because it is the customer's key to the order rather than a warning. */
+        .private-link-block { background: #14210f; border: 1px solid #2a4530; border-left: 3px solid #00e676; border-radius: 6px; padding: 11px 13px; display: flex; flex-direction: column; gap: 6px; }
+        .private-link-head { font-size: 12px; font-weight: bold; color: #00e676; display: flex; align-items: center; gap: 6px; }
+        .private-link-note { font-size: 11.5px; color: #a8c4b0; line-height: 1.5; }
+        .private-link-row { display: flex; gap: 6px; align-items: stretch; }
+        .private-link-input { flex: 1 1 auto; min-width: 0; box-sizing: border-box; padding: 7px 9px; background: #0b140b; border: 1px solid #2a4530; color: #7ee39b; border-radius: 5px; font-size: 11px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; outline: none; }
+        .private-link-row .btn-action { flex: 0 0 auto; padding: var(--btn-pad); font-size: var(--btn-font); background: #00e676; color: #14110a; border-color: #00e676; }
+        .private-link-row .btn-action:hover { background: #00c853; color: #14110a; border-color: #00c853; }
 
         .cancelled-banner { background: #3a1212; border: 1px solid #7a3030; border-left: 4px solid #e57373; border-radius: 6px; padding: 14px; display: flex; align-items: flex-start; gap: 12px; }
         .cancelled-banner .icon { flex-shrink: 0; color: #e57373; line-height: 0; display: inline-flex; align-items: center; justify-content: center; margin-top: 1px; }
@@ -111,12 +128,17 @@
         .missing-order-notice { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: calc(100% - 28px); max-width: 480px; background: #1f190e; border: 1px solid #3a3018; border-left: 4px solid #ffb74d; border-radius: 10px; padding: 20px; z-index: 200; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7); display: flex; flex-direction: column; gap: 14px; box-sizing: border-box; }
         .missing-order-title { font-size: 16px; font-weight: bold; color: #ffb74d; line-height: 1.3; }
         .missing-order-body { font-size: 13.5px; color: #d8d2c0; line-height: 1.6; }
-        .missing-order-actions { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; }
-        .missing-order-btn { flex: 1 1 auto; min-width: 140px; min-height: 44px; border-radius: 6px; font-family: inherit; font-weight: bold; font-size: 13.5px; cursor: pointer; padding: 11px 16px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; border: none; }
+        .missing-order-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding-top: 4px; }
+        .missing-order-btn { flex: 0 1 auto; min-width: 0; min-height: var(--btn-h); border-radius: var(--btn-radius); font-family: inherit; font-weight: bold; font-size: var(--btn-font); cursor: pointer; padding: var(--btn-pad); transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; border: none; }
         .missing-order-btn.whatsapp { background: #25D366; color: #fff; }
         .missing-order-btn.whatsapp:hover { background: #1eaa52; }
         .missing-order-btn.secondary { background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; }
         .missing-order-btn.secondary:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        /* The notice cards are modals: this is what stops the page behind from
+           scrolling and what catches a tap outside to dismiss. */
+        .notice-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; width: 100%; background: rgba(0, 0, 0, 0.72); z-index: 190; }
+        .missing-order-close { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; padding: 0; border-radius: 50%; border: 1px solid #3a3018; background: transparent; color: #8a8272; font-size: 20px; line-height: 1; font-family: inherit; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s; }
+        .missing-order-close:hover { color: #ffc000; border-color: #ffc000; }
 
         .order-pick-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 4px; }
         .order-pick-item { background: #221c10; border: 1px solid #2e2716; border-radius: 8px; padding: 12px 14px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; display: flex; flex-direction: column; gap: 6px; }
@@ -174,7 +196,7 @@
 
         .phone-load-row { display: flex; gap: 8px; width: 100%; align-items: stretch; flex-wrap: nowrap; }
         .phone-load-row .phone-input { flex: 1 1 auto; min-width: 0; }
-        .load-order-btn { flex: 0 0 auto; background-color: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: 12px 14px; font-size: 13px; font-weight: 700; border-radius: 6px; cursor: pointer; white-space: nowrap; font-family: inherit; min-height: 46px; display: flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, opacity 0.2s, border-color 0.2s; }
+        .load-order-btn { flex: 0 0 auto; background-color: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: var(--btn-pad); font-size: var(--btn-font); font-weight: 700; border-radius: var(--btn-radius); cursor: pointer; white-space: nowrap; font-family: inherit; min-height: var(--btn-h); display: flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, opacity 0.2s, border-color 0.2s; }
         .load-order-btn:hover:not(:disabled) { background-color: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
         .load-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
@@ -187,7 +209,7 @@
         .edit-mode-banner strong { color: #ffc000; }
 
         .clear-games-row { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
-        .clear-btn { flex: 1 1 auto; justify-content: center; background-color: #2a2014; color: #e57373; border: 1px solid #3a3018; padding: 12px 14px; font-size: 13.5px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 46px; display: inline-flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+        .clear-btn { flex: 1 1 auto; justify-content: center; background-color: #2a2014; color: #e57373; border: 1px solid #3a3018; padding: var(--btn-pad); font-size: var(--btn-font); font-weight: bold; border-radius: var(--btn-radius); cursor: pointer; font-family: inherit; min-height: var(--btn-h); display: inline-flex; align-items: center; gap: 6px; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
         .clear-btn:hover { background-color: #e57373; color: #14110a; border-color: #e57373; }
 
         .guide-btn { background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: 9px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; margin-top: 2px; font-family: inherit; align-self: flex-start; transition: all 0.2s; }
@@ -330,7 +352,7 @@
         .jailbreak-notice-card { background: #2a2108; border: 1px solid #7a6820; border-radius: 8px; padding: 18px; text-align: center; margin-bottom: 18px; }
         .jailbreak-notice-card h3 { margin-top: 0; color: #e8dcc0; font-size: 16px; line-height: 1.3; }
         .jailbreak-notice-card p { color: #b8b0a0; font-size: 13px; line-height: 1.5; margin-bottom: 15px; }
-        .browse-games-btn { background-color: #ffc000; color: #14110a; border: none; padding: 12px 22px; font-size: 15px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; min-height: 46px; width: 100%; max-width: 320px; }
+        .browse-games-btn { background-color: #ffc000; color: #14110a; border: none; padding: var(--btn-pad-lg); font-size: var(--btn-font-lg); font-weight: bold; border-radius: var(--btn-radius); cursor: pointer; font-family: inherit; min-height: var(--btn-h-lg); width: 100%; max-width: 320px; }
         .browse-games-btn:hover { background-color: #e6ac00; }
 
         .game-section-wrapper { display: block; position: relative; }
@@ -358,46 +380,15 @@
         .checkout-bar.hidden { display: none; }
         .checkout-info { font-size: 13.5px; cursor: pointer; line-height: 1.45; text-align: center; color: #f0e9d8; }
         .checkout-nudge-action { color: #ffb74d; font-weight: bold; }
-        .submit-btn { background-color: #ffc000; color: #14110a; border: none; padding: 14px 20px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: inherit; width: 100%; min-height: 48px; transition: background 0.2s; }
+        .submit-btn { background-color: #ffc000; color: #14110a; border: none; padding: var(--btn-pad-lg); font-size: var(--btn-font-lg); font-weight: bold; border-radius: var(--btn-radius); cursor: pointer; font-family: inherit; width: 100%; min-height: var(--btn-h-lg); transition: background 0.2s; }
         .submit-btn:hover { background-color: #e6ac00; }
         .submit-btn:disabled { background-color: #4a4020; color: #888; cursor: not-allowed; }
-
-        .post-save-panel { position: fixed; bottom: 0; left: 0; right: 0; background: #1a2a1a; border-top: 2px solid #00e676; padding: 16px 14px calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 110; box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.6); animation: postSaveSlideUp 0.3s ease-out; }
-        @keyframes postSaveSlideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .post-save-card { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
-        .post-save-title { font-size: 15px; font-weight: bold; color: #00e676; display: flex; align-items: center; gap: 8px; }
-        .post-save-title::before { content: '\2713'; display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; background: #00e676; color: #14110a; border-radius: 50%; font-size: 12px; font-weight: bold; }
-        .post-save-desc { font-size: 12.5px; color: #c3ffdb; line-height: 1.5; }
-        .post-save-links { display: flex; flex-direction: column; gap: 8px; }
-        .post-save-link-row { display: flex; align-items: stretch; gap: 6px; }
-        .post-save-link-label { flex: 0 0 auto; align-self: center; font-size: 11px; color: #8fc9a3; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; min-width: 84px; }
-        .post-save-input { flex: 1 1 auto; min-width: 0; padding: 9px 12px; background: #0f1a0f; border: 1px solid #2a4530; color: #7ee39b; border-radius: 5px; font-size: 11.5px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; outline: none; box-sizing: border-box; }
-        .post-save-copy-btn { flex: 0 0 auto; background: #00e676; color: #14110a; border: none; padding: 9px 14px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; white-space: nowrap; transition: background 0.2s; }
-        .post-save-copy-btn:hover { background: #00c853; }
-        .post-save-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .post-save-track-btn { flex: 1 1 auto; text-align: center; background: #2e2716; color: #e8dcc0; border: 1px solid #3a3018; padding: 11px 16px; border-radius: 6px; font-weight: bold; font-size: 13.5px; text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s, color 0.2s, border-color 0.2s; }
-        .post-save-track-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-        .post-save-close-btn { flex: 0 0 auto; background: transparent; color: #a8c4b0; border: 1px solid #2a4530; padding: 11px 18px; border-radius: 6px; font-weight: 600; font-size: 13.5px; font-family: inherit; cursor: pointer; transition: all 0.2s; min-height: 44px; }
-        .post-save-close-btn:hover { border-color: #00e676; color: #00e676; }
-
-        /* Compact form, used when the customer arrives on their own private link.
-           They already have the link and only need to copy it again, so this is
-           one row instead of the full first-time-save panel. */
-        .post-save-panel.compact { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); border-top-width: 1px; }
-        .post-save-panel.compact .post-save-card { gap: 8px; }
-        .post-save-panel.compact .post-save-desc,
-        .post-save-panel.compact .post-save-link-label,
-        .post-save-panel.compact .post-save-link-row + .post-save-link-row,
-        .post-save-panel.compact .post-save-title::before { display: none; }
-        .post-save-panel.compact .post-save-title { font-size: 12.5px; }
-        .post-save-panel.compact .post-save-copy-btn,
-        .post-save-panel.compact .post-save-close-btn { padding: 9px 13px; min-height: 38px; font-size: 12px; }
 
         .modal { display: none; position: fixed; z-index: 1000; top: 0; left: 0; right: 0; bottom: 0; width: 100%; height: 100vh; height: 100dvh; background-color: rgba(0,0,0,0.85); justify-content: center; align-items: center; padding: 12px; box-sizing: border-box; overscroll-behavior: contain; }
         .modal-content { background: #221c10; border-radius: 8px; width: 100%; max-width: 520px; max-height: 92vh; max-height: 92dvh; display: flex; flex-direction: column; border: 1px solid #3a3018; box-sizing: border-box; overflow: hidden; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding: 14px 16px; flex-shrink: 0; gap: 10px; }
         .modal-header h2 { margin: 0; color: #e8dcc0; font-size: 17px; line-height: 1.3; word-break: break-word; }
-        .close-modal { background: none; border: none; color: #f0e9d8; font-size: 28px; cursor: pointer; line-height: 1; padding: 0 6px; min-height: 40px; min-width: 40px; flex-shrink: 0; }
+        .close-modal { background: none; border: none; color: #f0e9d8; font-size: 26px; cursor: pointer; line-height: 1; padding: 0 6px; min-height: var(--btn-h); min-width: var(--btn-h); flex-shrink: 0; }
         .modal-body { overflow-y: auto; flex-grow: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
         #cartModalBody { display: flex; flex-direction: column; gap: 16px; }
         .modal-section-title { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.8px; color: #e8dcc0; font-weight: 700; margin-bottom: -4px; padding-bottom: 6px; border-bottom: 1px solid #2e2716; }
@@ -411,7 +402,7 @@
         .cart-item > span:first-child { flex: 1 1 auto; min-width: 0; word-break: break-word; line-height: 1.4; color: #f0e9d8; }
         .cart-item > .remove-btn { flex-shrink: 0; align-self: flex-start; margin-top: 2px; }
         .lock-badge { font-size: 11px; color: #e8dcc0; background: rgba(0,230,118,0.1); padding: 4px 9px; border-radius: 4px; font-weight: bold; white-space: nowrap; }
-        .remove-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; min-height: 36px; white-space: nowrap; transition: background 0.2s, color 0.2s, border-color 0.2s; }
+        .remove-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: 7px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; font-family: inherit; min-height: var(--btn-h-sm); white-space: nowrap; transition: background 0.2s, color 0.2s, border-color 0.2s; }
         .remove-btn:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
         .cart-details { background: #191309; border: 1px solid #2e2716; border-radius: 6px; }
@@ -429,7 +420,7 @@
         .share-link-desc { font-size: 11.5px; color: #cfe6ff; line-height: 1.4; }
         .share-link-row { display: flex; gap: 6px; align-items: stretch; width: 100%; }
         .share-link-input { flex: 1 1 auto; min-width: 0; padding: 10px 12px; background: #0d1620; border: 1px solid #3a5a72; color: #7dd3fc; border-radius: 6px; font-size: 12px; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; outline: none; box-sizing: border-box; }
-        .copy-link-btn { flex: 0 0 auto; background: #7dd3fc; color: #14110a; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-size: 12.5px; font-weight: bold; font-family: inherit; white-space: nowrap; min-height: 40px; transition: background 0.2s, color 0.2s; }
+        .copy-link-btn { flex: 0 0 auto; background: #7dd3fc; color: #14110a; border: none; padding: var(--btn-pad); border-radius: var(--btn-radius); cursor: pointer; font-size: var(--btn-font); font-weight: bold; font-family: inherit; white-space: nowrap; min-height: var(--btn-h); transition: background 0.2s, color 0.2s; }
         .copy-link-btn:hover { background: #a4e2fc; }
 
         .price-breakdown-box { background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px; font-size: 12.5px; display: flex; flex-direction: column; gap: 6px; }
@@ -485,12 +476,6 @@
             .checkout-bar { flex-direction: row; align-items: center; padding: 14px 20px; }
             .checkout-info { text-align: left; flex: 1; font-size: 14px; }
             .submit-btn { width: auto; min-width: 180px; padding: 12px 24px; }
-            .post-save-links { flex-direction: column; gap: 12px; }
-            .post-save-link-row { flex: 1; flex-wrap: wrap; }
-            /* Keep the labels on desktop too: two side-by-side URL boxes with no
-               labels are indistinguishable. They are the only thing telling the
-               customer which link edits the order and which tracks it. */
-            .post-save-link-label { min-width: 0; flex: 1 0 100%; }
         }
         @media (min-width: 900px) { .field-group { flex: 1; } }
         @media (max-width: 380px) {
@@ -500,17 +485,21 @@
             .how-it-works { padding: 12px 14px; }
             .how-step-title { font-size: 12.5px; }
             .how-step-desc { font-size: 11.5px; }
-            .btn-action { padding: 7px 10px; font-size: 11px; }
+            /* Tighten the horizontal padding only. Shrinking the font or the
+               height on the narrowest phones would take the tap targets below
+               what is comfortable to hit. */
+            .btn-action { padding: var(--btn-pad) 10px; }
             .config-card { padding: 12px; }
             .game-card { padding: 12px 10px; }
             .game-title { font-size: 13px; }
             .checkout-info { font-size: 12.5px; }
             .load-order-btn span:not(.btn-text) { display: none; }
-            .load-order-btn { padding: 12px 14px; min-width: 46px; justify-content: center; }
+            .load-order-btn { padding: var(--btn-pad); min-width: 0; justify-content: center; }
             .summary-order-id { font-size: 15px; }
             .summary-total-value { font-size: 18px; }
         }
     </style>
+    <script src="shared.js"></script>
 </head>
 <body>
     <div class="container">
@@ -519,7 +508,7 @@
                 <a href="#" class="logo-link" onclick="scrollToTop(event)" aria-label="Back to home">
                     <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
                 </a>
-                <h1>Pulai PC â€” Jailbreak &amp; Game Service</h1>
+                <h1>Pulai PC — Jailbreak &amp; Game Service</h1>
             </div>
             <div class="header-actions">
                 <a href="track.html" class="btn-action" id="headerTrackLink">Track Order</a>
@@ -552,7 +541,7 @@
                         <div class="how-num">3</div>
                         <div class="how-step-body">
                             <div class="how-step-title">We prepare it</div>
-                            <div class="how-step-desc">Jailbreak, repairs, and game installation â€” typically 1â€“3 days.</div>
+                            <div class="how-step-desc">Jailbreak, repairs, and game installation — typically 1–3 days.</div>
                         </div>
                     </div>
                     <div class="how-step">
@@ -621,18 +610,18 @@
                 <div class="config-row">
                     <div class="field-group">
                         <select id="serviceTypeSelect" class="service-select" onchange="toggleServiceFields()">
-                            <option value="" disabled selected>â€” Please select service â€”</option>
+                            <option value="" disabled selected>— Please select service —</option>
                             <option value="jailbreak">Full Jailbreak (Includes 3 games)</option>
                             <option value="system_setup">System Setup</option>
                             <option value="system_update">System Update (Console already modded)</option>
                             <option value="games_only">Games Only</option>
                             <option value="repair_only">Repair Only (No jailbreak/games)</option>
                         </select>
-                        <span class="field-hint">Choose a service type â€” update, setup, jailbreak, games, or repairs</span>
+                        <span class="field-hint">Choose a service type — update, setup, jailbreak, games, or repairs</span>
                     </div>
                     <div class="field-group" id="consoleModelGroup">
                         <select id="consoleModelSelect" class="model-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>â€” Please select model â€”</option>
+                            <option value="" disabled selected>— Please select model —</option>
                             <option value="OLED">OLED</option>
                             <option value="V1_V2">V1/V2</option>
                             <option value="LITE">LITE</option>
@@ -640,15 +629,15 @@
                             <span class="field-hint" id="consoleModelHint">Select your Nintendo Switch model variant</span></div>
                     <div class="field-group" id="sdSourceGroup">
                         <select id="sdSourceSelect" class="sd-source-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>â€” Please select â€”</option>
+                            <option value="" disabled selected>— Please select —</option>
                             <option value="own">I'll bring my own SD card</option>
                             <option value="buy">I want to buy an SD card from you</option>
                         </select>
-                        <span class="field-hint">Own card = you provide it Â· Buy = we supply a pre-configured card</span>
+                        <span class="field-hint">Own card = you provide it · Buy = we supply a pre-configured card</span>
                     </div>
                     <div class="field-group" id="sdCardGroup">
                         <select id="sdCardSelect" class="sd-select" onchange="updateSdLimit()">
-                            <option value="" disabled selected>â€” Please select card â€”</option>
+                            <option value="" disabled selected>— Please select card —</option>
                         </select>
                         <span class="field-hint">Total capacity of memory card used</span>
                     </div>
@@ -661,7 +650,7 @@
                 <div id="storageGuideBox" class="storage-guide-box">
                     <h4>How to check your remaining microSD card free space:</h4>
                     <p><strong>Method 1: Official Switch Settings</strong><br>
-                    1. Go to Home Menu â†’ <strong>System Settings</strong> (gear icon).<br>
+                    1. Go to Home Menu → <strong>System Settings</strong> (gear icon).<br>
                     2. Scroll down to <strong>Data Management</strong>.<br>
                     3. Look under <strong>microSD Card</strong> on the right for <strong>Free Space</strong> (e.g. 145 GB).</p>
                     <p style="margin-bottom:0;"><strong>Method 2: Via DBI App (Modded Console)</strong><br>
@@ -793,40 +782,11 @@
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
             <span id="checkoutRepairSummary"></span>
             <br><span id="checkoutSubtext" style="font-size: 11px; color: #8a8272;">Tap to review and add remarks</span>
-            <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup â€” no upfront payment required.</span>
+            <br><span style="font-size: 10.5px; color: #6a6357;">Payment on pickup — no upfront payment required.</span>
         </div>
         <button id="mainSubmitBtn" class="submit-btn" onclick="openCartModal()">Review &amp; Submit</button>
     </div>
 
-    <div id="postSavePanel" class="post-save-panel" style="display:none;">
-        <div class="post-save-card">
-            <div class="post-save-title" id="postSaveTitle">Order saved</div>
-            <div class="post-save-desc" id="postSaveDesc">
-                Your order has been submitted. We'll be in touch on WhatsApp to arrange drop-off. Save the link below to edit it later, or track its progress at any time.
-            </div>
-            <div class="post-save-links">
-                <div class="post-save-link-row">
-                    <span class="post-save-link-label">To edit or change this order</span>
-                    <input type="text" class="post-save-input" id="postSaveEditInput" readonly value="">
-                    <button class="post-save-copy-btn" onclick="copyPostSaveLink('edit', this)">Copy</button>
-                </div>
-                <div class="post-save-link-row">
-                    <span class="post-save-link-label">To check your progress</span>
-                    <input type="text" class="post-save-input" id="postSaveTrackInput" readonly value="">
-                    <button class="post-save-copy-btn" onclick="copyPostSaveLink('track', this)">Copy</button>
-                </div>
-            </div>
-            <div class="post-save-actions">
-                <a id="postSaveEditBtn" class="post-save-track-btn" href="#" target="_blank" rel="noopener noreferrer">
-                    Edit or Cancel
-                </a>
-                <a id="postSaveTrackBtn" class="post-save-track-btn" href="#" target="_blank" rel="noopener noreferrer">
-                    Open Tracker
-                </a>
-                <button class="post-save-close-btn" onclick="closePostSavePanel()">Close</button>
-            </div>
-        </div>
-    </div>
 
     <div id="cartModal" class="modal">
         <div class="modal-content">
@@ -945,15 +905,6 @@
         const el = $('gameSectionWrapper');
         if (el && el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         else alert('Please complete your configuration first (phone, service type, storage).');
-    }
-
-    function isOrderLocked(order) {
-        const stage = (order && order.progress_stage) || 'Order Received';
-        return stage !== 'Order Received';
-    }
-    function isOrderCancellable(order) {
-        const stage = (order && order.progress_stage) || 'Order Received';
-        return stage === 'Order Received' && order.status !== 'Cancelled';
     }
 
     function svgXIcon(size) {
@@ -1083,7 +1034,7 @@
         bar.style.display = 'flex';
         const { total, quoteCount } = getSelectedRepairTotal();
         $('repairCountLabel').textContent = count + ' repair' + (count === 1 ? '' : 's');
-        $('repairQuoteLabel').textContent = quoteCount > 0 ? ' Â· ' + quoteCount + ' needing quote' : '';
+        $('repairQuoteLabel').textContent = quoteCount > 0 ? ' · ' + quoteCount + ' needing quote' : '';
         $('repairTotalLabel').textContent = 'RM' + total + (quoteCount > 0 ? ' + TBC' : '');
 
         // Soft warnings
@@ -1091,10 +1042,10 @@
         const warnText = $('repairSoftWarningText');
         if (count >= 6) {
             warn.classList.add('show');
-            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> This is a major refurb. Make sure you\'ve discussed this with us on WhatsApp first â€” it may be more economical to consider a replacement unit.';
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> This is a major refurb. Make sure you\'ve discussed this with us on WhatsApp first — it may be more economical to consider a replacement unit.';
         } else if (count >= 4) {
             warn.classList.add('show');
-            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> That\'s a lot â€” make sure you know this is a major refurbishment. We\'ll confirm everything on WhatsApp.';
+            warnText.innerHTML = '<strong>' + count + ' repairs selected.</strong> That\'s a lot — make sure you know this is a major refurbishment. We\'ll confirm everything on WhatsApp.';
         } else {
             warn.classList.remove('show');
         }
@@ -1165,6 +1116,33 @@
             }
         });
         updateRepairSummaryBar();
+    }
+
+    // The private link lives inside the summary card, next to the order it belongs
+    // to, instead of in a bar floating over the page. One place only, so it can
+    // never end up describing a different order than the one on screen.
+    function privateLinkBlockHtml() {
+        const editUrl = buildShareUrl();
+        if (!editUrl) return '';
+        return '<div class="private-link-block">'
+            + '<div class="private-link-head">&#128279; Your private link</div>'
+            + '<div class="private-link-note">This link is the only thing that opens this order, so keep it somewhere you won\'t lose it.</div>'
+            + '<div class="private-link-row">'
+            + '  <input type="text" class="private-link-input" id="privateLinkInput" readonly value="' + escapeHtml(editUrl) + '">'
+            + '  <button class="btn-action" onclick="copyPrivateLink(this)">Copy</button>'
+            + '</div>'
+            + '</div>';
+    }
+
+    function copyPrivateLink(btnEl) {
+        const input = $('privateLinkInput');
+        const value = input ? input.value : '';
+        if (!value) return;
+        navigator.clipboard.writeText(value).then(function () {
+            const orig = btnEl.textContent;
+            btnEl.textContent = 'Copied';
+            setTimeout(function () { btnEl.textContent = orig; }, 1800);
+        }).catch(function (err) { alert('Failed to copy: ' + err); });
     }
 
     function showSummaryView(order) {
@@ -1242,7 +1220,7 @@
             const sourceStr = order.sd_source === 'buy'
                 ? '<span style="color:#ffc000;">New card from us</span>'
                 : (order.sd_source === 'own' ? 'Customer\'s own card' : '');
-            storageLabel = sourceStr ? (sizeStr + ' Â· ' + sourceStr) : sizeStr;
+            storageLabel = sourceStr ? (sizeStr + ' · ' + sourceStr) : sizeStr;
         } else if (order.service_type === 'system_update' && order.free_storage_gb) {
             storageLabel = order.free_storage_gb + ' GB free space';
         } else if (order.free_storage_gb) {
@@ -1274,7 +1252,7 @@
         if (order.android_mode) addons.push('Android Mode (+RM30)');
         if (order.linux_mode) addons.push('Linux Mode (+RM30)');
         if (addons.length > 0) {
-            html += '<div class="summary-section"><div class="summary-label">Add-ons</div><div class="summary-value">' + addons.join(' &nbsp;Â·&nbsp; ') + '</div></div>';
+            html += '<div class="summary-section"><div class="summary-label">Add-ons</div><div class="summary-value">' + addons.join(' &nbsp;·&nbsp; ') + '</div></div>';
         }
 
         // Repairs section
@@ -1294,8 +1272,8 @@
         if (order.service_type !== 'repair_only') {
             html += '<div>';
             html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
-            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' Â· ' + totalGb.toFixed(1) + ' GB</span>';
-            html += '<span class="chev">â–¼</span>';
+            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
+            html += '<span class="chev">▼</span>';
             html += '</div>';
             html += '<div class="summary-games-list" id="summaryGamesList">';
             if (gamesWithSize.length === 0) {
@@ -1320,12 +1298,32 @@
         }
 
         const shopTotals = getOrderTotals(order);
-        html += '<div class="summary-total">';
+
+        // save_order never writes a price - that is deliberate, so a customer
+        // cannot change what they are charged. The side effect is that after the
+        // customer edits their order the stored total describes the OLD
+        // selection, not the one now on the order. So reprice what is actually
+        // stored, through the same engine the cart and the dashboard use, and
+        // show that as the total whenever the two disagree.
+        const selPricing = computePricing(pricingInputsForOrder(order, 0));
+        const selSubtotal = Math.max(0, Math.round(selPricing.subtotal));
+        const repriced = selSubtotal !== shopTotals.subtotal;
+
+        html += '<div class="summary-total' + (repriced ? ' repriced' : '') + '">';
         html += '<span class="summary-total-label">Total estimated' + (repairSum.quoteCount > 0 ? ' (+ ' + repairSum.quoteCount + ' quote)' : '') + '</span>';
-        html += '<span class="summary-total-value">RM' + shopTotals.total + '</span>';
+        html += '<span class="summary-total-value">RM' + (repriced ? selSubtotal : shopTotals.total) + '</span>';
         html += '</div>';
 
-        if (shopTotals.hasDiscount || shopTotals.freeGames > 0) {
+        if (repriced) {
+            html += '<div class="summary-price-note">'
+                + 'This order was last priced at <strong>RM' + shopTotals.total + '</strong>, before your update. '
+                + 'The total above is what your current selection comes to. '
+                + 'We have your update and will confirm the final price with you before drop-off.'
+                + '</div>';
+        } else if (shopTotals.hasDiscount || shopTotals.freeGames > 0) {
+            // Only meaningful while the subtotal still matches the selection: once
+            // the selection has moved on, a discount granted against the old
+            // subtotal would be a number that adds up to nothing.
             html += '<div class="summary-adjustments">';
             if (shopTotals.freeGames > 0) {
                 html += '<div class="summary-adjustment-row"><span>Free games included</span><span>' + shopTotals.freeGames + '</span></div>';
@@ -1365,6 +1363,7 @@
             html += '</div>';
         } else if (locked) {
             html += '<div class="locked-notice"><span class="locked-notice-icon">&#128274;</span><div><strong>This order is locked for changes.</strong><br>We\'ve already confirmed the details with you. If you need to make a change or cancel, message us on WhatsApp and we\'ll take care of it.</div></div>';
+            html += privateLinkBlockHtml();
             html += '<div class="summary-actions">';
             const prefill = 'Hi, I would like to ask about my order #' + (order.phone_ending || '') + '.';
             const waNumber = getWhatsAppNumber();
@@ -1374,6 +1373,7 @@
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
             html += '</div>';
         } else {
+            html += privateLinkBlockHtml();
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
             html += '<a class="summary-btn secondary" href="' + (buildTrackUrl(state.currentEditingToken) || 'track.html?phone=' + encodeURIComponent(order.phone_ending || '')) + '">Track Progress</a>';
@@ -1450,40 +1450,6 @@
             alert('Failed to cancel: ' + (err.message || 'Please try again or message us on WhatsApp.'));
             if (btn) { btn.disabled = false; btn.textContent = 'Cancel Order'; }
         }
-    }
-
-    function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function gameListOf(order) {
-        let list = [];
-        if (!order) return list;
-        if (Array.isArray(order.games)) list = order.games;
-        else if (typeof order.games === 'string') {
-            try { list = JSON.parse(order.games); } catch (e) { list = order.games.split(','); }
-        }
-        return list;
-    }
-
-    function sortGameList(gameList) {
-        let masterList = [];
-        if (typeof APP_CONFIG !== 'undefined') masterList = APP_CONFIG.gamesList || APP_CONFIG.games || APP_CONFIG.allGames || [];
-        const names = masterList.map(g => typeof g === 'string' ? g : g.name);
-        if (names.length > 0) {
-            gameList.sort(function(a, b) {
-                const ia = names.indexOf(a);
-                const ib = names.indexOf(b);
-                if (ia !== -1 && ib !== -1) return ia - ib;
-                if (ia === -1 && ib !== -1) return 1;
-                if (ia !== -1 && ib === -1) return -1;
-                return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true });
-            });
-        } else {
-            gameList.sort(function(a, b) { return String(a).localeCompare(String(b), undefined, { sensitivity: 'accent', numeric: true }); });
-        }
-        return gameList;
     }
 
     const SD_REAL_CAPACITY_FACTOR = 0.93;
@@ -1642,10 +1608,11 @@
             showSummaryView(order);
             updateSaveButtonLabel();
             clearStatusMessage();
-            // Show the links straight away. Someone opening their private link is
-            // usually doing it to find or re-copy it, and the panel is the only
-            // place on the page that offers it.
-            showPostSavePanel(order.phone_ending, 'loaded', order);
+            // The header Track link is the only other place that needs the token.
+            const trackLinkNow = $('headerTrackLink');
+            if (trackLinkNow) trackLinkNow.href = buildTrackUrl(state.currentEditingToken) || 'track.html';
+            // The private link is rendered inside the summary card by
+            // showSummaryView, so there is nothing extra to show here.
         } catch (err) {
             console.error(err);
             hideSummaryShowForm();
@@ -1662,6 +1629,7 @@
         const notice = document.createElement('div');
         notice.className = 'missing-order-notice found-orders-panel';
         notice.innerHTML = ''
+            + '<button class="missing-order-close" onclick="dismissFoundOrdersNotice()" aria-label="Close">&#10005;</button>'
             + '<div class="missing-order-title">This link is no longer valid</div>'
             + '<div class="missing-order-body">'
             + 'For everyone\'s privacy, order links now use a private code instead of a sequential order number. '
@@ -1672,35 +1640,37 @@
             + (waNumber
                 ? '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + text + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>'
                 : '')
-            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">Start a new order</button>'
+            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">&#10024; Start a new order</button>'
             + '</div>';
-        document.body.appendChild(notice);
+        attachNoticeBackdrop(notice);
         const bar = $('checkoutBar');
         if (bar) bar.classList.add('hidden');
     }
 
     function showMissingOrderNotice() {
-        const existing = document.querySelector('.missing-order-notice');
-        if (existing) existing.remove();
+        dismissFoundOrdersNotice();
         const notice = document.createElement('div');
         notice.className = 'missing-order-notice';
         const waNumber = getWhatsAppNumber();
         const waText = encodeURIComponent('Hi, I clicked my order link and it says the order is no longer valid. Can you check for me?');
         notice.innerHTML = ''
+            + '<button class="missing-order-close" onclick="dismissMissingOrderNotice()" aria-label="Close">&#10005;</button>'
             + '<div class="missing-order-title">This order link is no longer valid</div>'
             + '<div class="missing-order-body">The order this link points to has been removed or does not exist. If you recently placed an order and need help, please message us on WhatsApp.</div>'
             + '<div class="missing-order-actions">'
             + '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + waText + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>'
-            + '  <button class="missing-order-btn secondary" onclick="dismissMissingOrderNotice()">Start a new order</button>'
+            + '  <button class="missing-order-btn secondary" onclick="dismissMissingOrderNotice()">&#10024; Start a new order</button>'
             + '</div>';
-        document.body.appendChild(notice);
+        attachNoticeBackdrop(notice);
         const bar = $('checkoutBar');
         if (bar) bar.classList.add('hidden');
     }
 
     function dismissMissingOrderNotice() {
         const notice = document.querySelector('.missing-order-notice');
+        const backdrop = document.querySelector('.notice-backdrop');
         if (notice) notice.remove();
+        if (backdrop) { backdrop.remove(); BodyLock.unlock(); }
         resetFormForNewOrder();
         const bar = $('checkoutBar');
         if (bar) bar.classList.remove('hidden');
@@ -1716,7 +1686,7 @@
         const placeholder = document.createElement('option');
         placeholder.value = '';
         placeholder.disabled = true;
-        placeholder.textContent = 'â€” Please select card â€”';
+        placeholder.textContent = '— Please select card —';
         if (!currentValue) placeholder.selected = true;
         sdSelect.appendChild(placeholder);
 
@@ -1795,7 +1765,7 @@
             return;
         }
 
-        // Repair Only: no SD, no games â€” just repairs
+        // Repair Only: no SD, no games — just repairs
         if (isRepairOnly) {
             $('consoleModelGroup').style.display = 'flex'; // model affects per_model repair prices
             $('sdSourceGroup').style.display = 'none';
@@ -1876,7 +1846,7 @@
         var modelHint = $('consoleModelHint');
         if (modelHint) {
             if (isRepairOnly) {
-                modelHint.textContent = 'Select your Switch model â€” repair prices vary by model';
+                modelHint.textContent = 'Select your Switch model — repair prices vary by model';
             } else if (serviceType === 'jailbreak') {
                 modelHint.textContent = 'Select your Switch model variant (affects jailbreak + repair pricing)';
             } else if (serviceType === 'system_setup') {
@@ -1919,7 +1889,7 @@
             state.isStorageConfigured = hasFreeSpace;
 
             if (hasFreeSpace) {
-                // Free space given â†’ unlock game list
+                // Free space given → unlock game list
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.remove('locked');
@@ -1928,7 +1898,7 @@
                 state.selectedGames.forEach(s => gSize += s);
                 $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
             } else {
-                // No free space â†’ freeze game list, clear any games, update-only state
+                // No free space → freeze game list, clear any games, update-only state
                 freeInput.classList.remove('required-missing');
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.add('locked');
@@ -2096,7 +2066,6 @@
         updateSdLimit();
         filterGames();
         hideEditModeBanner();
-        closePostSavePanel();
         const trackLink = $('headerTrackLink');
         if (trackLink) trackLink.href = 'track.html';
         hideSummaryShowForm();
@@ -2150,7 +2119,7 @@
             const noticeId = 'hiddenNotice_' + Date.now() + Math.random().toString(36).slice(2);
             const notice = document.createElement('div');
             notice.className = 'hidden-games-notice';
-            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden â€” won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
+            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
             container.appendChild(notice);
 
             const hiddenContainer = document.createElement('div');
@@ -2294,7 +2263,7 @@
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> â€” you can select <strong>${3 - count} more</strong>.`, nudge: '' };
+            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`, nudge: '' };
             if (count === 3) return empty;
             if (count > 13 && count < 23) { const rem = 23 - count; return { hasWarning: true, targetCount: 23, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`, nudge: { remaining: rem, rate: 'RM2.50' } }; }
             if (count === 23) return empty;
@@ -2342,13 +2311,13 @@
         if (serviceType === 'repair_only') {
             subHtml = repairInfo.count === 0 ? 'Select your repairs above' : 'Tap to review and add remarks';
         } else if (tierRec.hasWarning && tierRec.nudge) {
-            subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> â€” ' + tierRec.nudge.rate + '/game rate Â· Tap to review';
+            subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> — ' + tierRec.nudge.rate + '/game rate · Tap to review';
         } else if (tierRec.hasWarning && tierRec.remaining > 0 && (serviceType === 'jailbreak' || serviceType === 'system_setup') && count < 3) {
-            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) Â· Tap to review`;
+            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) · Tap to review`;
         } else if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             if (count === 0) subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
-            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) Â· Tap to review`;
-            else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) Â· Tap to review`; }
+            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
+            else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`; }
         } else {
             subHtml = 'Tap here to review & add remarks';
         }
@@ -2466,34 +2435,66 @@
         const panel = document.createElement('div');
         panel.className = 'missing-order-notice found-orders-panel';
         panel.innerHTML = ''
+            + '<button class="missing-order-close" onclick="dismissFoundOrdersNotice()" aria-label="Close">&#10005;</button>'
             + '<div class="missing-order-title">We found ' + orders.length + ' order' + (orders.length > 1 ? 's' : '') + ' on this number</div>'
             + '<div class="missing-order-body">'
             + 'For everyone\'s privacy, a phone number only ever shows progress &mdash; not the order itself. '
-            + 'To see full details or make changes, open the private link we sent you. '
-            + 'That link is the only thing that opens an order, so nobody can reach yours by guessing a number.'
+            + 'To see full details or make changes, open the private link we sent you.'
             + '</div>'
             + '<div class="order-pick-list">' + list + '</div>'
             + '<div class="missing-order-actions">'
             + (active.length
                 ? '  <a class="missing-order-btn secondary" href="' + trackUrl + '">Check progress</a>'
                 : '')
-            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">Start a new order</button>'
+            + '  <button class="missing-order-btn secondary" onclick="dismissFoundOrdersNotice()">&#10024; Start a new order</button>'
             + (waNumber
                 ? '  <a class="missing-order-btn whatsapp" href="https://wa.me/' + waNumber + '?text=' + waText + '" target="_blank" rel="noopener noreferrer">Send me my link</a>'
                 : '')
             + '</div>';
 
-        document.body.appendChild(panel);
+        attachNoticeBackdrop(panel);
         const bar = $('checkoutBar');
         if (bar) bar.classList.add('hidden');
         setStatusMessage('Found your order. Open your private link to view or change it.', '#00e676', 8000);
     }
 
+    // Every .missing-order-notice card behaves like a modal, so they all need
+    // the same backdrop: it freezes the page underneath (BodyLock fixes the body
+    // in place so the scroll position is not lost) and swallows a tap outside.
+    // Without it the page behind scrolls under the card and there is no obvious
+    // way out.
+    function attachNoticeBackdrop(panel, onOutsideTap) {
+        document.querySelectorAll('.notice-backdrop').forEach(function (el) { el.remove(); });
+        const backdrop = document.createElement('div');
+        backdrop.className = 'notice-backdrop';
+        backdrop.addEventListener('click', function () {
+            if (typeof onOutsideTap === 'function') onOutsideTap();
+            else dismissFoundOrdersNotice();
+        });
+        document.body.appendChild(backdrop);
+        document.body.appendChild(panel);
+        BodyLock.lock();
+    }
+
+    // Escape has to work too, but only for these cards: the cart modal and the
+    // remarks modal are separate flows and must keep their own behaviour.
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape' && e.key !== 'Esc') return;
+        if (!document.querySelector('.missing-order-notice')) return;
+        const card = document.querySelector('.missing-order-notice');
+        if (card.classList.contains('found-orders-panel')) dismissFoundOrdersNotice();
+        else dismissMissingOrderNotice();
+    });
+
     // Removes whichever "card" notice is on screen. These cards are mutually
     // exclusive by nature, and they all share .missing-order-notice, so this
     // clears every one of them rather than only our own.
     function dismissFoundOrdersNotice() {
-        document.querySelectorAll('.missing-order-notice').forEach(function (el) { el.remove(); });
+        const cards = document.querySelectorAll('.missing-order-notice');
+        const backdrops = document.querySelectorAll('.notice-backdrop');
+        cards.forEach(function (el) { el.remove(); });
+        backdrops.forEach(function (el) { el.remove(); });
+        if (backdrops.length) BodyLock.unlock();
         const bar = $('checkoutBar');
         if (bar) bar.classList.remove('hidden');
     }
@@ -2572,9 +2573,20 @@
         btn.textContent = state.currentEditingOrderId ? 'Save Changes' : 'Place Order';
     }
 
+    // Whether the form has enough filled in to open the review modal.
+    // state.isStorageConfigured means "the customer has typed a free-space
+    // number", which is what the game list needs in order to cap a selection.
+    // It is deliberately not reused here: on a System Update the games are
+    // optional, so a blank storage box must not stop someone booking the
+    // update on its own.
+    function canProceedToReview() {
+        if (valOf('serviceTypeSelect') === 'system_update') return true;
+        return state.isStorageConfigured;
+    }
+
     function openCartModal() {
         if (!validatePhoneProvided()) return;
-        if (!state.isStorageConfigured) { alert('Please complete your configuration (service type, model, storage) before proceeding!'); return; }
+        if (!canProceedToReview()) { alert('Please complete your configuration (service type, model, storage) before proceeding!'); return; }
         const serviceType = valOf('serviceTypeSelect');
         if (serviceType === 'repair_only' && state.selectedRepairs.size === 0) {
             alert('Please select at least one repair to continue.');
@@ -2615,7 +2627,7 @@
         let servicePrice = details.serviceBasePrice;
         if (serviceType === 'jailbreak') { serviceLabel = `Full Jailbreak (${consoleModel})`; serviceSub = 'Console modification + 3 games included'; }
         else if (serviceType === 'system_setup') { serviceLabel = 'System Setup'; serviceSub = 'Console modding & configuration + 3 games included'; }
-        else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod â€” no SD config needed'; }
+        else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod — no SD config needed'; }
         else if (serviceType === 'repair_only') {
             serviceLabel = 'Repair Service';
             const hasPaid = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
@@ -2699,7 +2711,7 @@
 
             const gamesSummary = document.createElement('summary');
             gamesSummary.className = 'cart-details-summary';
-            gamesSummary.innerHTML = `<span>Selected Games (${count} Â· ${gSize.toFixed(1)} GB)</span><span class="chev">â–¼</span>`;
+            gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
             gamesDetails.appendChild(gamesSummary);
 
             const gamesBody = document.createElement('div');
@@ -2749,8 +2761,8 @@
         const remarksSummary = document.createElement('summary');
         remarksSummary.className = 'cart-details-summary';
         const hasContent = (state.savedRemarksText || '').trim().length > 0;
-        const label = hasContent ? 'Add Remarks Â· <span style="color:#ffc000; font-size:12px;">(has content)</span>' : 'Add Remarks (Optional)';
-        remarksSummary.innerHTML = `<span>${label}</span><span class="chev">â–¼</span>`;
+        const label = hasContent ? 'Add Remarks · <span style="color:#ffc000; font-size:12px;">(has content)</span>' : 'Add Remarks (Optional)';
+        remarksSummary.innerHTML = `<span>${label}</span><span class="chev">▼</span>`;
         remarksDetails.appendChild(remarksSummary);
 
         const remarksBody = document.createElement('div');
@@ -2797,9 +2809,9 @@
         if (state.selectedRepairs.size > 0) {
             state.selectedRepairs.forEach(r => {
                 if (r.isQuote) {
-                    html += `<div class="price-breakdown-row repair-row quote-row"><span>ðŸ”§ ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
+                    html += `<div class="price-breakdown-row repair-row quote-row"><span>🔧 ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
                 } else {
-                    html += `<div class="price-breakdown-row repair-row"><span>ðŸ”§ ${escapeHtml(r.name)}</span><span>RM${r.price}</span></div>`;
+                    html += `<div class="price-breakdown-row repair-row"><span>🔧 ${escapeHtml(r.name)}</span><span>RM${r.price}</span></div>`;
                 }
             });
         }
@@ -2809,7 +2821,7 @@
             if (isJbOrSetup) {
                 const c = Math.max(0, count - 3);
                 const freePart = state.freeGamesCount > 0 ? `, ${state.freeGamesCount} free` : '';
-                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} Â· 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
+                html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             } else {
                 const freePart = state.freeGamesCount > 0 ? ` (${state.freeGamesCount} free)` : '';
                 html += `<div class="price-breakdown-row"><span>Games Installation${freePart} (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
@@ -2888,44 +2900,7 @@
         BodyLock.unlock();
     }
 
-    // mode 'saved' = we just placed it, 'loaded' = the customer arrived on their
-    // own private link. Both need the links on screen: arriving on the link is
-    // exactly when someone wants to copy it again or send it to another device.
-    function showPostSavePanel(phone, mode, order) {
-        const panel = $('postSavePanel');
-        if (!panel) return;
-        const editUrl = buildShareUrl();
-        const trackUrl = buildTrackUrl(state.currentEditingToken);
-        const current = order || state.loadedOrderForSummary;
-        // A customer can only change or cancel an order while the shop has not
-        // started work, so on a locked order that button leads nowhere. Checked
-        // in every mode: save_order refuses cancelled orders server-side, but the
-        // button should never be offered for one either.
-        const locked = !!current && isOrderLocked(current);
-
-        // Arriving on your own link is not a save. One row is enough there; the
-        // full panel otherwise covers half the screen on every single visit.
-        panel.classList.toggle('compact', mode === 'loaded');
-
-        if (mode === 'loaded') {
-            $('postSaveTitle').textContent = 'Your private link';
-            $('postSaveDesc').textContent = '';
-        } else {
-            $('postSaveTitle').textContent = 'Order saved';
-            $('postSaveDesc').textContent =
-                'Your order has been submitted. We\'ll be in touch on WhatsApp to arrange drop-off. ' +
-                'Save the link below to edit it later, or track its progress at any time.';
-        }
-
-        $('postSaveEditInput').value = editUrl;
-        $('postSaveTrackInput').value = trackUrl;
-        $('postSaveTrackBtn').href = trackUrl || 'track.html';
-        $('postSaveEditBtn').href = editUrl || window.location.pathname;
-        $('postSaveEditBtn').style.display = locked ? 'none' : '';
-        const trackLink = $('headerTrackLink');
-        if (trackLink) trackLink.href = trackUrl || 'track.html';
-        panel.style.display = 'block';
-    }
+    
 
     // Put the token in the address bar. Without this, a refresh or a bookmark
     // after saving drops the customer back on an empty form and the order is
@@ -2937,25 +2912,9 @@
         } catch (e) { /* history is not essential here */ }
     }
 
-    function closePostSavePanel() {
-        const panel = $('postSavePanel');
-        if (panel) panel.style.display = 'none';
-    }
-
-    function copyPostSaveLink(kind, btnEl) {
-        const inputId = kind === 'edit' ? 'postSaveEditInput' : 'postSaveTrackInput';
-        const value = $(inputId).value || '';
-        if (!value) return;
-        navigator.clipboard.writeText(value).then(() => {
-            const orig = btnEl.textContent;
-            btnEl.textContent = 'Copied';
-            btnEl.style.background = '#00c853';
-            setTimeout(() => { btnEl.textContent = orig; btnEl.style.background = '#00e676'; }, 1800);
-        }).catch(err => alert('Failed to copy: ' + err));
-    }
 
     async function submitOrUpdateOrder() {
-        if (!state.isStorageConfigured) { alert('Please complete your configuration (service type, model, storage) before saving.'); closeCartModal(); return; }
+        if (!canProceedToReview()) { alert('Please complete your configuration (service type, model, storage) before saving.'); closeCartModal(); return; }
 
         const serviceType = valOf('serviceTypeSelect');
         if (!serviceType) return alert('Please select a Service Type first.');
@@ -2981,7 +2940,7 @@
         if (tierRec.hasWarning && tierRec.msg) {
             let msg;
             if (isJbOrSetup && count < 3) msg = `You've selected ${count} game(s), but your ${submitLabel} package includes 3 games at no extra cost.\n\nPick ${tierRec.remaining} more to use the full allocation, or save now with ${count} game(s)?`;
-            else msg = `You've selected ${count} games.\n\nAdd ${tierRec.remaining} more to unlock the lower rate â€” every game you've picked gets cheaper.\n\nSave now with ${count} games, or go back and add more?`;
+            else msg = `You've selected ${count} games.\n\nAdd ${tierRec.remaining} more to unlock the lower rate — every game you've picked gets cheaper.\n\nSave now with ${count} games, or go back and add more?`;
             if (!confirm(msg)) return;
         }
 
@@ -3035,7 +2994,7 @@
             const nowIso = new Date().toISOString();
 
             // The only columns the public anon key may write. The database
-            // rejects anything outside this list with a 401 â€” see
+            // rejects anything outside this list with a 401 — see
             // supabase_rls_policies.sql. Keep in sync with the GRANT there.
             const customerEdits = {
                 phone_ending: phone,
@@ -3109,7 +3068,15 @@
             closeCartModal();
             setStatusMessage('Order successfully saved.', '#00e676', 5000);
             showEditModeBanner();
-            showPostSavePanel(phone, 'saved');
+            // Re-read the order so the summary shows what the database actually
+            // stored (including the shop's own pricing) and carries the private
+            // link inline. Falling back to the form on failure keeps a successful
+            // save from being reported as a failure.
+            try {
+                await loadOrderByToken(state.currentEditingToken);
+            } catch (e) {
+                hideSummaryShowForm();
+            }
             shareOrderViaWhatsApp();
         } catch (err) {
             console.error(err);
@@ -3160,7 +3127,7 @@
         if (state.selectedRepairs.size > 0) {
             msg += `\n*Repair Jobs:*\n`;
             state.selectedRepairs.forEach(r => {
-                msg += `â€¢ ${r.name} â€” ${r.isQuote ? 'TBC after inspection' : 'RM' + r.price}\n`;
+                msg += `• ${r.name} — ${r.isQuote ? 'TBC after inspection' : 'RM' + r.price}\n`;
             });
         }
 

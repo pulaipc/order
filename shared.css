@@ -1,0 +1,85 @@
+/* ==========================================================================
+   Shared button scale for index.html, track.html and admin.html.
+
+   Every button takes its height, padding, font and radius from these custom
+   properties, so the three pages cannot drift apart again. 42px is the everyday
+   height: still a safe tap target on a phone, but noticeably slimmer than the
+   46-48px these buttons used to be.
+
+   Without box-sizing the min-height below would be a CONTENT height and the
+   padding would be added on top, which is why buttons used to render about 20px
+   taller than the size they asked for.
+   ========================================================================== */
+
+:root {
+    --btn-h: 42px;
+    --btn-h-lg: 46px;
+    --btn-h-sm: 34px;
+    --btn-pad: 10px 14px;
+    --btn-pad-lg: 12px 18px;
+    --btn-font: 13px;
+    --btn-font-lg: 14px;
+    --btn-radius: 6px;
+}
+
+button,
+a[role="button"],
+.btn-action,
+.summary-btn,
+.missing-order-btn,
+.no-active-btn,
+.load-order-btn,
+.browse-games-btn,
+.submit-btn,
+.remove-btn,
+.clear-btn,
+.clear-search-btn,
+.copy-link-btn,
+.guide-btn,
+.close-modal,
+.back-to-orders-btn,
+.refresh-btn,
+.copy-link-header-btn,
+.shipping-btn,
+.wa-btn,
+.action-btn,
+.adjust-save-btn,
+.adjust-reset-btn,
+.missing-order-close {
+    box-sizing: border-box;
+}
+
+/* The header nav, identical on the customer pages. */
+.btn-action {
+    background: #2e2716;
+    color: #ffc000;
+    border: 1px solid #3a3018;
+    padding: var(--btn-pad);
+    min-height: var(--btn-h);
+    border-radius: var(--btn-radius);
+    cursor: pointer;
+    font-weight: bold;
+    font-family: inherit;
+    font-size: var(--btn-font);
+    line-height: normal;
+    transition: all 0.2s;
+    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-action:hover {
+    background: #ffc000;
+    color: #14110a;
+    border-color: #ffc000;
+}
+
+/* On the narrowest phones, trim the horizontal padding only. Shrinking the font
+   or the height here would take the tap targets below what is comfortable. */
+@media (max-width: 380px) {
+    .btn-action {
+        padding: var(--btn-pad) 10px;
+    }
+}
