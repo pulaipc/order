@@ -99,7 +99,12 @@
         .summary-btn.secondary:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
         .summary-btn.whatsapp { background: #25D366; color: #fff; border: 1px solid #25D366; }
         .summary-btn.whatsapp:hover { background: #1eaa52; border-color: #1eaa52; }
-        .summary-btn.cancel { background: transparent; color: #e57373; border: 1px solid #4a2525; }
+        /* margin-left:auto pins Cancel to the far right of the actions row, so the
+           destructive action never sits shoulder-to-shoulder with Edit Order.
+           Matches how Delete Order is right-aligned in the admin modal footer.
+           Still holds when the row wraps: Cancel then leads its own line,
+           pushed to the same right edge. */
+        .summary-btn.cancel { background: transparent; color: #e57373; border: 1px solid #4a2525; margin-left: auto; }
         .summary-btn.cancel:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
         .locked-notice { background: #2a1e0a; border: 1px solid #7a5420; border-left: 4px solid #ffb74d; border-radius: 6px; padding: 12px 14px; font-size: 12.5px; color: #ffd9a0; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; }
@@ -220,7 +225,7 @@
 
         .field-hint { font-size: 11px; color: #8a8272; margin-top: 4px; line-height: 1.35; }
         .storage-warning-banner { background: #2a1e0a; border: 1px solid #7a5420; color: #ffd9a0; padding: 12px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: flex; align-items: flex-start; gap: 10px; line-height: 1.45; }
-        .storage-warning-banner .warning-icon { font-size: 18px; flex-shrink: 0; }
+        .storage-warning-banner .warning-icon { font-size: inherit; line-height: inherit; flex-shrink: 0; }
         .tier-warning-banner { background: #2d2612; border: 1px solid #7a6820; color: #fff8e1; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 15px; display: none; align-items: flex-start; gap: 10px; line-height: 1.45; }
 
         /* ===== REPAIR SECTION ===== */
@@ -1350,7 +1355,7 @@
             html += '<div class="cancelled-banner" style="margin-top:0;"><span class="icon">' + svgXIcon(22) + '</span><div class="msg"><strong>Order Cancelled.</strong><br>This order has been cancelled. If you believe this is a mistake, message us on WhatsApp and we\'ll help.</div></div>';
             html += '<div class="summary-actions">';
             html += '<a class="summary-btn whatsapp" href="' + waUrlC + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
-            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">&#10024; Start New Order</button>';
             html += '</div>';
         } else if (isCompleted) {
             const waNumberDone = getWhatsAppNumber();
@@ -1358,7 +1363,7 @@
             const waUrlDone = 'https://wa.me/' + waNumberDone + '?text=' + encodeURIComponent(prefillDone);
             html += '<div class="completed-banner" style="margin-top:0;"><span class="icon">' + svgCheckIcon(22) + '</span><div class="msg"><strong>Order complete.</strong><br>Thanks for your business. If you need anything else, message us or start a new order below.</div></div>';
             html += '<div class="summary-actions">';
-            html += '<button class="summary-btn primary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '<button class="summary-btn primary" onclick="resetFormForNewOrder()">&#10024; Start New Order</button>';
             html += '<a class="summary-btn secondary" href="' + waUrlDone + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '</div>';
         } else if (locked) {
@@ -1370,14 +1375,14 @@
             const waUrl = 'https://wa.me/' + waNumber + '?text=' + encodeURIComponent(prefill);
             html += '<a class="summary-btn whatsapp" href="' + waUrl + '" target="_blank" rel="noopener noreferrer">Message us on WhatsApp</a>';
             html += '<a class="summary-btn secondary" href="' + (buildTrackUrl(state.currentEditingToken) || 'track.html?phone=' + encodeURIComponent(order.phone_ending || '')) + '">Track Progress</a>';
-            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">&#10024; Start New Order</button>';
             html += '</div>';
         } else {
             html += privateLinkBlockHtml();
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';
             html += '<a class="summary-btn secondary" href="' + (buildTrackUrl(state.currentEditingToken) || 'track.html?phone=' + encodeURIComponent(order.phone_ending || '')) + '">Track Progress</a>';
-            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">Start New Order</button>';
+            html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">&#10024; Start New Order</button>';
             if (cancellable) html += '<button class="summary-btn cancel" onclick="cancelOrder()">Cancel Order</button>';
             html += '</div>';
         }
@@ -1613,6 +1618,17 @@
             if (trackLinkNow) trackLinkNow.href = buildTrackUrl(state.currentEditingToken) || 'track.html';
             // The private link is rendered inside the summary card by
             // showSummaryView, so there is nothing extra to show here.
+
+            // ?edit=1 comes from the Tracker's "Edit Order" button: it lands the
+            // customer straight in the form instead of making them press Edit
+            // Order on the summary first. Guarded by the same lock the button
+            // itself is hidden behind, so a stale link can never drop someone into
+            // the form of an order that has moved on. Read the param here rather
+            // than reusing the init function's, which is out of scope.
+            const deepLinkEdit = new URLSearchParams(window.location.search).get('edit') === '1';
+            if (deepLinkEdit && !isOrderLocked(order)) {
+                switchToEditForm();
+            }
         } catch (err) {
             console.error(err);
             hideSummaryShowForm();
@@ -1959,8 +1975,11 @@
             warningText.innerHTML = msg;
             gameWrapper.classList.add('locked');
             submitBtn.disabled = true;
-            const plain = msg.replace(/<[^>]+>/g, '');
-            breakdown.innerHTML = `<span style="display:flex; align-items:center; gap:6px; line-height:1.4;"><span>&#9432;</span><span>${plain}</span></span>`;
+            // The banner above already says exactly what is missing. This used to
+            // repeat the same sentence in the checkout bar, so it appeared twice
+            // on one screen; the bar keeps its own job and just reports that
+            // storage is not configured yet.
+            breakdown.innerHTML = '<span>Storage: <span style="color:#8a8272;">not set yet</span></span>';
             updateCartSummary();
         };
 

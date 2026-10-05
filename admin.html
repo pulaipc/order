@@ -551,6 +551,39 @@
             border-color: #ffc000;
         }
 
+        /* ===== CUSTOMER LINKS =====
+           The two links a customer is ever sent: their order page and the
+           tracker. Shown as copyable text rather than hidden behind one button,
+           because these get pasted into WhatsApp by hand, and reading the link
+           back is how you tell two orders apart. */
+        .link-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+        .link-row + .link-row { margin-top: 9px; }
+        .link-row .lbl { flex: 0 0 100%; font-size: 11px; color: #8fb8d8; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 2px; }
+        .link-input {
+            flex: 1 1 180px; min-width: 0;
+            padding: 9px 11px; background: #0d1620;
+            border: 1px solid #3a5a72; color: #7dd3fc;
+            border-radius: 5px; font-size: 12px;
+            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+            box-sizing: border-box;
+        }
+        .link-input:focus { border-color: #7dd3fc; outline: none; }
+        .link-input:disabled { opacity: 0.45; }
+        .link-copy-btn {
+            flex: 0 0 auto;
+            background: #7dd3fc; color: #14110a; border: none;
+            padding: var(--btn-pad); min-height: var(--btn-h);
+            border-radius: var(--btn-radius); cursor: pointer;
+            font-family: inherit; font-size: var(--btn-font); font-weight: bold;
+            transition: background 0.2s, opacity 0.2s;
+            white-space: nowrap;
+            display: inline-flex; align-items: center; justify-content: center;
+            box-sizing: border-box;
+        }
+        .link-copy-btn:hover:not(:disabled) { background: #a4e2fc; }
+        .link-copy-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .link-note { margin-top: 9px; font-size: 11.5px; color: #8a8272; line-height: 1.5; }
+
         /* ===== ORDER EDITOR =====
            The admin can change any part of an order and its price in one go.
            It exists because the only other way to change an order is the
@@ -1140,6 +1173,27 @@
                     </div>
                 </div>
 
+                <!-- CUSTOMER LINKS -->
+                <div class="modal-section">
+                    <div class="modal-section-title">
+                        <span>Customer Links</span>
+                        <span style="font-size:11px;color:#6a6357;">The only way this customer can open the order</span>
+                    </div>
+                    <div class="link-row">
+                        <span class="lbl">View &amp; edit order</span>
+                        <input type="text" class="link-input" id="modalOrderLinkInput" readonly onclick="this.select();">
+                        <button class="link-copy-btn" id="modalOrderLinkBtn" onclick="copyModalLink('modalOrderLinkInput', 'modalOrderLinkBtn')">Copy</button>
+                    </div>
+                    <div class="link-row">
+                        <span class="lbl">Track progress</span>
+                        <input type="text" class="link-input" id="modalTrackLinkInput" readonly onclick="this.select();">
+                        <button class="link-copy-btn" id="modalTrackLinkBtn" onclick="copyModalLink('modalTrackLinkInput', 'modalTrackLinkBtn')">Copy</button>
+                    </div>
+                    <div class="link-note" id="modalLinksNote" style="display:none;">
+                        This order has no private link yet. Save the order once and the links appear here.
+                    </div>
+                </div>
+
                 <!-- SERVICE -->
                 <div class="modal-section">
                     <div class="modal-section-title">
@@ -1342,7 +1396,6 @@
                     <div>
                         <button class="notify-btn" id="modalNotifyBtn" onclick="notifyCustomerFromModal()">Notify on WhatsApp</button>
                         <button class="action-btn" id="modalViewTrackingBtn" onclick="openTrackingFromModal()">View Tracking</button>
-                        <button class="action-btn" id="modalCopyLinkBtn" onclick="copyPrivateLinkFromModal()">Copy Private Link</button>
                     </div>
                     <div>
                         <button class="delete-btn" onclick="deleteOrderFromModal()">Delete Order</button>
@@ -1536,13 +1589,33 @@
         window.open(url, '_blank', 'noopener,noreferrer');
     }
 
-    // Since the id stopped working as a link, this is how a customer gets back
-    // into an order they no longer have the link for.
-    function copyPrivateLinkFromModal() {
-        if (!currentModalOrder) return;
-        var url = buildTrackingUrl(currentModalOrder);
-        if (!url) { alert('This order has no private link yet. Save the order once and try again.'); return; }
-        var btn = document.getElementById('modalCopyLinkBtn');
+    // Since the id stopped working as a link, these two are the only way a
+    // customer gets back into an order. They are shown as text rather than
+    // copied straight to the clipboard, because the shop pastes them into
+    // WhatsApp by hand and needs to see which link is which.
+    function renderModalLinks(order) {
+        var orderUrl = buildEditUrl(order);
+        var trackUrl = buildTrackingUrl(order);
+        var orderInput = document.getElementById('modalOrderLinkInput');
+        var trackInput = document.getElementById('modalTrackLinkInput');
+        var orderBtn = document.getElementById('modalOrderLinkBtn');
+        var trackBtn = document.getElementById('modalTrackLinkBtn');
+        var note = document.getElementById('modalLinksNote');
+
+        orderInput.value = orderUrl || '';
+        trackInput.value = trackUrl || '';
+        // A disabled button with no explanation reads as a broken page, so the
+        // reason is spelled out underneath instead.
+        orderBtn.disabled = !orderUrl;
+        trackBtn.disabled = !trackUrl;
+        note.style.display = orderUrl ? 'none' : '';
+    }
+
+    function copyModalLink(inputId, btnId) {
+        var input = document.getElementById(inputId);
+        if (!input || !input.value) return;
+        var url = input.value;
+        var btn = document.getElementById(btnId);
         var original = btn ? btn.textContent : '';
         var done = function () {
             if (!btn) return;
@@ -3080,6 +3153,10 @@
 
         document.getElementById('modalEditWaBtn').onclick = function() { editWhatsappUsername(orderId); };
         document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(orderId); };
+
+        // Customer links. Rendered from the order's own token, so a stale
+        // currentModalOrder can never leak into the next modal.
+        renderModalLinks(order);
 
         // Repairs
         renderModalRepairs(order);

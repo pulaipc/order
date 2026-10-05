@@ -110,6 +110,22 @@
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .copy-link-header-btn { background: #2e2716; color: #7dd3fc; border: 1px solid #3a3018; padding: var(--btn-pad); min-height: var(--btn-h); border-radius: var(--btn-radius); cursor: pointer; font-size: var(--btn-font); font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; white-space: nowrap; }
         .copy-link-header-btn:hover { background: #7dd3fc; color: #14110a; border-color: #7dd3fc; }
+        /* Opens the order itself, so it only exists when a private token does. */
+        .edit-order-header-btn { background: #2e2716; color: #00e676; border: 1px solid #1f5c3a; padding: var(--btn-pad); min-height: var(--btn-h); border-radius: var(--btn-radius); cursor: pointer; font-size: var(--btn-font); font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; white-space: nowrap; text-decoration: none; }
+        .edit-order-header-btn:hover { background: #00e676; color: #14110a; border-color: #00e676; }
+        .view-order-header-btn { background: #2e2716; color: #ffc000; border: 1px solid #3a3018; padding: var(--btn-pad); min-height: var(--btn-h); border-radius: var(--btn-radius); cursor: pointer; font-size: var(--btn-font); font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; white-space: nowrap; text-decoration: none; }
+        .view-order-header-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
+        /* Sits directly under the stage description, so "No action needed yet"
+           reads as "nothing needed from you" rather than "nothing you can do". */
+        .edit-window-notice { background: #16221a; border: 1px solid #1f5c3a; border-left: 4px solid #00e676; border-radius: 6px; padding: 12px 14px; margin-top: 14px; font-size: 13px; color: #c8f0d8; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; box-sizing: border-box; }
+        .edit-window-notice-icon { flex-shrink: 0; font-size: 13px; line-height: 1.55; }
+        .edit-window-notice a { color: #00e676; font-weight: 700; }
+        /* Cancel is destructive and rarely wanted, so it sits on its own quiet
+           row below the WhatsApp button instead of joining the header buttons. */
+        .cancel-order-btn { background: transparent; color: #e57373; border: 1px solid #4a2525; padding: var(--btn-pad); min-height: var(--btn-h); border-radius: var(--btn-radius); cursor: pointer; font-size: var(--btn-font); font-weight: bold; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s; white-space: nowrap; }
+        .cancel-order-btn:hover:not(:disabled) { background: #e57373; color: #14110a; border-color: #e57373; }
+        .cancel-order-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .cancel-order-note { margin-top: 8px; font-size: 11.5px; color: #8a8272; line-height: 1.5; }
 
         .main-progress { display: flex; justify-content: space-between; align-items: flex-start; position: relative; margin: 20px 0 8px; }
         .main-progress::before { content: ''; position: absolute; top: 20px; left: 8%; right: 8%; height: 3px; background: #2e2716; z-index: 0; border-radius: 2px; }
@@ -272,6 +288,8 @@
                     <div class="order-placed-line" id="summaryPlaced"></div>
                 </div>
                 <div class="result-header-actions">
+                    <a class="view-order-header-btn" id="viewOrderBtn" href="#" style="display:none;">View Order</a>
+                    <a class="edit-order-header-btn" id="editOrderBtn" href="#" style="display:none;">Edit Order</a>
                     <button class="copy-link-header-btn" id="copyLinkBtn" onclick="copyTrackerUrl(this)" title="Copy this tracking link">
                         Copy Link
                     </button>
@@ -299,6 +317,11 @@
                 <div class="current-stage-updated" id="currentStageUpdated"></div>
             </div>
 
+            <div id="editWindowNotice" class="edit-window-notice" style="display:none;">
+                <span class="edit-window-notice-icon">&#9998;</span>
+                <div>You can still change this order while it sits at <strong>Order Received</strong> &mdash; games, repairs, anything. Once we confirm the details with you it locks, and changes go through WhatsApp instead.<br><a href="#" id="editWindowLink">Edit this order</a></div>
+            </div>
+
             <div id="shippingContainer"></div>
 
             <div id="substagesContainer"></div>
@@ -307,6 +330,11 @@
                 <a id="waChatBtn" class="wa-btn" href="#" target="_blank" rel="noopener noreferrer">
                     Chat on WhatsApp
                 </a>
+            </div>
+
+            <div id="cancelOrderWrap" style="display:none; text-align: center; margin-top: 14px;">
+                <button class="cancel-order-btn" id="cancelOrderBtn" type="button" onclick="cancelTrackedOrder()">Cancel Order</button>
+                <div class="cancel-order-note">Changed your mind? You can cancel yourself before we confirm the details.</div>
             </div>
         </div>
 
@@ -532,6 +560,9 @@
                 currentOrders = [];
                 currentOrder = null;
                 currentOrderId = null;
+                // Same reset as the path below: a phone lookup must never leave a
+                // stale token behind, or Copy Link hands out the wrong order's link.
+                currentToken = null;
                 setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(phone));
                 setStatus('');
                 showNoActiveOrders(phone, all.length > 0);
@@ -564,6 +595,15 @@
         $('orderListCard').classList.remove('show');
         $('noActiveCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
+        // Same reset as resetOrderEditor on the order page: the token-only controls
+        // must not survive into a phone lookup, which never had a token.
+        ['viewOrderBtn', 'editOrderBtn'].forEach(id => {
+            $(id).style.display = 'none';
+            $(id).removeAttribute('href');
+        });
+        $('editWindowNotice').style.display = 'none';
+        $('editWindowLink').removeAttribute('href');
+        $('cancelOrderWrap').style.display = 'none';
     }
 
     function showNoActiveOrders(phone, hadAnyOrders, linkInvalid) {
@@ -858,6 +898,112 @@
         return html;
     }
 
+    /**
+     * Everything on this page that needs the private token.
+     *
+     * Driven by the order's own token and never by currentToken: a phone lookup
+     * can never produce one, and must not inherit a token left behind by an
+     * earlier private-link visit.
+     *
+     *   View Order - the order itself. Shown for any order we hold a token for,
+     *                locked or not, because a finished order is still worth reading.
+     *   Edit Order - the same page with ?edit=1, which drops the customer
+     *                straight into the form. Hidden once locked, because the order
+     *                page would then only show the locked notice pointing at WhatsApp.
+     *   notice     - spells out that the edit window closes once confirmed, so
+     *                "No action needed yet" is not read as "nothing you can do".
+     *   cancel     - self-service cancellation, on the tracker as well as the
+     *                order page. Same window as Edit, because both are refused
+     *                server-side once the shop has confirmed the details.
+     */
+    function updateOrderAccess(order) {
+        const token = order && order.public_token;
+        const locked = isOrderLocked(order);
+        const viewBtn = $('viewOrderBtn');
+        const editBtn = $('editOrderBtn');
+        const notice = $('editWindowNotice');
+        const noticeLink = $('editWindowLink');
+        const cancelWrap = $('cancelOrderWrap');
+
+        if (!token) {
+            [viewBtn, editBtn].forEach(b => { b.style.display = 'none'; b.removeAttribute('href'); });
+            notice.style.display = 'none';
+            noticeLink.removeAttribute('href');
+            cancelWrap.style.display = 'none';
+            return;
+        }
+
+        const base = 'index.html?t=' + encodeURIComponent(token);
+        viewBtn.href = base;
+        viewBtn.style.display = '';
+
+        if (locked) {
+            editBtn.style.display = 'none';
+            editBtn.removeAttribute('href');
+            notice.style.display = 'none';
+            noticeLink.removeAttribute('href');
+            cancelWrap.style.display = 'none';
+            return;
+        }
+
+        editBtn.href = base + '&edit=1';
+        editBtn.style.display = '';
+        noticeLink.href = base + '&edit=1';
+        notice.style.display = '';
+        cancelWrap.style.display = '';
+    }
+
+    /**
+     * Self-service cancellation from the tracker.
+     *
+     * Mirrors cancelOrder() on index.html: same RPC, same lock rule, same
+     * "cannot be undone" warning. The check here is only to save a pointless
+     * round trip - cancel_order re-checks server-side and simply reports back
+     * that the order is too far along.
+     */
+    async function cancelTrackedOrder() {
+        const order = currentOrder;
+        if (!order) return;
+
+        const token = order.public_token || currentToken;
+        if (!token || !isOrderCancellable(order)) {
+            setStatus('This order can no longer be cancelled here. Please message us on WhatsApp.', '#e57373', 6000);
+            return;
+        }
+
+        const confirmed = confirm("Cancel this order?\n\nThis can't be undone. You'll need to place a new order if you change your mind.");
+        if (!confirmed) return;
+
+        const btn = $('cancelOrderBtn');
+        if (btn) { btn.disabled = true; btn.textContent = 'Cancelling...'; }
+
+        try {
+            const { data, error } = await supabaseClient.rpc('cancel_order', { p_token: token });
+            if (error) throw error;
+            if (!data || data.cancelled !== true) {
+                setStatus('This order can no longer be cancelled here. Please message us on WhatsApp.', '#e57373', 6000);
+                return;
+            }
+
+            // Re-render from the local copy rather than re-fetching: the row we
+            // hold is the one that was just cancelled, and order_by_token is
+            // the only call that returns tokens anyway.
+            const nowIso = new Date().toISOString();
+            order.status = 'Cancelled';
+            order.progress_stage = 'Cancelled';
+            order.progress_updated_at = nowIso;
+            order.updated_at = nowIso;
+            currentOrder = order;
+            currentOrders = [order];
+            renderTracker(order);
+            setStatus('Order cancelled. Sorry to see you go.', '#e57373', 6000);
+        } catch (err) {
+            console.error(err);
+            setStatus('Could not cancel. Please try again or message us on WhatsApp.', '#e57373', 6000);
+            if (btn) { btn.disabled = false; btn.textContent = 'Cancel Order'; }
+        }
+    }
+
     function renderTracker(order) {
         $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
 
@@ -865,6 +1011,7 @@
         // The old ?order=<id> link is exactly what the token replaced, and
         // index.html now treats it as a dead link.
         setHeaderOrderPageLink(buildOrderFormUrl(order));
+        updateOrderAccess(order);
 
         const serviceLabels = {
             'jailbreak': `Full Jailbreak${order.console_model ? ' (' + order.console_model + ')' : ''}`,
