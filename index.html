@@ -2671,6 +2671,10 @@
         let serviceLabel = 'Games Installation Service';
         let serviceSub = `Client-Stated Free Space: ${freeStorage || 0} GB`;
         let servicePrice = details.serviceBasePrice;
+        // True only when a fee that exists was taken off (repair bench fee with a
+        // paid repair). Games Only has no base fee at all, so its zero price is
+        // normal and must not read as a discount.
+        let serviceFeeWaived = false;
         if (serviceType === 'jailbreak') { serviceLabel = `Full Jailbreak (${consoleModel})`; serviceSub = 'Console modification + 3 games included'; }
         else if (serviceType === 'system_setup') { serviceLabel = 'System Setup'; serviceSub = 'Console modding & configuration + 3 games included'; }
         else if (serviceType === 'system_update') { serviceLabel = 'System Update'; serviceSub = 'Update existing mod — no SD config needed'; }
@@ -2678,12 +2682,16 @@
             serviceLabel = 'Repair Service';
             const hasPaid = Array.from(state.selectedRepairs.values()).some(r => !r.isQuote && r.id !== 'diagnostic');
             serviceSub = hasPaid ? 'Bench fee waived (paid repair selected)' : 'Diagnostic / bench fee';
-            if (hasPaid) servicePrice = 0;
+            if (hasPaid) { servicePrice = 0; serviceFeeWaived = true; }
         }
+
+        const serviceRight = servicePrice > 0
+            ? `<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">RM${servicePrice}</span></div>`
+            : (serviceFeeWaived ? '<span class="lock-badge">Waived</span>' : '<span class="lock-badge">No service fee</span>');
 
         const sItem = document.createElement('div');
         sItem.className = 'cart-item fixed-item';
-        sItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">${serviceLabel}</span><span class="cart-item-sub">${serviceSub}</span></div>${servicePrice > 0 ? `<div style="display:flex; align-items:center; gap:8px; flex-shrink:0;"><span style="font-weight:bold; color:#ffc000;">RM${servicePrice}</span></div>` : '<span class="lock-badge">Waived</span>'}`;
+        sItem.innerHTML = `<div class="cart-item-details"><span class="cart-item-title">${serviceLabel}</span><span class="cart-item-sub">${serviceSub}</span></div>${serviceRight}`;
         body.appendChild(sItem);
 
         if (isJbOrSetup) {
