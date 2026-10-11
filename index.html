@@ -517,8 +517,8 @@
             </div>
             <div class="header-actions">
                 <a href="track.html" class="btn-action" id="headerTrackLink">Track Order</a>
-                <button type="button" class="btn-action" onclick="scrollToPricing()">Pricing</button>
-                <button type="button" class="btn-action" onclick="scrollToGames()">Games</button>
+                <button type="button" class="btn-action" id="headerPricingBtn" onclick="scrollToPricing()">Pricing</button>
+                <button type="button" class="btn-action" id="headerGamesBtn" onclick="scrollToGames()">Games</button>
             </div>
         </div>
 
@@ -911,6 +911,16 @@
         if (el && el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         else alert('Please complete your configuration first (phone, service type, storage).');
     }
+    // Pricing and Games are form-navigation buttons; their targets live inside
+    // #formView. While the order summary is showing the form is hidden, so both
+    // buttons would silently do nothing. Hide them for the duration of the
+    // summary instead of leaving dead controls in the header.
+    function setFormNavVisible(visible) {
+        ['headerPricingBtn', 'headerGamesBtn'].forEach(id => {
+            const btn = $(id);
+            if (btn) btn.style.display = visible ? '' : 'none';
+        });
+    }
 
     function svgXIcon(size) {
         size = size || 22;
@@ -1164,6 +1174,7 @@
         checkoutBar.classList.add('hidden');
         summaryEl.classList.add('active');
         document.body.classList.add('summary-active');
+        setFormNavVisible(false);
 
         // Prefer the private tracker link. Falling back to the phone lookup is
         // only correct when there is no token yet, which cannot happen for a
@@ -1194,7 +1205,7 @@
         gameList.forEach(name => {
             const found = sourceGames.find(g => g.name === name);
             const size = found ? found.size : 0;
-            totalGb += size;
+            totalGb += effectiveGb(size);
             gamesWithSize.push({ name: name, size: size });
         });
 
@@ -1287,7 +1298,7 @@
                 gamesWithSize.forEach(g => {
                     html += '<div class="summary-game-item">';
                     html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
-                    html += '<div class="summary-game-size">' + g.size.toFixed(1) + ' GB</div>';
+                    html += '<div class="summary-game-size">' + effectiveGb(g.size).toFixed(1) + ' GB</div>';
                     html += '</div>';
                 });
             }
@@ -1406,6 +1417,7 @@
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
         document.body.classList.remove('summary-active');
+        setFormNavVisible(true);
         setTimeout(() => {
             const configCard = $('configCard');
             if (configCard) configCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1418,6 +1430,7 @@
         $('formView').classList.remove('hidden');
         $('checkoutBar').classList.remove('hidden');
         document.body.classList.remove('summary-active');
+        setFormNavVisible(true);
         state.loadedOrderForSummary = null;
     }
 
@@ -1459,6 +1472,26 @@
 
     const SD_REAL_CAPACITY_FACTOR = 0.93;
 
+    // A game's real SD footprint after extraction/install is larger than its
+    // listed download size. Every size used to decide storage fit is buffered
+    // by this factor so a selection is never promised that cannot actually be
+    // installed. Prices stay on the listed size; only fit and display change.
+    const INSTALL_SIZE_BUFFER = 1.1;
+    function effectiveGb(rawGb) {
+        return Math.round((rawGb * INSTALL_SIZE_BUFFER) * 10) / 10;
+    }
+    // Installed footprint of every selected game (raw sizes are stored raw).
+    function selectedGamesFootprint() {
+        let total = 0;
+        state.selectedGames.forEach(s => total += effectiveGb(s));
+        return total;
+    }
+    // Short human label for the buffer, e.g. "installed ~10% bigger". Callers
+    // append it to totals so the customer can reconcile sizes with game lists.
+    function installBufferNote() {
+        return ' (after install ~' + Math.round((INSTALL_SIZE_BUFFER - 1) * 100) + '% bigger)';
+    }
+
     function computeUsableStorage() {
         const serviceType = valOf('serviceTypeSelect');
         if (serviceType === 'games_only') {
@@ -1489,8 +1522,7 @@
         const consoleModel = valOf('consoleModelSelect');
         const sdSource = valOf('sdSourceSelect');
 
-        let gSize = 0;
-        state.selectedGames.forEach(s => gSize += s);
+        const gSize = selectedGamesFootprint();
 
         // ===== SYSTEM UPDATE: no SD config, just free space + games =====
         if (serviceType === 'system_update') {
@@ -1499,14 +1531,14 @@
             if (userSpace <= 0) {
                 return 'Service: System Update | <span style="color:#8a8272;">Enter free GB above to add games, or leave blank for update only.</span>';
             }
-            return `Service: System Update | Stated Free Storage: ${userSpace} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(userSpace - gSize).toFixed(1)} GB</strong>`;
+            return `Service: System Update | Stated Free Storage: ${userSpace} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB${installBufferNote()}</strong> / Available Balance: <strong>${(userSpace - gSize).toFixed(1)} GB</strong>`;
         }
 
         // ===== GAMES ONLY =====
         if (serviceType === 'games_only') {
             const userSpace = parseFloat(valOf('userFreeStorageInput'));
             state.usableStorageLimit = (isNaN(userSpace) || userSpace <= 0) ? 0 : userSpace;
-            return `Service: Games Only | Stated Free Storage: ${state.usableStorageLimit} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Available Balance: <strong>${(state.usableStorageLimit - gSize).toFixed(1)} GB</strong>`;
+            return `Service: Games Only | Stated Free Storage: ${state.usableStorageLimit} GB<br><strong>Selected Games: ${gSize.toFixed(1)} GB${installBufferNote()}</strong> / Available Balance: <strong>${(state.usableStorageLimit - gSize).toFixed(1)} GB</strong>`;
         }
 
         // ===== JAILBREAK / SYSTEM SETUP (SD-card based) =====
@@ -1519,7 +1551,7 @@
         let text = `Service: ${serviceLabel} | SD: ${sdLabel} (${sourceLabel}) | Real capacity: ~${realCapacity}GB | System OS: -${baseOverhead}GB`;
         if ($('androidModeCheck').checked) text += ` | Android: -${partition}GB`;
         if ($('linuxModeCheck').checked) text += ` | Linux: -${partition}GB`;
-        text += `<br><strong>Selected Games: ${gSize.toFixed(1)} GB</strong> / Usable Limit: <strong>${usable} GB</strong>`;
+        text += `<br><strong>Selected Games: ${gSize.toFixed(1)} GB${installBufferNote()}</strong> / Usable Limit: <strong>${usable} GB</strong>`;
         return text;
     }
 
@@ -1910,9 +1942,8 @@
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.remove('locked');
 
-                let gSize = 0;
-                state.selectedGames.forEach(s => gSize += s);
-                $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
+                const gSize = selectedGamesFootprint();
+                $('storageBreakdown').innerHTML = '<span>Service: System Update | Stated Free Storage: ' + userSpace + ' GB<br><strong>Selected Games: ' + gSize.toFixed(1) + ' GB' + installBufferNote() + '</strong> / Available Balance: <strong>' + (userSpace - gSize).toFixed(1) + ' GB</strong></span>';
             } else {
                 // No free space → freeze game list, clear any games, update-only state
                 freeInput.classList.remove('required-missing');
@@ -1929,13 +1960,12 @@
 
             // Trim excess games when free space shrinks below selected total
             if (hasFreeSpace && state.usableStorageLimit > 0) {
-                let gSize = 0;
-                state.selectedGames.forEach(s => gSize += s);
+                const gSize = selectedGamesFootprint();
                 if (gSize > state.usableStorageLimit) {
-                    alert(`Your storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB). Excess games will be automatically removed.`);
+                    alert(`Your storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB after install). Excess games will be automatically removed.`);
                     let acc = 0;
                     const toRemove = [];
-                    state.selectedGames.forEach((sz, name) => { acc += sz; if (acc > state.usableStorageLimit) toRemove.push(name); });
+                    state.selectedGames.forEach((sz, name) => { acc += effectiveGb(sz); if (acc > state.usableStorageLimit) toRemove.push(name); });
                     toRemove.forEach(n => state.selectedGames.delete(n));
                 }
             }
@@ -2051,13 +2081,12 @@
             }
         }
 
-        let gSize = 0;
-        state.selectedGames.forEach(s => gSize += s);
+        const gSize = selectedGamesFootprint();
         if (state.isStorageConfigured && state.usableStorageLimit > 0 && gSize > state.usableStorageLimit) {
-            alert(`Your new storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB). Excess games will be automatically removed.`);
+            alert(`Your new storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB after install). Excess games will be automatically removed.`);
             let acc = 0;
             const toRemove = [];
-            state.selectedGames.forEach((sz, name) => { acc += sz; if (acc > state.usableStorageLimit) toRemove.push(name); });
+            state.selectedGames.forEach((sz, name) => { acc += effectiveGb(sz); if (acc > state.usableStorageLimit) toRemove.push(name); });
             toRemove.forEach(n => state.selectedGames.delete(n));
         }
 
@@ -2123,14 +2152,12 @@
             return;
         }
 
-        let gSize = 0;
-        state.selectedGames.forEach(s => gSize += s);
-        const availableSpace = Math.max(0, state.usableStorageLimit - gSize);
+        const availableSpace = Math.max(0, state.usableStorageLimit - selectedGamesFootprint());
 
         const fitting = [], hidden = [];
         list.forEach(g => {
             const isSel = state.selectedGames.has(g.name);
-            if (isSel || state.usableStorageLimit <= 0 || g.size <= availableSpace) fitting.push(g);
+            if (isSel || state.usableStorageLimit <= 0 || effectiveGb(g.size) <= availableSpace) fitting.push(g);
             else hidden.push(g);
         });
 
@@ -2150,7 +2177,7 @@
             hidden.forEach(g => {
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span></div><span class="game-size" style="color:#8a8272;">${g.size} GB</span>`;
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span></div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -2176,10 +2203,9 @@
                 const cb = card.querySelector('input');
                 if (e.target !== cb) cb.checked = !cb.checked;
 
-                let cur = 0;
-                state.selectedGames.forEach(s => cur += s);
-                if (cb.checked && state.usableStorageLimit > 0 && (cur + g.size > state.usableStorageLimit)) {
-                    alert(`Cannot add "${g.name}" (${g.size} GB). It exceeds your available remaining space (${state.usableStorageLimit} GB)!`);
+                let cur = selectedGamesFootprint();
+                if (cb.checked && state.usableStorageLimit > 0 && (cur + effectiveGb(g.size) > state.usableStorageLimit)) {
+                    alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your available remaining space (${state.usableStorageLimit} GB)!`);
                     cb.checked = false;
                     return;
                 }
@@ -2193,10 +2219,9 @@
             cb.onchange = () => {
                 if (!validatePhoneProvided()) { cb.checked = false; return; }
                 if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) first!'); cb.checked = false; $('userFreeStorageInput').focus(); return; }
-                let cur = 0;
-                state.selectedGames.forEach(s => cur += s);
-                if (cb.checked && state.usableStorageLimit > 0 && (cur + g.size > state.usableStorageLimit)) {
-                    alert(`Cannot add "${g.name}" (${g.size} GB). It exceeds your remaining usable storage (${state.usableStorageLimit} GB)!`);
+                let cur = selectedGamesFootprint();
+                if (cb.checked && state.usableStorageLimit > 0 && (cur + effectiveGb(g.size) > state.usableStorageLimit)) {
+                    alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your remaining usable storage (${state.usableStorageLimit} GB)!`);
                     cb.checked = false;
                     return;
                 }
@@ -2212,7 +2237,7 @@
             infoDiv.appendChild(titleSpan);
             const sizeSpan = document.createElement('span');
             sizeSpan.className = 'game-size';
-            sizeSpan.textContent = `${g.size} GB`;
+            sizeSpan.textContent = `${effectiveGb(g.size)} GB`;
 
             card.appendChild(infoDiv);
             card.appendChild(sizeSpan);
@@ -2303,12 +2328,13 @@
         const serviceType = valOf('serviceTypeSelect');
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
-        const remainder = Math.max(0, state.usableStorageLimit - gSize);
+        const footprint = selectedGamesFootprint();
+        const remainder = Math.max(0, state.usableStorageLimit - footprint);
         const details = calculatePriceDetails(count, gSize);
         const repairInfo = getSelectedRepairTotal();
 
         $('selectedCount').innerText = count;
-        $('selectedSize').innerText = gSize.toFixed(1);
+        $('selectedSize').innerText = footprint.toFixed(1);
         $('remainderSize').innerText = remainder.toFixed(1);
         $('selectedPrice').innerText = 'RM' + Math.max(0, Math.round(details.subtotal) - state.discountRm);
 
@@ -2633,6 +2659,7 @@
         const count = state.selectedGames.size;
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
+        const footprint = selectedGamesFootprint();
         const details = calculatePriceDetails(count, gSize);
 
         // ===== 1. Service & Hardware =====
@@ -2730,7 +2757,7 @@
 
             const gamesSummary = document.createElement('summary');
             gamesSummary.className = 'cart-details-summary';
-            gamesSummary.innerHTML = `<span>Selected Games (${count} · ${gSize.toFixed(1)} GB)</span><span class="chev">▼</span>`;
+            gamesSummary.innerHTML = `<span>Selected Games (${count} · ${footprint.toFixed(1)} GB${installBufferNote()})</span><span class="chev">▼</span>`;
             gamesDetails.appendChild(gamesSummary);
 
             const gamesBody = document.createElement('div');
@@ -2748,7 +2775,7 @@
                     let tag = '';
                     if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#e8dcc0; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
                     const titleSpan = document.createElement('span');
-                    titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${size} GB)</span>`;
+                    titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${effectiveGb(size)} GB)</span>`;
                     const btn = document.createElement('button');
                     btn.className = 'remove-btn';
                     btn.textContent = 'Remove';
@@ -3150,7 +3177,7 @@
             });
         }
 
-        if (!isRepairOnly) msg += `Selected Games: ${count} games (${gSize.toFixed(1)} GB total)\n`;
+        if (!isRepairOnly) msg += `Selected Games: ${count} games (${selectedGamesFootprint().toFixed(1)} GB total${installBufferNote()})\n`;
         if (remarks) msg += `Remarks: ${remarks}\n`;
         if (state.freeGamesCount > 0) msg += `Free Games Included: ${state.freeGamesCount}\n`;
         if (state.discountRm > 0) {
