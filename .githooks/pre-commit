@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+"""Pre-commit hook: JS syntax check on staged .js files and inline <script>
+blocks in staged .html files. Uses node/deno/bun when available; passes with
+a notice when none is installed, so it never blocks a commit on a machine
+without a JS runtime.
+"""
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+def staged_files():
+    out = subprocess.run(
+        ['git', 'diff', '--cached', '--name-only', '--diff-filter=ACM'],
+        capture_output=True, text=True)
+    return [line.strip() for line in out.stdout.splitlines() if line.strip()]
+
+
+def find_runtime():
+    for name in ('node', 'deno', 'bun'):
+        path = shutil.which(name)
+        if path:
+            return name, path
+    return None, None
+
+
+def inline_scripts(html):
+    pattern = r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>'
+    return re.findall(pattern, html, re.DOTALL | re.IGNORECASE)
+
+
+def check(name, code, runtime_name, runtime_path):
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as tmp:
+        tmp.write(code)
+        tmp_path = tmp.name
+    try:
+        if runtime_name == 'node':
+            cmd = [runtime_path, '--check', tmp_path]
+        elif runtime_name == 'deno':
+            cmd = [runtime_path, 'check', '--quiet', tmp_path]
+        else:
+            cmd = [runtime_path, 'build', tmp_path, '--outfile', os.devnull]
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode != 0:
+            print('JS syntax error in %s:\n%s' % (name, result.stderr.strip()),
+                  file=sys.stderr)
+            return False
+        return True
+    finally:
+        os.unlink(tmp_path)
+
+
+def main():
+    runtime_name, runtime_path = find_runtime()
+    files = staged_files()
+    if not files:
+        return 0
+    if runtime_name is None:
+        print('[pre-commit] no JS runtime (node/deno/bun) found; '
+              'skipping syntax check', file=sys.stderr)
+        return 0
+
+    ok = True
+    checked = 0
+    for rel in files:
+        blob = subprocess.run(['git', 'show', ':./' + rel], capture_output=True)
+        if blob.returncode != 0:
+            continue
+        try:
+            text = blob.stdout.decode('utf-8')
+        except UnicodeDecodeError:
+            continue
+        if rel.endswith('.js'):
+            ok = check(rel, text, runtime_name, runtime_path) and ok
+            checked += 1
+        elif rel.endswith('.html'):
+            scripts = inline_scripts(text)
+            for i, script in enumerate(scripts, 1):
+                ok = check('%s (inline %d)' % (rel, i), script,
+                           runtime_name, runtime_path) and ok
+                checked += 1
+    if not ok:
+        print('Commit blocked by JS syntax check '
+              '(use --no-verify to override).', file=sys.stderr)
+        return 1
+    print('[pre-commit] JS syntax OK (%d script(s) checked)' % checked)
+    return 0
+
+
+if __name__ == '__main__':
+    sys.exit(main())
