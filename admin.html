@@ -2644,6 +2644,18 @@
         return orderEdit.games.reduce(function (sum, n) { return sum + (sizes[n] || 0); }, 0);
     }
 
+    /**
+     * Installed footprint of the games on this order. Same rule as index.html:
+     * buffer each game, then sum, so the fit checks here match what the customer
+     * was shown. editGameTotalGb() stays the raw figure that is priced and stored.
+     */
+    function editGameFootprint() {
+        var sizes = editGameSizes();
+        return orderEdit.games.reduce(function (sum, n) {
+            return sum + effectiveGb(sizes[n] || 0);
+        }, 0);
+    }
+
     function fillEditSelect(select, options, value) {
         select.innerHTML = '';
         options.forEach(function (o) {
@@ -2847,7 +2859,7 @@
         matches.forEach(function (g) {
             html += '<button type="button" class="oe-opt" data-name="' + escapeHtml(g.name) + '">' +
                     '<span class="oe-opt-name">' + escapeHtml(g.name) + '</span>' +
-                    '<span class="oe-opt-size">' + g.size + ' GB</span></button>';
+                    '<span class="oe-opt-size">' + effectiveGb(g.size) + ' GB</span></button>';
         });
         if (capped) html += '<div class="oe-opt-empty">' + matches.length +
                             ' shown &mdash; keep typing to narrow the list.</div>';
@@ -2856,9 +2868,9 @@
 
     function renderEditSelectedGames() {
         var box = el('oeSelectedGames');
-        var totalGb = editGameTotalGb();
+        var totalGb = editGameFootprint();
         el('oeSelectedGamesHead').innerHTML =
-            'On this order (' + orderEdit.games.length + ' &middot; ' + totalGb.toFixed(2) + ' GB)';
+            'On this order (' + orderEdit.games.length + ' &middot; ' + totalGb.toFixed(1) + ' GB' + installBufferNote() + ')';
 
         if (orderEdit.games.length === 0) {
             box.innerHTML = '<div class="oe-opt-empty">No games on this order.</div>';
@@ -2869,7 +2881,7 @@
         orderEdit.games.forEach(function (name) {
             html += '<div class="oe-opt">' +
                     '<span class="oe-opt-name">' + escapeHtml(name) + '</span>' +
-                    '<span class="oe-opt-size">' + (sizes[name] != null ? sizes[name] + ' GB' : 'size n/a') + '</span>' +
+                    '<span class="oe-opt-size">' + (sizes[name] != null ? effectiveGb(sizes[name]) + ' GB' : 'size n/a') + '</span>' +
                     '<button type="button" class="oe-opt-remove" data-name="' + escapeHtml(name) +
                     '" aria-label="Remove ' + escapeHtml(name) + '">&times;</button></div>';
         });
@@ -3000,15 +3012,17 @@
         // Capacity check. Warn, never trim: the shop may know something the numbers
         // do not, and silently dropping games would be worse than a warning.
         var cap = editStorageCapacity();
-        var gb = pseudo.total_size_gb;
+        // Fit is judged on the installed footprint, not the listed sizes, so the
+        // warning matches the headroom the games will really need.
+        var gb = editGameFootprint();
         var warnEl = el('oeGamesWarn');
         var over = cap > 0 && gb > cap;
         var tight = cap > 0 && !over && gb > 0 && (cap - gb) < 20;
         warnEl.style.display = (over || tight) ? '' : 'none';
         warnEl.className = 'oe-warn' + (over ? ' danger' : '');
         warnEl.textContent = over
-            ? 'Games total ' + gb.toFixed(2) + ' GB but only ' + cap + ' GB is available. Trim the list or raise the size before saving.'
-            : (tight ? 'Only ' + (cap - gb).toFixed(2) + ' GB spare. That is very tight for a card.' : '');
+            ? 'Games total ' + gb.toFixed(1) + ' GB' + installBufferNote() + ' but only ' + cap + ' GB is available. Trim the list or raise the size before saving.'
+            : (tight ? 'Only ' + (cap - gb).toFixed(1) + ' GB spare. That is very tight for a card.' : '');
 
         // Same guard as Save Adjustments: game pricing is tiered, so a large
         // waiver can drop into a pricier tier and RAISE the total.
@@ -3049,9 +3063,10 @@
         var total = Math.max(0, detail.subtotal - appliedDiscount);
 
         var cap = editStorageCapacity();
-        var over = cap > 0 && pseudo.total_size_gb > cap;
+        var gbNeeded = editGameFootprint();
+        var over = cap > 0 && gbNeeded > cap;
         var msg = 'Save these changes to order #' + (order.phone_ending || '?') + '?\n\n' +
-                  'Games: ' + pseudo.total_games + ' (' + pseudo.total_size_gb.toFixed(2) + ' GB)\n' +
+                  'Games: ' + pseudo.total_games + ' (' + gbNeeded.toFixed(1) + ' GB' + installBufferNote() + ')\n' +
                   'New total: RM' + total;
         if (over) msg += '\n\nWARNING: the games do not fit in ' + cap + ' GB. Saving anyway.';
         if (!confirm(msg)) return;
@@ -3238,7 +3253,7 @@
         gameList.forEach(function(name, idx) {
             var item = document.createElement('div');
             item.className = 'modal-game-item';
-            var size = sizeMap[name] ? sizeMap[name] + ' GB' : '';
+            var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
             item.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
             grid.appendChild(item);
         });

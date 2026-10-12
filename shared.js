@@ -76,6 +76,26 @@ function gameSizeTotal(names) {
 }
 
 /**
+ * A game's real SD footprint after extraction/install is larger than its listed
+ * download size, so storage has to be planned against raw * INSTALL_SIZE_BUFFER
+ * or the shop is promised more than the card can actually hold.
+ *
+ * This buffers fit and display only: prices and the stored total_size_gb stay on
+ * the raw catalog figure, so no quote moves because of it.
+ */
+var INSTALL_SIZE_BUFFER = 1.1;
+
+/** A listed game size as its installed footprint, to one decimal. */
+function effectiveGb(rawGb) {
+    return Math.round((rawGb * INSTALL_SIZE_BUFFER) * 10) / 10;
+}
+
+/** Short label for a buffered total, e.g. " (after install ~10% bigger)". */
+function installBufferNote() {
+    return ' (after install ~' + Math.round((INSTALL_SIZE_BUFFER - 1) * 100) + '% bigger)';
+}
+
+/**
  * An order stops being customer-editable once it leaves "Order Received".
  * The shop can still edit it from admin.html; this only governs the customer link.
  */

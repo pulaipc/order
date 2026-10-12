@@ -1472,24 +1472,13 @@
 
     const SD_REAL_CAPACITY_FACTOR = 0.93;
 
-    // A game's real SD footprint after extraction/install is larger than its
-    // listed download size. Every size used to decide storage fit is buffered
-    // by this factor so a selection is never promised that cannot actually be
-    // installed. Prices stay on the listed size; only fit and display change.
-    const INSTALL_SIZE_BUFFER = 1.1;
-    function effectiveGb(rawGb) {
-        return Math.round((rawGb * INSTALL_SIZE_BUFFER) * 10) / 10;
-    }
     // Installed footprint of every selected game (raw sizes are stored raw).
+    // INSTALL_SIZE_BUFFER and effectiveGb() live in shared.js so the admin order
+    // editor plans on exactly the same figures as this form.
     function selectedGamesFootprint() {
         let total = 0;
         state.selectedGames.forEach(s => total += effectiveGb(s));
         return total;
-    }
-    // Short human label for the buffer, e.g. "installed ~10% bigger". Callers
-    // append it to totals so the customer can reconcile sizes with game lists.
-    function installBufferNote() {
-        return ' (after install ~' + Math.round((INSTALL_SIZE_BUFFER - 1) * 100) + '% bigger)';
     }
 
     function computeUsableStorage() {
