@@ -1712,6 +1712,19 @@
             sdSourceEl.innerText = '—';
             sdSourceEl.className = 'val muted';
         }
+        // Addon setup (Android / Linux modes) only apply to JB-style services,
+        // same rule the order editor uses.
+        var addonEl = document.getElementById('modalAddonVal');
+        var addons = [];
+        if (needsSd && order.android_mode) addons.push('Android');
+        if (needsSd && order.linux_mode) addons.push('Linux');
+        if (addons.length) {
+            addonEl.innerText = addons.join(' + ');
+            addonEl.className = 'val';
+        } else {
+            addonEl.innerText = '—';
+            addonEl.className = 'val muted';
+        }
         var totalsRow = getOrderTotals(order);
         document.getElementById('modalPriceVal').innerText = 'RM' + totalsRow.total +
             (totalsRow.hasDiscount ? ' (was RM' + totalsRow.subtotal + ')' : '');
