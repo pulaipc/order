@@ -24,6 +24,17 @@ def find_runtime():
         path = shutil.which(name)
         if path:
             return name, path
+    # Not on PATH (common when git runs from an editor without a login shell):
+    # probe the usual user-level install spots.
+    home = os.path.expanduser('~')
+    for candidate in (
+        os.path.join(home, '.local', 'bin', 'node'),
+        os.path.join(home, '.local', 'node', 'bin', 'node'),
+        os.path.join(home, '.nvm', 'current', 'bin', 'node'),
+        '/usr/local/bin/node',
+    ):
+        if os.path.exists(candidate) and os.access(candidate, os.X_OK):
+            return 'node', candidate
     return None, None
 
 
