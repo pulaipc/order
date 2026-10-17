@@ -483,7 +483,12 @@
         // selection, not the one now on the order. So reprice what is actually
         // stored, through the same engine the cart and the dashboard use, and
         // show that as the total whenever the two disagree.
-        const selPricing = computePricing(pricingInputsForOrder(order, 0));
+        //
+        // Reprice with the SAME free-game waiver the shop granted. Comparing a
+        // waived stored subtotal against an unwaived one would make every shop
+        // waiver look like a customer edit, and the customer would be quoted the
+        // full price on an order they had already been given free games on.
+        const selPricing = computePricing(pricingInputsForOrder(order, shopTotals.freeGames));
         const selSubtotal = Math.max(0, Math.round(selPricing.subtotal));
         const repriced = selSubtotal !== shopTotals.subtotal;
 
@@ -498,13 +503,18 @@
                 + 'The total above is what your current selection comes to. '
                 + 'We have your update and will confirm the final price with you before drop-off.'
                 + '</div>';
-        } else if (shopTotals.hasDiscount || shopTotals.freeGames > 0) {
+        } else if (shopTotals.hasDiscount || shopTotals.freeGamesTotal > 0) {
             // Only meaningful while the subtotal still matches the selection: once
             // the selection has moved on, a discount granted against the old
             // subtotal would be a number that adds up to nothing.
             html += '<div class="summary-adjustments">';
-            if (shopTotals.freeGames > 0) {
-                html += '<div class="summary-adjustment-row"><span>Free games included</span><span>' + shopTotals.freeGames + '</span></div>';
+            if (shopTotals.freeGamesTotal > 0) {
+                // Bundled games count too: 3 in the package + 7 granted reads as
+                // 10 free games, which is what the customer actually receives.
+                const bundledNote = shopTotals.bundledFreeGames > 0
+                    ? ' <span style="opacity:.7;">(' + shopTotals.bundledFreeGames + ' in package)</span>'
+                    : '';
+                html += '<div class="summary-adjustment-row"><span>Free games included' + bundledNote + '</span><span>' + shopTotals.freeGamesTotal + '</span></div>';
             }
             if (shopTotals.hasDiscount) {
                 html += '<div class="summary-adjustment-row"><span>Subtotal</span><span>RM' + shopTotals.subtotal + '</span></div>';

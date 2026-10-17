@@ -513,7 +513,8 @@ function computePricing(opts) {
  * existed, so old rows keep displaying correctly.
  *
  * @returns {{ subtotal:number, discount:number, total:number, hasDiscount:boolean,
- *             freeGames:number, hasAdjustment:boolean }}
+ *             freeGames:number, bundledFreeGames:number, freeGamesTotal:number,
+ *             hasAdjustment:boolean }}
  */
 function getOrderTotals(order) {
     const o = order || {};
@@ -533,11 +534,20 @@ function getOrderTotals(order) {
     const rawFree = Number(o.free_games_count);
     const freeGames = Number.isFinite(rawFree) ? Math.max(0, Math.round(rawFree)) : 0;
 
+    // Jailbreak and System Setup already bundle INCLUDED_GAME_ALLOWANCE games, so
+    // `freeGames` on its own under-reports what the customer actually gets: 7
+    // granted on top of the bundled 3 is 10 free games, not 7. `freeGamesTotal`
+    // is display-only; `freeGames` stays the granted count because it is what the
+    // pricing engine and the order editor treat as the waiver.
+    const bundledFreeGames = isJbOrSetup(o.service_type) ? INCLUDED_GAME_ALLOWANCE : 0;
+
     return {
         subtotal: subtotal,
         discount: Math.min(discount, subtotal),
         total: total,
         freeGames: freeGames,
+        bundledFreeGames: bundledFreeGames,
+        freeGamesTotal: bundledFreeGames + freeGames,
         hasDiscount: discount > 0,
         hasAdjustment: discount > 0 || freeGames > 0
     };
