@@ -937,8 +937,13 @@
         // The stored total may not equal a fresh recalculation, e.g. a repair
         // price was hand-set via "Set Price", or the order predates a tariff
         // change. Saving would silently overwrite it, so make the admin confirm.
+        //
+        // Recalculate with the waiver this order already carries. The stored
+        // subtotal is waived, so measuring it against the un-waived `baseline`
+        // reported every existing grant as a mismatch and warned for no reason.
         var stored = getOrderTotals(order);
-        var mismatchBy = baseline - stored.subtotal;
+        var storedBaseline = computePricing(pricingInputsForOrder(order, stored.freeGames)).subtotal;
+        var mismatchBy = storedBaseline - stored.subtotal;
         var mismatch = mismatchBy !== 0;
 
         el('adjustSubtotalVal').textContent = 'RM' + subtotal;
@@ -967,7 +972,7 @@
         el('adjustMismatchNote').classList.toggle('show', mismatch && !wouldIncrease);
         if (mismatch && !wouldIncrease) {
             var dir = mismatchBy > 0 ? 'RM' + mismatchBy + ' lower' : 'RM' + (-mismatchBy) + ' higher';
-            el('adjustMismatchText').textContent = mismatchReasonText(order, stored, baseline, dir);
+            el('adjustMismatchText').textContent = mismatchReasonText(order, stored, storedBaseline, dir);
         }
         if (wouldIncrease) {
             // Recommend the nearest waiver below the current value that is safe.
@@ -1084,11 +1089,17 @@
 
         // Overwriting a stored total that disagrees with the recalculation is
         // destructive and silent. Require an explicit confirmation.
+        //
+        // Compare against a recalculation carrying the order's existing waiver,
+        // same reasoning as updateAdjustPreview(): an un-waived baseline disagrees
+        // with every waived subtotal, so granting free games would always demand a
+        // confirmation even though nothing about the order had drifted.
         var storedNow = getOrderTotals(order);
-        if (baselineNow !== storedNow.subtotal) {
-            var diff = baselineNow - storedNow.subtotal;
+        var baselineStored = computePricing(pricingInputsForOrder(order, storedNow.freeGames)).subtotal;
+        if (baselineStored !== storedNow.subtotal) {
+            var diff = baselineStored - storedNow.subtotal;
             var dirNow = diff > 0 ? 'RM' + diff + ' higher' : 'RM' + (-diff) + ' lower';
-            var msg = mismatchReasonText(order, storedNow, baselineNow, dirNow) + '\n\nSave anyway?';
+            var msg = mismatchReasonText(order, storedNow, baselineStored, dirNow) + '\n\nSave anyway?';
             if (!confirm(msg)) {
                 btn.disabled = false;
                 setAdjustStatus('Cancelled. Stored total left unchanged.', 'err');
