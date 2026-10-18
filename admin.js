@@ -323,8 +323,9 @@
     //   - service_type
     //   - has repairs
     //   - games count
-    // Steps marked autoStage are the ones that set progress_stage.
-    // Steps marked autoSub are the ones that set progress_substage.
+    // A tick means the step is FINISHED. Each item carries curStage/curSub:
+    // the customer-facing status shown while that item is the first unticked
+    // (i.e. the work now underway). When every item is ticked → Completed.
     function buildChecklist(order) {
         var serviceType = order.service_type || 'jailbreak';
         var repairs = getEnrichedRepairs(order);
@@ -332,35 +333,51 @@
         var games = gameListOf(order);
         var gameCount = games.length;
 
+        // Task wording, not completed-state wording: an unticked item labelled
+        // "Modchip installed" reads as a fact that isn't true yet. Ticking is
+        // what completes the task (strikethrough + Done badge handles that).
         var items = [];
-        items.push({ key: 'confirmed',  label: 'Order confirmed',          autoStage: 'Confirmed' });
-        items.push({ key: 'received',   label: 'Console received',         autoStage: null, autoSub: 'Received' });
+        items.push({ key: 'confirmed',  label: 'Confirm order',          curStage: 'Order Received' });
+        items.push({ key: 'received',   label: 'Receive console',         curStage: 'Confirmed' });
 
         if (serviceType === 'jailbreak') {
-            items.push({ key: 'modchip',  label: 'Modchip installed',       autoSub: 'Modchip Installation' });
-            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
-            items.push({ key: 'setup',    label: 'System setup',            autoSub: 'System Setup' });
-            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+            items.push({ key: 'modchip',  label: 'Install modchip',       curStage: 'In Progress', curSub: 'Modchip Installation' });
+            if (repairCount > 0) items.push({ key: 'repair', label: 'Complete ' + repairCount + ' repair' + (repairCount === 1 ? '' : 's'),  curStage: 'In Progress', curSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'Set up system',            curStage: 'In Progress', curSub: 'System Setup' });
+            if (gameCount > 0) items.push({ key: 'games',    label: 'Install ' + gameCount + ' game' + (gameCount === 1 ? '' : 's'), curStage: 'In Progress', curSub: 'Game Installation' });
         } else if (serviceType === 'system_setup') {
-            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
-            items.push({ key: 'setup',    label: 'System setup',            autoSub: 'System Setup' });
-            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+            if (repairCount > 0) items.push({ key: 'repair', label: 'Complete ' + repairCount + ' repair' + (repairCount === 1 ? '' : 's'),  curStage: 'In Progress', curSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'Set up system',            curStage: 'In Progress', curSub: 'System Setup' });
+            if (gameCount > 0) items.push({ key: 'games',    label: 'Install ' + gameCount + ' game' + (gameCount === 1 ? '' : 's'), curStage: 'In Progress', curSub: 'Game Installation' });
         } else if (serviceType === 'system_update') {
-            if (repairCount > 0) items.push({ key: 'repair',  label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done',  autoSub: 'Device Repair' });
-            items.push({ key: 'setup',    label: 'System updated',          autoSub: 'System Update' });
-            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+            if (repairCount > 0) items.push({ key: 'repair', label: 'Complete ' + repairCount + ' repair' + (repairCount === 1 ? '' : 's'),  curStage: 'In Progress', curSub: 'Device Repair' });
+            items.push({ key: 'setup',    label: 'Update system',            curStage: 'In Progress', curSub: 'System Update' });
+            if (gameCount > 0) items.push({ key: 'games',    label: 'Install ' + gameCount + ' game' + (gameCount === 1 ? '' : 's'), curStage: 'In Progress', curSub: 'Game Installation' });
         } else if (serviceType === 'games_only') {
-            if (gameCount > 0) items.push({ key: 'games',    label: gameCount + ' game' + (gameCount === 1 ? '' : 's') + ' installed', autoSub: 'Game Installation' });
+            if (gameCount > 0) items.push({ key: 'games',    label: 'Install ' + gameCount + ' game' + (gameCount === 1 ? '' : 's'), curStage: 'In Progress', curSub: 'Game Installation' });
         } else if (serviceType === 'repair_only') {
-            items.push({ key: 'diagnosis', label: 'Diagnosis done',         autoSub: 'Diagnosis' });
-            items.push({ key: 'repair',    label: repairCount + ' repair' + (repairCount === 1 ? '' : 's') + ' done', autoSub: 'Repair' });
-            items.push({ key: 'testing',   label: 'Testing passed',         autoSub: 'Testing' });
+            items.push({ key: 'diagnosis', label: 'Run diagnosis',         curStage: 'In Progress', curSub: 'Diagnosis' });
+            items.push({ key: 'repair',    label: 'Complete ' + repairCount + ' repair' + (repairCount === 1 ? '' : 's'),    curStage: 'In Progress', curSub: 'Repair' });
+            items.push({ key: 'testing',   label: 'Complete testing',         curStage: 'In Progress', curSub: 'Testing' });
         }
 
-        items.push({ key: 'ready',     label: 'Ready for pickup / shipping', autoStage: 'Ready' });
-        items.push({ key: 'handed',    label: 'Handed over to customer',     autoStage: 'Completed' });
+        items.push({ key: 'ready',     label: 'Prepare for pickup / shipping', curStage: 'Ready' });
+        items.push({ key: 'handed',    label: 'Hand over to customer',     curStage: 'Ready' });
 
         return items;
+    }
+
+    // Derive customer stage/substage from ticked state (tick = finished):
+    // the first UNTICKED checklist item is the step now underway, so its
+    // curStage/curSub is the current status. Everything ticked → Completed.
+    function deriveStageFromChecklist(checklist, ticked) {
+        for (var i = 0; i < checklist.length; i++) {
+            var item = checklist[i];
+            if (!ticked[item.key]) {
+                return { stage: item.curStage || 'Order Received', sub: item.curSub || null };
+            }
+        }
+        return { stage: 'Completed', sub: null };
     }
 
     // Current ticked items for an order.
@@ -387,19 +404,24 @@
         ticked.confirmed = true;
         if (stage === 'In Progress' || stage === 'Ready' || stage === 'Completed') {
             ticked.received = true;
+        } else if (stage === 'Confirmed' && sub === 'Received') {
+            // Legacy "console received, in queue" rows: receiving is finished.
+            ticked.received = true;
         }
 
         if (stage === 'In Progress') {
             var list = getEffectiveSubStages(order);
             var idx = list.indexOf(sub);
             if (idx >= 0) {
-                for (var i = 0; i <= idx; i++) {
+                // Only steps strictly before the current substage are finished;
+                // the current one is the work in progress (unticked).
+                for (var i = 0; i < idx; i++) {
                     var step = list[i];
                     if (step === 'Modchip Installation') ticked.modchip = true;
                     else if (step === 'Device Repair' || step === 'Repair') ticked.repair = true;
                     else if (step === 'Diagnosis') ticked.diagnosis = true;
                     else if (step === 'Testing') ticked.testing = true;
-                    else if (step === 'System Setup') ticked.setup = true;
+                    else if (step === 'System Setup' || step === 'System Update') ticked.setup = true;
                     else if (step === 'Game Installation') ticked.games = true;
                 }
             }
@@ -421,7 +443,14 @@
             ticked.ready = true;
             ticked.handed = true;
         }
-        return ticked;
+        // Keep only keys this order's checklist actually has (legacy stages
+        // tick every work step even when the service type doesn't include it).
+        var items = buildChecklist(order);
+        var filtered = {};
+        for (var c = 0; c < items.length; c++) {
+            if (ticked[items[c].key]) filtered[items[c].key] = true;
+        }
+        return filtered;
     }
 
     function toggleChecklist(orderId) {
@@ -455,17 +484,10 @@
             }
         }
 
-        // Derive stage + substage from the furthest ticked item
-        var newStage = 'Order Received';
-        var newSub = null;
-        for (var m = checklist.length - 1; m >= 0; m--) {
-            var item = checklist[m];
-            if (!newTicked[item.key]) continue;
-            if (item.autoStage) { newStage = item.autoStage; break; }
-            if (item.autoSub === 'Received') { newStage = 'Confirmed'; newSub = 'Received'; break; }
-            if (item.autoSub) { newStage = 'In Progress'; newSub = item.autoSub; break; }
-            if (newStage === 'Order Received') newStage = 'Confirmed';
-        }
+        // Derive stage + substage: the first unticked item is work underway
+        var derived = deriveStageFromChecklist(checklist, newTicked);
+        var newStage = derived.stage;
+        var newSub = derived.sub;
 
         var nowIso = new Date().toISOString();
         var payload = {
@@ -638,10 +660,6 @@
         var doneCount = 0;
         checklist.forEach(function(item) { if (ticked[item.key]) doneCount++; });
 
-        // "In queue" — console is with us but no work item ticked yet
-        var anyWorkTicked = ticked.modchip || ticked.diagnosis || ticked.repair || ticked.setup || ticked.games || ticked.testing;
-        var isQueued = !!ticked.received && !anyWorkTicked && stage !== 'Ready' && stage !== 'Completed' && status !== 'Cancelled';
-
         var checklistHtml = '';
         var firstPendingSeen = false;
         checklist.forEach(function(item) {
@@ -669,7 +687,6 @@
                         '<span class="order-id">Order #' + escapeHtml(order.phone_ending || 'N/A') + '</span>' +
                         '<button class="order-copy-btn" data-order-id="' + orderId + '" title="Copy order number">Copy #</button>' +
                                                 '<span class="stage-pill ' + stagePillClass + '">' + (stageIcon ? stageIcon + ' ' : '') + escapeHtml(stage) + '</span>' +
-                                                (isQueued ? '<span class="stage-pill Queued">In queue</span>' : '') +
                     '</div>' +
                     '<div class="order-meta">' + metaLine + '</div>' +
                     '<div class="order-summary-line">' + summaryLine + '</div>' +

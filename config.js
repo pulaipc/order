@@ -263,7 +263,12 @@ function getEffectiveSubStages(order) {
 
     if (!hasRepair || serviceType === 'repair_only') return base;
 
-    const insertAt = base.indexOf('Game Installation');
+    // Insert where the admin checklist does repairs: before system setup/update
+    // (so the customer's positional Done/Now/Pending marks match the actual
+    // work order). Fall back to before game installation for anything else.
+    let insertAt = base.indexOf('System Setup');
+    if (insertAt < 0) insertAt = base.indexOf('System Update');
+    if (insertAt < 0) insertAt = base.indexOf('Game Installation');
     if (insertAt >= 0) base.splice(insertAt, 0, 'Device Repair');
     else base.push('Device Repair');
     return base;
