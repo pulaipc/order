@@ -2348,7 +2348,10 @@
 
         if (!isRepairOnly) msg += `Selected Games: ${count} games (${selectedGamesFootprint().toFixed(1)} GB total${installBufferNote()})\n`;
         if (remarks) msg += `Remarks: ${remarks}\n`;
-        if (state.freeGamesCount > 0) msg += `Free Games Included: ${state.freeGamesCount}\n`;
+        // State the total the customer actually gets. The package already bundles
+        // 3 games on a jailbreak or system setup, so 7 granted on top reads as 10.
+        const freeGamesTotal = state.freeGamesCount + (isJbOrSetup ? INCLUDED_GAME_ALLOWANCE : 0);
+        if (freeGamesTotal > 0) msg += `Free Games Included: ${freeGamesTotal}\n`;
         if (state.discountRm > 0) {
             msg += `Subtotal: RM${Math.round(details.subtotal)}\n`;
             msg += `Discount: -RM${Math.min(state.discountRm, Math.round(details.subtotal))}\n`;
