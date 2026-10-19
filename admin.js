@@ -361,7 +361,6 @@
             items.push({ key: 'testing',   label: 'Complete testing',         curStage: 'In Progress', curSub: 'Testing' });
         }
 
-        items.push({ key: 'ready',     label: 'Prepare for pickup / shipping', curStage: 'Ready' });
         items.push({ key: 'handed',    label: 'Hand over to customer',     curStage: 'Ready' });
 
         return items;
@@ -432,7 +431,6 @@
             ticked.games = true;
             ticked.diagnosis = true;
             ticked.testing = true;
-            ticked.ready = true;
         } else if (stage === 'Completed') {
             ticked.modchip = true;
             ticked.repair = true;
@@ -440,7 +438,6 @@
             ticked.games = true;
             ticked.diagnosis = true;
             ticked.testing = true;
-            ticked.ready = true;
             ticked.handed = true;
         }
         // Keep only keys this order's checklist actually has (legacy stages
