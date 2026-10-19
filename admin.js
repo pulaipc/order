@@ -339,6 +339,10 @@
         var items = [];
         items.push({ key: 'confirmed',  label: 'Confirm order',          curStage: 'Order Received' });
         items.push({ key: 'received',   label: 'Receive console',         curStage: 'Confirmed' });
+        // Receiving the console doesn't mean work starts right away: while
+        // this step is unticked the customer sees the "we have your console,
+        // it's in our queue" message. Ticking it starts the work clock.
+        items.push({ key: 'start',      label: 'Start work',             curStage: 'Confirmed', curSub: 'Received' });
 
         if (serviceType === 'jailbreak') {
             items.push({ key: 'modchip',  label: 'Install modchip',       curStage: 'In Progress', curSub: 'Modchip Installation' });
@@ -403,6 +407,7 @@
         ticked.confirmed = true;
         if (stage === 'In Progress' || stage === 'Ready' || stage === 'Completed') {
             ticked.received = true;
+            ticked.start = true;
         } else if (stage === 'Confirmed' && sub === 'Received') {
             // Legacy "console received, in queue" rows: receiving is finished.
             ticked.received = true;
@@ -522,10 +527,9 @@
             revenue += Number(o.estimated_price) || 0;
             if (s !== 'Completed' && s !== 'Cancelled') {
                 needs++;
-                // "In queue" = console received but no work started yet
+                // "In queue" = console received but work not started yet
                 var ticked = deriveTickedSteps(o);
-                var anyWorkTicked = ticked.modchip || ticked.diagnosis || ticked.repair || ticked.setup || ticked.games || ticked.testing;
-                if (ticked.received && !anyWorkTicked && s !== 'Ready') queue++;
+                if (ticked.received && !ticked.start && s !== 'Ready') queue++;
             }
         });
         document.getElementById('statQueue').innerText = queue;
@@ -563,8 +567,7 @@
             } else if (currentStatusFilter === 'QUEUED') {
                 if (status === 'Cancelled' || status === 'Completed' || stage === 'Completed' || stage === 'Ready') continue;
                 var _t = deriveTickedSteps(order);
-                var _work = _t.modchip || _t.diagnosis || _t.repair || _t.setup || _t.games || _t.testing;
-                if (!(_t.received && !_work)) continue;
+                if (!(_t.received && !_t.start)) continue;
             } else if (currentStatusFilter !== 'ALL') {
                 if (currentStatusFilter === 'Pending') {
                     if (status !== 'Pending') continue;
@@ -657,6 +660,10 @@
         var doneCount = 0;
         checklist.forEach(function(item) { if (ticked[item.key]) doneCount++; });
 
+        // Console is with us, but work hasn't started: the stage is Confirmed
+        // with the "Received" substage, which is easy to misread on its own.
+        var isQueued = !!ticked.received && !ticked.start && stage !== 'Ready' && stage !== 'Completed' && status !== 'Cancelled';
+
         var checklistHtml = '';
         var firstPendingSeen = false;
         checklist.forEach(function(item) {
@@ -684,6 +691,7 @@
                         '<span class="order-id">Order #' + escapeHtml(order.phone_ending || 'N/A') + '</span>' +
                         '<button class="order-copy-btn" data-order-id="' + orderId + '" title="Copy order number">Copy #</button>' +
                                                 '<span class="stage-pill ' + stagePillClass + '">' + (stageIcon ? stageIcon + ' ' : '') + escapeHtml(stage) + '</span>' +
+                                                (isQueued ? '<span class="stage-pill Queued">In queue</span>' : '') +
                     '</div>' +
                     '<div class="order-meta">' + metaLine + '</div>' +
                     '<div class="order-summary-line">' + summaryLine + '</div>' +
