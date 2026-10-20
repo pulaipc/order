@@ -362,13 +362,18 @@
         sortGameList(gameList);
         const gameCount = gameList.length;
         let totalGb = 0;
+        let unknownSizeCount = 0;
         const gamesWithSize = [];
         const sourceGames = typeof games !== 'undefined' ? games : [];
         gameList.forEach(name => {
             const found = sourceGames.find(g => g.name === name);
+            // A name the catalogue does not hold (hand-typed, or since removed)
+            // has no size to look up. Forcing it to 0 GB would quietly understate
+            // the order, so it is counted separately and flagged in the list.
+            if (!found) unknownSizeCount++;
             const size = found ? found.size : 0;
-            totalGb += effectiveGb(size);
-            gamesWithSize.push({ name: name, size: size });
+            totalGb += found ? effectiveGb(size) : 0;
+            gamesWithSize.push({ name: name, size: size, known: !!found });
         });
 
         const repairs = getEnrichedRepairs(order);
@@ -450,7 +455,8 @@
         if (order.service_type !== 'repair_only') {
             html += '<div>';
             html += '<div class="summary-games-toggle" onclick="toggleSummaryGames(this)" aria-expanded="false">';
-            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB</span>';
+            html += '<span>' + gameCount + ' game' + (gameCount !== 1 ? 's' : '') + ' · ' + totalGb.toFixed(1) + ' GB' +
+                (unknownSizeCount ? ' · ' + unknownSizeCount + ' unknown size' + (unknownSizeCount !== 1 ? 's' : '') : '') + '</span>';
             html += '<span class="chev">▼</span>';
             html += '</div>';
             html += '<div class="summary-games-list" id="summaryGamesList">';
@@ -460,9 +466,15 @@
                 gamesWithSize.forEach(g => {
                     html += '<div class="summary-game-item">';
                     html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
-                    html += '<div class="summary-game-size">' + effectiveGb(g.size).toFixed(1) + ' GB</div>';
+                    html += '<div class="summary-game-size' + (g.known ? '' : ' unknown') + '">' +
+                             (g.known ? effectiveGb(g.size).toFixed(1) + ' GB' : 'size n/a') + '</div>';
                     html += '</div>';
                 });
+                if (unknownSizeCount) {
+                    html += '<div class="summary-games-note">Size unknown for ' + unknownSizeCount +
+                            ' game' + (unknownSizeCount !== 1 ? 's' : '') +
+                            ' &mdash; the total counts only the games the shop has measured.</div>';
+                }
             }
             html += '</div>';
             html += '</div>';
