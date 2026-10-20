@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# copygame.sh - Linux (SteamOS/KDE) port of copygame.ps1
+# copygame.sh - SteamOS/KDE (Linux) front end for the same copy workflow as
+# copygame.ps1, which does the same job on Windows over the portable-devices API.
 #
 # Copies two batches to the Switch MTP SD Card, always essentials first:
 #   1. essential_files.txt - one exact file name per line, e.g. update/patched

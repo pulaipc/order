@@ -345,8 +345,10 @@
             if (statusOnly) {
                 // No game count, no price: orders_by_phone never sends them, and
                 // showing "0 games" because a field is absent would be a lie.
+                // These are list positions, not shop order numbers, so label
+                // them that way rather than implying the shop numbered them.
                 detailParts = [escapeHtml(serviceLabel), escapeHtml(order.status || 'Pending')];
-                heading = 'Order ' + (index + 1);
+                heading = 'Order ' + (index + 1) + ' of ' + orders.length;
                 item.classList.add('readonly');
                 extra = renderStageDetail(order);
             } else {

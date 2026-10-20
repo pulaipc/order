@@ -1,8 +1,16 @@
-#!/usr/bin/env python3
+#!/bin/sh
+''''test -n "$PRE_COMMIT_PY" || PRE_COMMIT_PY=$(for e in python3 python; do command -v "$e" 2>/dev/null; done | grep -v WindowsApps | head -n 1) #'''
+''''exec "${PRE_COMMIT_PY:-python3}" -u "$0" "$@" #'''
 """Pre-commit hook: JS syntax check on staged .js files and inline <script>
 blocks in staged .html files. Uses node/deno/bun when available; passes with
 a notice when none is installed, so it never blocks a commit on a machine
 without a JS runtime.
+
+The two lines above are a sh/Python polyglot: sh resolves an interpreter and
+re-execs this file with it. On Windows the App Execution Alias stub in
+WindowsApps shadows any genuine install, so it is skipped by name - otherwise
+git reports "Python was not found" and no check runs at all. Set
+PRE_COMMIT_PY to point at a specific interpreter if the guess is wrong.
 """
 import os
 import re
@@ -44,7 +52,10 @@ def inline_scripts(html):
 
 
 def check(name, code, runtime_name, runtime_path):
-    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as tmp:
+    # Always UTF-8: the source may hold emoji, and the OS default on Windows
+    # (cp1252) cannot encode them, which would crash the check itself.
+    with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False,
+                                     encoding='utf-8') as tmp:
         tmp.write(code)
         tmp_path = tmp.name
     try:
