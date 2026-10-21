@@ -1702,9 +1702,31 @@
     }
 
     // ===== FULL ORDER MODAL =====
+    // Collapsible modal sections. Clicking a section header flips it; the state
+    // is per-section and reset when the modal opens, so every order starts from
+    // the same tidy layout.
+    function toggleModalSection(sectionId) {
+        var el = document.getElementById(sectionId);
+        if (!el) return;
+        el.classList.toggle('collapsed');
+    }
+
+    // Sections that start collapsed every time the modal opens.
+    var COLLAPSED_BY_DEFAULT = ['modalLinksSection', 'modalShippingSection', 'modalAdjustSection'];
+
+    function resetModalSections() {
+        COLLAPSED_BY_DEFAULT.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.classList.add('collapsed');
+        });
+        var games = document.getElementById('modalGamesSection');
+        if (games) games.classList.remove('collapsed');
+    }
+
     function openOrderModal(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
+        resetModalSections();
         currentModalOrder = order;
         currentModalOrderId = orderId;
         currentRemarksOrderId = orderId;
@@ -1835,6 +1857,79 @@
         container.innerHTML = html;
     }
 
+    // ---- "already installed" ticks ------------------------------------------
+    // A failed install can leave the Switch half-populated. Ticking a game marks
+    // it as already on the Switch, and the next install run skips it. The ticks
+    // are kept in localStorage keyed by order id so they survive a page reload -
+    // a resume usually happens in a new browser session.
+    var INSTALLED_TICK_KEY = 'pulai_installed_ticks';
+
+    function tickStoreId(order) {
+        if (!order) return null;
+        return order.id || order.order_id || null;
+    }
+
+    function loadInstalledTicks(order) {
+        var id = tickStoreId(order);
+        if (id === null) return {};
+        try {
+            var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
+            var all = raw ? JSON.parse(raw) : {};
+            var mine = all[String(id)];
+            return (mine && typeof mine === 'object') ? mine : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function saveInstalledTicks(order, ticks) {
+        var id = tickStoreId(order);
+        if (id === null) return;
+        try {
+            var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
+            var all = raw ? JSON.parse(raw) : {};
+            if (!all || typeof all !== 'object') all = {};
+            if (Object.keys(ticks).length === 0) {
+                delete all[String(id)];
+            } else {
+                all[String(id)] = ticks;
+            }
+            window.localStorage.setItem(INSTALLED_TICK_KEY, JSON.stringify(all));
+        } catch (e) { }
+    }
+
+    function setGameTick(order, gameName, done) {
+        var ticks = loadInstalledTicks(order);
+        if (done) {
+            ticks[gameName] = 1;
+        } else {
+            delete ticks[gameName];
+        }
+        saveInstalledTicks(order, ticks);
+        renderModalGames(order);
+    }
+
+    function clearInstalledTicks(btn) {
+        var order = currentModalOrder;
+        if (!order) return;
+        saveInstalledTicks(order, {});
+        renderModalGames(order);
+        if (btn) {
+            var orig = btn.textContent;
+            btn.textContent = 'Cleared';
+            setTimeout(function() { btn.textContent = orig; }, 1200);
+        }
+    }
+
+    // The games that still need copying: everything the customer picked, minus
+    // the ones ticked as already installed.
+    function pendingGameList(order) {
+        var gameList = gameListOf(order);
+        sortGameList(gameList);
+        var ticks = loadInstalledTicks(order);
+        return gameList.filter(function(name) { return !ticks[name]; });
+    }
+
     function renderModalGames(order) {
         var grid = document.getElementById('modalGameGrid');
         var gameList = gameListOf(order);
@@ -1842,8 +1937,19 @@
         var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
+        var ticks = loadInstalledTicks(order);
 
         document.getElementById('modalGameCount').textContent = '(' + gameList.length + ')';
+        var doneCount = gameList.filter(function(n) { return ticks[n]; }).length;
+        var remainingEl = document.getElementById('modalGameRemaining');
+        if (remainingEl) {
+            remainingEl.textContent = doneCount > 0
+                ? doneCount + ' ticked, ' + (gameList.length - doneCount) + ' to copy'
+                : '';
+        }
+        var clearBtn = document.getElementById('modalClearTicksBtn');
+        if (clearBtn) clearBtn.style.display = doneCount > 0 ? 'inline-flex' : 'none';
+
         grid.innerHTML = '';
         if (gameList.length === 0) {
             grid.innerHTML = '<div style="color:#6a6357; padding:10px; font-style:italic;">No games selected.</div>';
@@ -1852,8 +1958,29 @@
         gameList.forEach(function(name, idx) {
             var item = document.createElement('div');
             item.className = 'modal-game-item';
+            var isDone = !!ticks[name];
+            if (isDone) item.classList.add('is-done');
             var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
-            item.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
+
+            var left = document.createElement('span');
+            left.className = 'modal-game-left';
+            left.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
+
+            // Tick control: "already installed on the Switch".
+            var label = document.createElement('label');
+            label.className = 'modal-game-done';
+            label.title = 'Already on the Switch - skip this one';
+            var box = document.createElement('input');
+            box.type = 'checkbox';
+            box.checked = isDone;
+            box.addEventListener('change', function() { setGameTick(order, name, box.checked); });
+            var boxText = document.createElement('span');
+            boxText.textContent = 'Installed';
+            label.appendChild(box);
+            label.appendChild(boxText);
+
+            item.appendChild(left);
+            item.appendChild(label);
             grid.appendChild(item);
         });
     }
@@ -1947,9 +2074,10 @@
     function copyGamesFromModal(btn) {
         var order = currentModalOrder;
         if (!order) return;
-        var gameList = gameListOf(order);
-        if (gameList.length === 0) { alert('No games to copy.'); return; }
-        sortGameList(gameList);
+        // Same rule as the install: ticked games are already on the Switch, so
+        // they are left out of the copied list too.
+        var gameList = pendingGameList(order);
+        if (gameList.length === 0) { alert('Every game is ticked as already installed - nothing left to copy.'); return; }
         navigator.clipboard.writeText(gameList.join('\n')).then(function() {
             var orig = btn.textContent;
             btn.textContent = 'Copied';
@@ -2399,5 +2527,248 @@
                 });
             }
         });
+    }
+
+    // ===== INSTALL ON SWITCH ==================================================
+    // A browser cannot run copygame.ps1 or write to the Switch, so this talks to
+    // install-server.ps1 running on the same PC (127.0.0.1 only, shared token in
+    // the git-ignored install_local.js). The helper writes games_to_copy.txt and
+    // runs the same script the manual flow uses, so the essentials-then-games
+    // behaviour is identical - nothing about the copying is duplicated here.
+
+    var installTimer = null;
+    var installSeen = 0;
+    var installPendingGames = [];
+
+    function installLocalConfig() {
+        return (typeof window !== 'undefined' && window.INSTALL_LOCAL) ? window.INSTALL_LOCAL : null;
+    }
+
+    function installSetStatus(text, kind) {
+        var status = document.getElementById('installStatus');
+        var dot = document.getElementById('installDot');
+        if (status) status.textContent = text;
+        if (dot) dot.className = 'install-dot' + (kind ? ' ' + kind : '');
+    }
+
+    function installAppendLog(lines) {
+        var box = document.getElementById('installLog');
+        if (!box) return;
+        var atBottom = (box.scrollTop + box.clientHeight) >= (box.scrollHeight - 24);
+        lines.forEach(function(line) {
+            var div = document.createElement('div');
+            var text = String(line);
+            if (text.indexOf('===') === 0) div.className = 'ok';
+            else if (text.indexOf('!') === 0) div.className = 'err';
+            else if (text.indexOf('  !!') === 0) div.className = 'err';
+            else if (text.indexOf('  !') === 0 || text.indexOf('Note:') === 0) div.className = 'warn';
+            div.textContent = text;
+            box.appendChild(div);
+        });
+        if (atBottom) box.scrollTop = box.scrollHeight;
+    }
+
+    function installShowPanel() {
+        var panel = document.getElementById('installPanel');
+        if (panel) panel.classList.add('show');
+    }
+
+    function hideInstallPanel() {
+        var panel = document.getElementById('installPanel');
+        if (panel) panel.classList.remove('show');
+        // Drop any un-answered choice so reopening the panel cannot start a run
+        // from a stale list. A run already going is untouched.
+        installPendingGames = [];
+    }
+
+    function installOnSwitch(btn) {
+        var cfg = installLocalConfig();
+        if (!cfg || !cfg.url || !cfg.token) {
+            alert('No local install helper found.\n\n' +
+                  'Run install-server.ps1 on this PC first, then reload this page.\n' +
+                  'Without it the browser cannot start the copy - use "Copy Game List" instead.');
+            return;
+        }
+        var order = currentModalOrder;
+        if (!order) return;
+        // Only the unticked games get copied; ticked ones are already on the
+        // Switch (typically from a previous run that failed part-way).
+        var gameList = pendingGameList(order);
+        if (gameList.length === 0) {
+            alert('Every game is ticked as already installed.\n\n' +
+                  'Untick the ones that are still missing, or use "Clear ticks" to start over.');
+            return;
+        }
+        installPendingGames = gameList;
+
+        // Offer the choice in the panel rather than a browser confirm: a confirm
+        // box only has OK/Cancel, and "skip essentials" needs a third answer.
+        installShowChooser(gameList);
+    }
+
+    // The first thing the panel shows: what is about to be installed, and the
+    // three ways to answer (essentials + games / games only / nothing).
+    function installShowChooser(gameList) {
+        installShowPanel();
+        installSetStatus('Ready to install', '');
+        var stopBtn = document.getElementById('installStopBtn');
+        if (stopBtn) stopBtn.style.display = 'none';
+
+        var box = document.getElementById('installLog');
+        if (!box) return;
+        box.innerHTML = '';
+
+        var skipped = 0;
+        try {
+            var all = gameListOf(currentModalOrder);
+            skipped = all.length - gameList.length;
+        } catch (e) { }
+
+        var head = document.createElement('div');
+        head.textContent = gameList.length + ' game' + (gameList.length !== 1 ? 's' : '') + ' will be copied, in this order:';
+        box.appendChild(head);
+
+        if (skipped > 0) {
+            var skipNote = document.createElement('div');
+            skipNote.className = 'muted';
+            skipNote.textContent = '(' + skipped + ' ticked as already installed will be skipped)';
+            box.appendChild(skipNote);
+        }
+
+        gameList.forEach(function(name, idx) {
+            var line = document.createElement('div');
+            line.textContent = '  ' + (idx + 1) + '. ' + name;
+            box.appendChild(line);
+        });
+
+        var gap = document.createElement('div');
+        gap.textContent = '';
+        box.appendChild(gap);
+
+        var ask = document.createElement('div');
+        ask.className = 'warn';
+        ask.textContent = 'Include the essential files (essential_files.txt) as well?';
+        box.appendChild(ask);
+
+        var row = document.createElement('div');
+        row.className = 'install-chooser';
+        row.style.marginTop = '8px';
+
+        var yes = document.createElement('button');
+        yes.className = 'install-btn';
+        yes.textContent = 'Essentials + games';
+        yes.title = 'Copy essential files first, then these games';
+        yes.onclick = function() { installStart(true); };
+
+        var no = document.createElement('button');
+        no.className = 'install-btn stop';
+        no.textContent = 'Games only';
+        no.title = 'Skip the essential files and copy just these games';
+        no.onclick = function() { installStart(false); };
+
+        var cancel = document.createElement('button');
+        cancel.className = 'mini-btn';
+        cancel.textContent = 'Cancel';
+        cancel.onclick = function() { installPendingGames = []; installSetStatus('Cancelled', ''); installShowChooserDone(); };
+
+        row.appendChild(yes);
+        row.appendChild(no);
+        row.appendChild(cancel);
+        box.appendChild(row);
+    }
+
+    // After Cancel: take the buttons away but leave the list on screen, so the
+    // panel does not look like it is still waiting for an answer.
+    function installShowChooserDone() {
+        var box = document.getElementById('installLog');
+        if (!box) return;
+        var buttons = box.querySelectorAll('button');
+        for (var i = 0; i < buttons.length; i++) { buttons[i].remove(); }
+    }
+
+    // Actually start a run. withEssentials decides whether essential_files.txt is
+    // copied first, which is the whole point of asking.
+    function installStart(withEssentials) {
+        var cfg = installLocalConfig();
+        if (!cfg) return;
+        var gameList = installPendingGames || [];
+        if (gameList.length === 0) return;
+
+        var box = document.getElementById('installLog');
+        if (box) box.innerHTML = '';
+        installSeen = 0;
+        installSetStatus('Starting...', 'busy');
+        var stopBtn = document.getElementById('installStopBtn');
+        if (stopBtn) stopBtn.style.display = '';
+
+        fetch(cfg.url + '/install', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Install-Token': cfg.token },
+            body: JSON.stringify({ games: gameList, essentials: !!withEssentials })
+        }).then(function(r) {
+            return r.json().then(function(j) { return { status: r.status, body: j }; });
+        }).then(function(res) {
+            if (!res.body || !res.body.ok) {
+                installSetStatus('Could not start', 'fail');
+                installAppendLog(['! ' + ((res.body && res.body.error) || ('HTTP ' + res.status))]);
+                if (stopBtn) stopBtn.style.display = 'none';
+                return;
+            }
+            installPoll();
+        }).catch(function(err) {
+            installSetStatus('Helper not reachable', 'fail');
+            installAppendLog(['! ' + err.message, '! Is install-server.ps1 still running?']);
+            if (stopBtn) stopBtn.style.display = 'none';
+        });
+    }
+
+    function installPoll() {
+        var cfg = installLocalConfig();
+        if (!cfg) return;
+        if (installTimer) clearTimeout(installTimer);
+
+        fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+            .then(function(r) { return r.json(); })
+            .then(function(s) {
+                if (s && s.lines) {
+                    // The helper returns the whole log; only add what is new.
+                    if (s.lines.length < installSeen) installSeen = 0;
+                    if (s.lines.length > installSeen) {
+                        installAppendLog(s.lines.slice(installSeen));
+                        installSeen = s.lines.length;
+                    }
+                }
+                var stopBtn = document.getElementById('installStopBtn');
+                if (s && s.running) {
+                    installSetStatus('Installing...', 'busy');
+                    if (stopBtn) stopBtn.style.display = '';
+                    installTimer = setTimeout(installPoll, 1000);
+                } else {
+                    // lastExit is a number on a normal finish, or the words
+                    // 'cancelled' / 'unknown' when the exit code could not be read.
+                    if (s && s.lastExit === 0) {
+                        installSetStatus('Finished', 'done');
+                    } else if (s && s.lastExit === 'cancelled') {
+                        installSetStatus('Stopped', 'fail');
+                    } else {
+                        installSetStatus('Finished with errors', 'fail');
+                    }
+                    if (stopBtn) stopBtn.style.display = 'none';
+                    installTimer = null;
+                }
+            })
+            .catch(function() {
+                installSetStatus('Helper not reachable', 'fail');
+                installTimer = null;
+            });
+    }
+
+    function cancelInstall() {
+        var cfg = installLocalConfig();
+        if (!cfg) return;
+        if (!confirm('Stop the running copy?')) return;
+        fetch(cfg.url + '/cancel', { method: 'POST', headers: { 'X-Install-Token': cfg.token } })
+            .then(function() { installSetStatus('Stopping...', 'fail'); })
+            .catch(function() { });
     }
     

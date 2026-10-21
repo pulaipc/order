@@ -389,6 +389,50 @@
         }
         .modal-section-title .action-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
+        /* Collapsible sections (Customer Links, Shipping, Games).
+           The title row doubles as the toggle, so the whole header is clickable
+           and the caret shows the state. */
+        .modal-section.collapsible > .modal-section-title { cursor: pointer; user-select: none; }
+        .modal-section.collapsible > .modal-section-title:hover { color: #c9c1ae; }
+        .section-caret {
+            display: inline-block;
+            width: 10px;
+            color: #8a8272;
+            transition: transform 0.18s ease;
+            transform: rotate(90deg);
+            margin-right: 2px;
+            flex-shrink: 0;
+        }
+        .modal-section.collapsed > .modal-section-title .section-caret { transform: rotate(0deg); }
+        .modal-section.collapsed > .modal-section-body { display: none; }
+        .modal-section-title .title-left { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+
+        /* Small button that works anywhere in the modal, not only inside a section
+           title. Used by the install panel's Hide button and kept identical in size
+           to .install-btn so Hide/Stop sit flush side by side. */
+        .mini-btn {
+            background: #2a2108;
+            border: 1px solid #3a3018;
+            color: #e8dcc0;
+            height: 30px;
+            padding: 0 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .mini-btn:hover { background: #3a3018; color: #f0e9d8; border-color: #55461f; }
+
         .modal-info-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; line-height: 1.5; flex-wrap: wrap; }
         .modal-info-row .lbl { color: #8a8272; flex-shrink: 0; }
         .modal-info-row .val { color: #f0e9d8; text-align: right; flex: 1; min-width: 0; word-break: break-word; }
@@ -431,7 +475,118 @@
         .modal-game-name { flex: 1; min-width: 0; word-break: break-word; color: #f0e9d8; }
         .modal-game-size { color: #8a8272; font-size: 11.5px; white-space: nowrap; flex-shrink: 0; }
 
+        /* "Already installed" tick - a game ticked here is skipped by the next
+           install run, so a failed install can be resumed without recopying. */
+        .modal-game-item.is-done { opacity: 0.5; }
+        .modal-game-item.is-done .modal-game-name { text-decoration: line-through; }
+        .modal-game-done {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; color: #8a8272; cursor: pointer;
+            flex-shrink: 0; user-select: none; white-space: nowrap;
+            padding: 2px 6px; border-radius: 4px; border: 1px solid #2e2716;
+            background: #1c170d;
+        }
+        .modal-game-done:hover { color: #cfe8d6; border-color: #3a4a3c; }
+        .modal-game-done input {
+            margin: 0; width: 13px; height: 13px; cursor: pointer;
+            accent-color: #2ea552;
+        }
+        .modal-game-left { display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 0; }
+        .modal-game-remaining { color: #9fd8b0; font-size: 11px; font-weight: 600; white-space: nowrap; }
+        .modal-tick-hint {
+            color: #8a8272; font-size: 11px; line-height: 1.4;
+            margin-bottom: 8px; padding: 6px 9px;
+            background: #1c170d; border: 1px solid #2e2716; border-radius: 5px;
+        }
+
         .modal-games-list { display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; padding-right: 4px; }
+
+        /* ===== INSTALL ON SWITCH (local helper) ===== */
+        .install-btn {
+            background: #1f7a3d;
+            color: #f2fbf4;
+            border: 1px solid #2ea552;
+            border-radius: 5px;
+            padding: 7px 13px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .install-btn:hover { background: #2ea552; }
+        .install-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .install-btn.stop { background: #7a1f1f; border-color: #a52e2e; }
+        .install-btn.stop:hover { background: #a52e2e; }
+        .install-panel {
+            margin: 0 0 12px 0;
+            border: 1px solid #2b3a2e;
+            background: #0b1310;
+            border-radius: 6px;
+            padding: 10px 11px;
+            display: none;
+        }
+        .install-panel.show { display: block; }
+
+        /* Keep the install console above the game list */
+        #modalGamesSection .modal-section-body {
+            display: flex;
+            flex-direction: column;
+        }
+        #modalGamesSection .install-panel { order: -1; }
+        #modalGamesSection #modalGameGrid { order: 0; }
+
+        /* Three-way chooser rendered in the games section */
+        .install-chooser {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 10px 0;
+        }
+        .install-chooser .install-btn,
+        .install-chooser .mini-btn {
+            height: 30px;
+            padding: 0 12px;
+            box-sizing: border-box;
+        }
+        .install-chooser .install-btn.stop {
+            background: #7a1f1f;
+            border-color: #a52e2e;
+            color: #f3d9c7;
+        }
+        .install-chooser .install-btn.stop:hover {
+            background: #a52e2e;
+            border-color: #c93e3e;
+            color: #fff3ec;
+        }
+        .install-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; color: #9fd8b0; font-weight: 700; margin-bottom: 8px; }
+        .install-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #6a6357; margin-right: 6px; }
+        .install-dot.busy { background: #ffc000; animation: installPulse 1s ease-in-out infinite; }
+        .install-dot.done { background: #2ea552; }
+        .install-dot.fail { background: #e57373; }
+        @keyframes installPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .install-log {
+            font-family: Consolas, 'Courier New', monospace;
+            font-size: 11.5px;
+            line-height: 1.5;
+            color: #cfe8d6;
+            background: #060a08;
+            border: 1px solid #1d2a20;
+            border-radius: 5px;
+            padding: 9px 10px;
+            max-height: 260px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .install-log .warn { color: #ffd166; }
+        .install-log .err { color: #ff8a80; }
+        .install-log .ok { color: #7ee2a8; }
+        .install-log .muted { color: #8a8272; }
 
         /* Shipping editor inside modal */
         .shipping-editor-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
@@ -1173,27 +1328,6 @@
                     </div>
                 </div>
 
-                <!-- CUSTOMER LINKS -->
-                <div class="modal-section">
-                    <div class="modal-section-title">
-                        <span>Customer Links</span>
-                        <span style="font-size:11px;color:#6a6357;">The only way this customer can open the order</span>
-                    </div>
-                    <div class="link-row">
-                        <span class="lbl">View &amp; edit order</span>
-                        <input type="text" class="link-input" id="modalOrderLinkInput" readonly onclick="this.select();">
-                        <button class="link-copy-btn" id="modalOrderLinkBtn" onclick="copyModalLink('modalOrderLinkInput', 'modalOrderLinkBtn')">Copy</button>
-                    </div>
-                    <div class="link-row">
-                        <span class="lbl">Track progress</span>
-                        <input type="text" class="link-input" id="modalTrackLinkInput" readonly onclick="this.select();">
-                        <button class="link-copy-btn" id="modalTrackLinkBtn" onclick="copyModalLink('modalTrackLinkInput', 'modalTrackLinkBtn')">Copy</button>
-                    </div>
-                    <div class="link-note" id="modalLinksNote" style="display:none;">
-                        This order has no private link yet. Save the order once and the links appear here.
-                    </div>
-                </div>
-
                 <!-- SERVICE -->
                 <div class="modal-section">
                     <div class="modal-section-title">
@@ -1305,11 +1439,12 @@
                 </div>
 
                 <!-- PRICE ADJUSTMENTS -->
-                <div class="modal-section">
-                    <div class="modal-section-title">
-                        <span>Price Adjustments</span>
-                        <button class="action-btn" onclick="resetPriceAdjustments()">Reset</button>
+                <div class="modal-section collapsible collapsed" id="modalAdjustSection">
+                    <div class="modal-section-title" onclick="toggleModalSection('modalAdjustSection')">
+                        <span class="title-left"><span class="section-caret">&#9654;</span><span>Price Adjustments</span></span>
+                        <button class="action-btn" onclick="event.stopPropagation(); resetPriceAdjustments();">Reset</button>
                     </div>
+                    <div class="modal-section-body">
                     <div class="adjust-grid">
                         <div class="adjust-row">
                             <span class="lbl">Free games<br><span style="color:#6a6357;font-size:11px;" id="freeGamesHint">Waived from the chargeable count</span></span>
@@ -1362,36 +1497,85 @@
                             <span class="adjust-save-status" id="adjustSaveStatus"></span>
                         </div>
                     </div>
+                    </div>
                 </div>
 
                 <!-- REPAIRS -->
                 <div id="modalRepairsContainer"></div>
 
                 <!-- GAMES -->
-                <div class="modal-section">
-                    <div class="modal-section-title">
-                        <span>Games <span id="modalGameCount" style="color:#ffc000;">(0)</span></span>
-                        <button class="action-btn" onclick="copyGamesFromModal(this)">Copy Game List</button>
+                <div class="modal-section collapsible" id="modalGamesSection">
+                    <div class="modal-section-title" onclick="toggleModalSection('modalGamesSection')">
+                        <span class="title-left">
+                            <span class="section-caret">&#9654;</span>
+                            <span>Games <span id="modalGameCount" style="color:#ffc000;">(0)</span></span>
+                            <span class="modal-game-remaining" id="modalGameRemaining"></span>
+                            <button class="action-btn" onclick="event.stopPropagation(); copyGamesFromModal(this);">Copy Game List</button>
+                        </span>
+                        <span class="title-left">
+                            <button class="action-btn" id="modalClearTicksBtn" onclick="event.stopPropagation(); clearInstalledTicks(this);" style="display:none;" title="Untick every game">Clear ticks</button>
+                            <button class="install-btn" id="installBtn" onclick="event.stopPropagation(); installOnSwitch(this);" title="Runs copygame.ps1 on this PC via the local helper">&#128190; Install on Switch</button>
+                        </span>
                     </div>
-                    <div id="modalGameGrid" class="modal-games-list"></div>
+                    <div class="modal-section-body">
+                        <div class="modal-tick-hint">Tick a game that is already on the Switch to skip it - useful when a previous install failed part-way and you are resuming.</div>
+                        <div id="modalGameGrid" class="modal-games-list"></div>
+                        <div class="install-panel" id="installPanel">
+                            <div class="install-head">
+                                <span><span class="install-dot" id="installDot"></span><span id="installStatus">Ready</span></span>
+                                <span style="display:inline-flex; gap:6px; align-items:center;">
+                                    <button class="mini-btn" onclick="hideInstallPanel()">Hide</button>
+                                    <button class="install-btn stop" id="installStopBtn" onclick="cancelInstall()" style="display:none;">Stop</button>
+                                </span>
+                            </div>
+                            <div class="install-log" id="installLog"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- SHIPPING -->
-                <div class="modal-section">
-                    <div class="modal-section-title"><span>Shipping</span></div>
-                    <div class="shipping-editor-row" id="modalShipInboundRow">
-                        <span class="lbl">Inbound (Customer &rarr; You)</span>
-                        <select class="shipping-select" id="modalShipInSelect"></select>
-                        <input class="shipping-input" id="modalShipInInput" placeholder="Tracking number">
-                        <button class="shipping-save-btn" onclick="saveShipping('inbound')">Save</button>
-                        <button class="shipping-clear-btn" id="modalShipInClearBtn" onclick="clearShipping('inbound')">Clear</button>
+                <div class="modal-section collapsible collapsed" id="modalShippingSection">
+                    <div class="modal-section-title" onclick="toggleModalSection('modalShippingSection')">
+                        <span class="title-left"><span class="section-caret">&#9654;</span><span>Shipping</span></span>
                     </div>
-                    <div class="shipping-editor-row" id="modalShipOutboundRow">
-                        <span class="lbl">Outbound (You &rarr; Customer)</span>
-                        <select class="shipping-select" id="modalShipOutSelect"></select>
-                        <input class="shipping-input" id="modalShipOutInput" placeholder="Tracking number">
-                        <button class="shipping-save-btn" onclick="saveShipping('outbound')">Save</button>
-                        <button class="shipping-clear-btn" id="modalShipOutClearBtn" onclick="clearShipping('outbound')">Clear</button>
+                    <div class="modal-section-body">
+                        <div class="shipping-editor-row" id="modalShipInboundRow">
+                            <span class="lbl">Inbound (Customer &rarr; You)</span>
+                            <select class="shipping-select" id="modalShipInSelect"></select>
+                            <input class="shipping-input" id="modalShipInInput" placeholder="Tracking number">
+                            <button class="shipping-save-btn" onclick="saveShipping('inbound')">Save</button>
+                            <button class="shipping-clear-btn" id="modalShipInClearBtn" onclick="clearShipping('inbound')">Clear</button>
+                        </div>
+                        <div class="shipping-editor-row" id="modalShipOutboundRow">
+                            <span class="lbl">Outbound (You &rarr; Customer)</span>
+                            <select class="shipping-select" id="modalShipOutSelect"></select>
+                            <input class="shipping-input" id="modalShipOutInput" placeholder="Tracking number">
+                            <button class="shipping-save-btn" onclick="saveShipping('outbound')">Save</button>
+                            <button class="shipping-clear-btn" id="modalShipOutClearBtn" onclick="clearShipping('outbound')">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CUSTOMER LINKS (bottom, collapsed by default) -->
+                <div class="modal-section collapsible collapsed" id="modalLinksSection">
+                    <div class="modal-section-title" onclick="toggleModalSection('modalLinksSection')">
+                        <span class="title-left"><span class="section-caret">&#9654;</span><span>Customer Links</span></span>
+                        <span style="font-size:11px;color:#6a6357;">The only way this customer can open the order</span>
+                    </div>
+                    <div class="modal-section-body">
+                        <div class="link-row">
+                            <span class="lbl">View &amp; edit order</span>
+                            <input type="text" class="link-input" id="modalOrderLinkInput" readonly onclick="this.select();">
+                            <button class="link-copy-btn" id="modalOrderLinkBtn" onclick="copyModalLink('modalOrderLinkInput', 'modalOrderLinkBtn')">Copy</button>
+                        </div>
+                        <div class="link-row">
+                            <span class="lbl">Track progress</span>
+                            <input type="text" class="link-input" id="modalTrackLinkInput" readonly onclick="this.select();">
+                            <button class="link-copy-btn" id="modalTrackLinkBtn" onclick="copyModalLink('modalTrackLinkInput', 'modalTrackLinkBtn')">Copy</button>
+                        </div>
+                        <div class="link-note" id="modalLinksNote" style="display:none;">
+                            This order has no private link yet. Save the order once and the links appear here.
+                        </div>
                     </div>
                 </div>
 
@@ -1448,6 +1632,11 @@
 
     <script src="gameslist.js"></script>
     <script src="config.js"></script>
+    <!-- Optional, git-ignored, written by install-server.ps1 on this PC. Absent
+         when the page is opened over the internet, in which case the Install
+         button simply reports that no local helper was found. Loaded before
+         admin.js so the installer code can read it at load time. -->
+    <script src="install_local.js" onerror="void 0"></script>
     <script src="admin.js"></script>
 </body>
 </html>
