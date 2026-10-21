@@ -17,6 +17,11 @@
     * a stale instance from a previous session is stopped first, so a reboot is
       the only thing needed to recover a wedged helper
 
+  The port asked for may already be taken - by an old helper that needs
+  elevation to stop, or by anything else on the PC. The helper then steps to
+  the next free port rather than failing, and this launcher reports the port
+  it actually got.
+
 .PARAMETER Install
   Register the helper to start at logon for the current user and exit.
 
@@ -90,6 +95,19 @@ function Get-ReadyPid {
     return $null
 }
 
+function Get-ReadyUrl {
+    # The port the helper actually ended up on. It is not always the one that
+    # was asked for: when that port is taken the helper steps to the next free
+    # one, and this is where the real address comes from.
+    try {
+        if (-not (Test-Path -LiteralPath $ReadyFile)) { return $null }
+        $line = (Get-Content -LiteralPath $ReadyFile -ErrorAction SilentlyContinue |
+                 Where-Object { $_ -like 'http://127.0.0.1:*' } | Select-Object -First 1)
+        if ($line) { return $line.Trim() }
+    } catch { }
+    return $null
+}
+
 function Stop-Helper {
     $procs = @(Get-HelperProcesses)
     foreach ($p in $procs) {
@@ -126,6 +144,11 @@ if ($existing.Count -gt 0) {
 }
 
 # ---- launch hidden -----------------------------------------------------------
+# The ready flag is written by the helper once its listener is up, and it names
+# the port the helper actually got. Clear any leftover from a previous run
+# first, so this command cannot read a stale flag and report the old port.
+Remove-Item -LiteralPath $ReadyFile -ErrorAction SilentlyContinue
+
 $psExe = (Get-Process -Id $PID).Path
 $args = @(
     '-NoProfile',
@@ -150,11 +173,16 @@ while ((Get-Date) -lt $deadline) {
 }
 
 if ($up) {
-    Write-Host "Install helper is running hidden on http://127.0.0.1:$Port/" -ForegroundColor Green
+    $readyUrl = Get-ReadyUrl
+    if ($readyUrl) {
+        Write-Host "Install helper is running hidden on $readyUrl" -ForegroundColor Green
+    } else {
+        Write-Host "Install helper is running hidden on http://127.0.0.1:$Port/" -ForegroundColor Green
+    }
     Write-Host "  log: $LogFile" -ForegroundColor DarkGray
 } else {
     Write-Host 'Helper did not report ready within 15s.' -ForegroundColor Red
-    Write-Host "  Check $LogFile - the port may be taken (try -Port 8788)." -ForegroundColor Yellow
+    Write-Host "  Check $LogFile - every port from $Port to $($Port + 4) may be taken." -ForegroundColor Yellow
 }
 
 # ---- optional logon entry ----------------------------------------------------

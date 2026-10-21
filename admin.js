@@ -2542,9 +2542,10 @@
     var installCfg = null;        // {url, token} once the helper has been found
     var installCfgWait = null;    // the lookup in flight, so we only try once
 
-    // Where the helper may be listening. 8787 is the default; 8788 is what the
-    // launcher falls back to when 8787 is taken.
-    var INSTALL_PORTS = [8787, 8788, 8789];
+    // Where the helper may be listening. 8787 is the default; when that port is
+    // taken the helper steps to the next free one, up to four ports along, so
+    // all of those are worth a look.
+    var INSTALL_PORTS = [8787, 8788, 8789, 8790, 8791];
 
     // The helper's url and token. Two ways to get them:
     //   * install_local.js, written next to the helper and loaded only when the
