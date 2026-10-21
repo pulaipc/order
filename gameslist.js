@@ -1,7 +1,7 @@
-// gameslist.js
+﻿// gameslist.js
 // ---------------------------------------------------------------------------
 // Auto-generated game catalog. Do NOT edit manually.
-// Regenerate this file by running your PowerShell script — it should write
+// Regenerate this file by running your PowerShell script â€” it should write
 // the entire file, including this header.
 //
 // Consumed by config.js (which sets APP_CONFIG.gamesList = games) and by
@@ -99,7 +99,7 @@ const games = [
       { name: "Final Fantasy VII Reunion Crisis Core", size: 14.63 },
       { name: "Fire Emblem Engage", size: 13.46 },
       { name: "Fire Emblem Three Houses", size: 12.59 },
-      { name: "Fishing games for Nintendo Switch", size: 4.82 },
+      { name: "Fishing games for Nintendo Switch", size: 5.38 },
       { name: "FIST Forged in Shadow Torch", size: 6.29 },
       { name: "Fitness Boxing 3", size: 2.79 },
       { name: "Football Manager 26 Touch", size: 3.67 },
@@ -199,7 +199,9 @@ const games = [
       { name: "Naruto Shippuden Ultimate Ninja Storm Trilogy", size: 17.63 },
       { name: "Naruto x Boruto Ultimate Ninja Storm Connections (EU)", size: 17.4 },
       { name: "NBA 2K25", size: 58.63 },
+      { name: "Need for Speed - Most Wanted", size: 6.7 },
       { name: "Need for Speed Hot Pursuit Remastered", size: 6.21 },
+      { name: "New Star GP", size: 0.56 },
       { name: "New Super Luckys Tale", size: 4.97 },
       { name: "New Super Mario Bros U Deluxe", size: 1.39 },
       { name: "Nickelodeon All-Star Brawl 2", size: 6.31 },
@@ -329,6 +331,7 @@ const games = [
       { name: "Unravel Two", size: 1.81 },
       { name: "Untitled Goose Game", size: 0.33 },
       { name: "Upin and Ipin Universe", size: 4.71 },
+      { name: "V-Rally 4", size: 9.67 },
       { name: "Viewfinder", size: 2.61 },
       { name: "Vigil The Longest Night", size: 3.95 },
       { name: "WarioWare Get It Together", size: 1.52 },
@@ -349,3 +352,4 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
+
