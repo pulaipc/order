@@ -2539,9 +2539,74 @@
     var installTimer = null;
     var installSeen = 0;
     var installPendingGames = [];
+    var installCfg = null;        // {url, token} once the helper has been found
+    var installCfgWait = null;    // the lookup in flight, so we only try once
 
+    // Where the helper may be listening. 8787 is the default; 8788 is what the
+    // launcher falls back to when 8787 is taken.
+    var INSTALL_PORTS = [8787, 8788, 8789];
+
+    // The helper's url and token. Two ways to get them:
+    //   * install_local.js, written next to the helper and loaded only when the
+    //     admin page is opened on this PC (it is git-ignored, so it never
+    //     travels with the site);
+    //   * asking the running helper over HTTP, which is what happens when the
+    //     page comes from GitHub Pages and the file is simply not there.
+    // The helper only hands its token to an origin it trusts, so this does not
+    // open the door to other sites open in the same browser.
     function installLocalConfig() {
+        if (installCfg) return installCfg;
         return (typeof window !== 'undefined' && window.INSTALL_LOCAL) ? window.INSTALL_LOCAL : null;
+    }
+
+    function installFetchJson(url) {
+        // referrerPolicy 'unsafe-url' sends the whole page URL, not just the
+        // origin. The helper uses that to tell the admin page apart from the
+        // customer pages, which share the same origin.
+        return fetch(url, { method: 'GET', cache: 'no-store', referrerPolicy: 'unsafe-url' })
+            .then(function(r) { return r.ok ? r.json() : null; })
+            .catch(function() { return null; });
+    }
+
+    function installFindHelper() {
+        var local = (typeof window !== 'undefined' && window.INSTALL_LOCAL) ? window.INSTALL_LOCAL : null;
+        if (local && local.url && local.token) {
+            installCfg = local;
+            return Promise.resolve(installCfg);
+        }
+        var ports = INSTALL_PORTS.slice();
+        // ?installPort=8788 reaches a helper on an unusual port.
+        try {
+            var override = parseInt(new URLSearchParams(window.location.search).get('installPort'), 10);
+            if (override > 0 && override < 65536 && ports.indexOf(override) === -1) ports.unshift(override);
+        } catch (e) { }
+
+        var i = 0;
+        function next() {
+            if (i >= ports.length) return Promise.resolve(null);
+            var port = ports[i++];
+            return installFetchJson('http://127.0.0.1:' + port + '/config')
+                .then(function(j) {
+                    if (j && j.ok && j.url && j.token) {
+                        installCfg = { url: j.url, token: j.token };
+                        return installCfg;
+                    }
+                    return next();
+                });
+        }
+        return next();
+    }
+
+    function installResolveConfig() {
+        if (installCfg) return Promise.resolve(installCfg);
+        if (installCfgWait) return installCfgWait;
+        installCfgWait = installFindHelper().then(function(cfg) {
+            // Let the next attempt look again - the helper may simply not have
+            // been started yet.
+            if (!cfg) installCfgWait = null;
+            return cfg;
+        });
+        return installCfgWait;
     }
 
     function installSetStatus(text, kind) {
@@ -2582,13 +2647,6 @@
     }
 
     function installOnSwitch(btn) {
-        var cfg = installLocalConfig();
-        if (!cfg || !cfg.url || !cfg.token) {
-            alert('No local install helper found.\n\n' +
-                  'Run install-server.ps1 on this PC first, then reload this page.\n' +
-                  'Without it the browser cannot start the copy - use "Copy Game List" instead.');
-            return;
-        }
         var order = currentModalOrder;
         if (!order) return;
         // Only the unticked games get copied; ticked ones are already on the
@@ -2601,9 +2659,29 @@
         }
         installPendingGames = gameList;
 
-        // Offer the choice in the panel rather than a browser confirm: a confirm
-        // box only has OK/Cancel, and "skip essentials" needs a third answer.
-        installShowChooser(gameList);
+        // The helper has to be found before anything can be sent to it. When the
+        // page comes from GitHub Pages that means asking each candidate port
+        // over HTTP, which takes a moment - so say what is happening rather
+        // than looking frozen.
+        installShowPanel();
+        installSetStatus('Looking for the install helper...', 'busy');
+        var logBox = document.getElementById('installLog');
+        if (logBox) logBox.innerHTML = '';
+
+        installResolveConfig().then(function(cfg) {
+            if (!cfg) {
+                installSetStatus('No install helper found', 'fail');
+                installAppendLog(['! No local install helper found.']);
+                alert('No local install helper found.\n\n' +
+                      'Start install-server.ps1 on this PC (or run install-server-hidden.ps1), then try again.\n' +
+                      'Without it the browser cannot start the copy - use "Copy Game List" instead.');
+                return;
+            }
+            // Offer the choice in the panel rather than a browser confirm: a
+            // confirm box only has OK/Cancel, and "skip essentials" needs a
+            // third answer.
+            installShowChooser(gameList);
+        });
     }
 
     // The first thing the panel shows: what is about to be installed, and the

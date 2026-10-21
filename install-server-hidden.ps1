@@ -26,6 +26,14 @@
 .PARAMETER Port
   Port to listen on. Default 8787, matching install-server.ps1.
 
+.PARAMETER AllowedOrigin
+  Browser origins allowed to ask the helper for its config. Passed straight
+  through to install-server.ps1.
+
+.PARAMETER AdminPagePath
+  File name of the admin page. The helper only hands its token to a request
+  whose Referer is that page. Passed straight through to install-server.ps1.
+
 .EXAMPLE
   .\install-server-hidden.ps1
   Start it hidden right now.
@@ -39,7 +47,9 @@
 param(
     [int]$Port = 8787,
     [switch]$Install,
-    [switch]$Uninstall
+    [switch]$Uninstall,
+    [string]$AllowedOrigin = 'https://pulaipc.github.io,http://127.0.0.1:*,http://localhost:*',
+    [string]$AdminPagePath = 'admin.html'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -63,11 +73,34 @@ function Get-HelperProcesses {
         Where-Object { $_.CommandLine -and ($_.CommandLine -match [regex]::Escape($Server)) }
 }
 
+function Get-ReadyPid {
+    # The ready flag records the pid of the run that wrote it. A helper whose
+    # command line cannot be read (it happens when the process is started
+    # detached) is still found this way, so a second helper never ends up
+    # fighting over the same port.
+    try {
+        if (-not (Test-Path -LiteralPath $ReadyFile)) { return $null }
+        $line = (Get-Content -LiteralPath $ReadyFile -ErrorAction SilentlyContinue |
+                 Where-Object { $_ -like 'pid=*' } | Select-Object -First 1)
+        if (-not $line) { return $null }
+        $pidText = ($line -replace '^pid=', '').Trim()
+        $n = 0
+        if ([int]::TryParse($pidText, [ref]$n)) { return $n }
+    } catch { }
+    return $null
+}
+
 function Stop-Helper {
     $procs = @(Get-HelperProcesses)
     foreach ($p in $procs) {
         Write-Host "  stopping helper PID $($p.ProcessId)" -ForegroundColor DarkGray
         try { & "$env:SystemRoot\System32\taskkill.exe" /PID $p.ProcessId /T /F 2>&1 | Out-Null } catch { }
+    }
+    # Also catch a helper that the command-line scan missed.
+    $readyPid = Get-ReadyPid
+    if ($readyPid -and -not ($procs | Where-Object { $_.ProcessId -eq $readyPid })) {
+        Write-Host "  stopping helper PID $readyPid" -ForegroundColor DarkGray
+        try { & "$env:SystemRoot\System32\taskkill.exe" /PID $readyPid /T /F 2>&1 | Out-Null } catch { }
     }
     return $procs.Count
 }
@@ -100,7 +133,9 @@ $args = @(
     '-WindowStyle', 'Hidden',
     '-File', $Server,
     '-Quiet',
-    '-Port', "$Port"
+    '-Port', "$Port",
+    '-AllowedOrigin', $AllowedOrigin,
+    '-AdminPagePath', $AdminPagePath
 )
 
 Start-Process -FilePath $psExe -ArgumentList $args -WindowStyle Hidden | Out-Null
@@ -126,7 +161,7 @@ if ($up) {
 if ($Install) {
     # Run only when this user is logged on: the helper drives copygame.ps1, which
     # must reach the MTP device in this desktop session. A session-0 task cannot.
-    $action = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Port $Port"
+    $action = "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Port $Port -AllowedOrigin `"$AllowedOrigin`" -AdminPagePath `"$AdminPagePath`""
     $taskOk = $false
     try {
         $out = & "$env:SystemRoot\System32\schtasks.exe" /Create /TN $TaskName /TR $action /SC ONLOGON /RL LIMITED /F 2>&1
@@ -145,7 +180,7 @@ if ($Install) {
             $wsh = New-Object -ComObject WScript.Shell
             $sc = $wsh.CreateShortcut($lnkPath)
             $sc.TargetPath = 'powershell.exe'
-            $sc.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Port $Port"
+            $sc.Arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$PSCommandPath`" -Port $Port -AllowedOrigin `"$AllowedOrigin`" -AdminPagePath `"$AdminPagePath`""
             $sc.WorkingDirectory = $ScriptDir
             $sc.Description = 'Pulai PC install helper'
             $sc.WindowStyle = 7

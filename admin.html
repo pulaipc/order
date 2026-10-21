@@ -1633,9 +1633,9 @@
     <script src="gameslist.js"></script>
     <script src="config.js"></script>
     <!-- Optional, git-ignored, written by install-server.ps1 on this PC. Absent
-         when the page is opened over the internet, in which case the Install
-         button simply reports that no local helper was found. Loaded before
-         admin.js so the installer code can read it at load time. -->
+         when the page is opened over the internet, in which case admin.js asks
+         the running helper over HTTP instead. Loaded before admin.js so the
+         installer code can read it at load time. -->
     <script src="install_local.js" onerror="void 0"></script>
     <script src="admin.js"></script>
 </body>
