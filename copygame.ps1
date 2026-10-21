@@ -1210,6 +1210,14 @@ if ($DryRun) {
     $copyEss = $true
 } elseif ($essentials.Count -eq 0) {
     $copyEss = $false
+} elseif ($NoPause -or [Console]::IsInputRedirected) {
+    # No interactive terminal to ask on (the admin page runs this headlessly, and
+    # a redirected stdin can never answer). Default to skipping: essentials reset
+    # console state, so repeating them unasked is the riskier choice. Wanted
+    # essentials are requested up front with --essentials, which never gets here.
+    Write-Host 'Note: no interactive prompt available; skipping essentials.'
+    Write-Host '      (use --essentials to copy them without asking)'
+    $copyEss = $false
 } else {
     Write-Host "Copy $($essentials.Count) essential file(s) first? (already installed this session? then skip)"
     $answer = (Read-Host '> Essentials first? [Y/n]').Trim()
