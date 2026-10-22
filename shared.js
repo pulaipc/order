@@ -29,6 +29,10 @@ function escapeHtml(str) {
  * `games` is a jsonb array, but older rows (and anything hand-typed into the
  * SQL editor) may hold a JSON string or a bare comma-separated list, so all
  * three shapes are accepted.
+ *
+ * The array keeps the order the customer picked the games in, and that order is
+ * the order they are copied to the Switch in. Nothing here sorts it: the first
+ * game a customer ticks is the one they want first.
  */
 function gameListOf(order) {
     if (!order) return [];
@@ -48,6 +52,10 @@ function gameListOf(order) {
  * Sort game names into catalog order in place, so the list the customer picked
  * matches the library order rather than the order the rows happen to be in.
  * Names not in the catalog sink to the bottom, alphabetically.
+ *
+ * Deliberately not used for the order or the copy order: the copy follows the
+ * order the customer picked the games in. It is kept for the pages that still
+ * want the library order.
  */
 function sortGameList(gameList) {
     if (!Array.isArray(gameList)) return gameList;

@@ -1268,7 +1268,8 @@
         orderEdit.linux = !!order.linux_mode;
         orderEdit.freeStorage = Number(order.free_storage_gb) || 0;
         orderEdit.games = gameListOf(order);
-        sortGameList(orderEdit.games);
+        // Left in the customer's own order: the first game they picked is the
+        // one they want copied first, so the editor must not reshuffle them.
         orderEdit.repairs = {};
         orderEdit.lastRepairModel = orderEdit.consoleModel;
         getEnrichedRepairs(order).forEach(function (r) { orderEdit.repairs[r.id] = r; });
@@ -1404,8 +1405,9 @@
 
     function addOrderEditGame(name) {
         if (!name || orderEdit.games.indexOf(name) !== -1) return;
+        // Appended at the end: a game added here is a game the shop added, so it
+        // copies after the ones the customer asked for.
         orderEdit.games.push(name);
-        sortGameList(orderEdit.games);
         renderEditGameOptions();
         renderEditSelectedGames();
         updateOrderEditPreview();
@@ -1923,9 +1925,13 @@
 
     // The games that still need copying: everything the customer picked, minus
     // the ones ticked as already installed.
+    //
+    // The order is the order the customer picked them in, not the catalogue
+    // order: the first game they ticked is the one they want first on the
+    // Switch, and that is the order they are copied in. The order is stored in
+    // the order's games array, so it survives an edit and a reload.
     function pendingGameList(order) {
         var gameList = gameListOf(order);
-        sortGameList(gameList);
         var ticks = loadInstalledTicks(order);
         return gameList.filter(function(name) { return !ticks[name]; });
     }
@@ -1933,7 +1939,6 @@
     function renderModalGames(order) {
         var grid = document.getElementById('modalGameGrid');
         var gameList = gameListOf(order);
-        sortGameList(gameList);
         var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });

@@ -359,7 +359,8 @@
         else if (locked) pillClass = 'locked';
 
         const gameList = gameListOf(order);
-        sortGameList(gameList);
+        // Left in the order the customer picked them, which is the order they
+        // will be copied in. The catalogue order would throw that away.
         const gameCount = gameList.length;
         let totalGb = 0;
         let unknownSizeCount = 0;
