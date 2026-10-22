@@ -49,11 +49,6 @@
         .order-list-item { background: #221c10; border: 1px solid #2e2716; border-radius: 8px; padding: 14px; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; display: flex; flex-direction: column; gap: 8px; }
         .order-list-item:hover { border-color: #5a4a20; }
         .order-list-item:active { background: #2a2108; }
-        /* Status-only rows come from a phone lookup, which has no token and so
-           cannot open an order. They must not look tappable. */
-        .order-list-item.readonly { cursor: default; }
-        .order-list-item.readonly:hover { border-color: #2e2716; }
-        .order-list-item.readonly:active { background: #221c10; }
 
         /* Stage detail shown on a phone lookup. */
         .order-stage-block { margin-top: 2px; padding-top: 10px; border-top: 1px solid #2e2716; display: flex; flex-direction: column; gap: 8px; }

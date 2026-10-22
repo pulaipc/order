@@ -226,6 +226,12 @@
             renderOrderList(activeOrders, true);
             setStatus('');
 
+            // An address that already names an order opens it straight away, the
+            // same way the private link opens its order. The state is replaced,
+            // not pushed, so the back button still goes back where it came from.
+            const wanted = findOrderByKey(new URLSearchParams(window.location.search), activeOrders);
+            if (wanted) openOrderFromList(wanted, activeOrders.indexOf(wanted), true);
+
         } catch (err) {
             console.error(err);
             recordFailure();
@@ -318,7 +324,7 @@
 
         list.innerHTML = '';
         subtitle.textContent = statusOnly
-            ? 'We found ' + orders.length + ' active order' + (orders.length !== 1 ? 's' : '') + ' for ' + currentPhone + '.'
+            ? 'We found ' + orders.length + ' active order' + (orders.length !== 1 ? 's' : '') + ' for ' + currentPhone + '. Tap one to see its progress.'
             : 'We found ' + orders.length + ' active orders for ' + currentPhone + '. Tap one to see its progress.';
 
         orders.forEach((order, index) => {
@@ -349,7 +355,6 @@
                 // them that way rather than implying the shop numbered them.
                 detailParts = [escapeHtml(serviceLabel), escapeHtml(order.status || 'Pending')];
                 heading = 'Order ' + (index + 1) + ' of ' + orders.length;
-                item.classList.add('readonly');
                 extra = renderStageDetail(order);
             } else {
                 const orderId = String(order.id || order.order_id);
@@ -362,6 +367,13 @@
                 if (total) detailParts.push('<strong>' + total + '</strong>');
                 heading = 'Order #' + escapeHtml(order.phone_ending || '');
                 item.onclick = () => selectOrderFromList(orderId);
+            }
+
+            // A status-only card opens the tracker too. It shows the stage and
+            // the status, which is all orders_by_phone ever sent, so opening it
+            // cannot reveal anything the list did not already show.
+            if (statusOnly) {
+                item.onclick = () => openOrderFromList(order, index);
             }
 
             item.innerHTML = ''
@@ -393,18 +405,53 @@
     function selectOrderFromList(orderId) {
         const order = currentOrders.find(o => String(o.id || o.order_id) === String(orderId));
         if (!order) return;
+        openOrderFromList(order, currentOrders.indexOf(order));
+    }
+
+    // Opening an order from the list. The order is handed over rather than
+    // looked up by id, because a status-only record from orders_by_phone may
+    // not carry an id at all.
+    function openOrderFromList(order, index, replace) {
         currentOrder = order;
-        currentOrderId = String(order.id || order.order_id);
+        currentOrderId = (order.id || order.order_id) ? String(order.id || order.order_id) : null;
         renderTracker(order);
         $('orderListCard').classList.remove('show');
         $('noActiveCard').classList.remove('show');
         $('backToOrdersBar').classList.add('show');
-        const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone) + '&id=' + encodeURIComponent(currentOrderId);
-        window.history.pushState({ orderId: currentOrderId }, '', url);
+        const url = window.location.pathname + '?phone=' + encodeURIComponent(currentPhone) +
+            '&' + orderListKey(order, index);
+        // replace is for the address that already names this order, so the back
+        // button still leads somewhere sensible.
+        if (replace) window.history.replaceState({ orderId: currentOrderId }, '', url);
+        else window.history.pushState({ orderId: currentOrderId }, '', url);
+    }
+
+    // How an order is named in the address bar. The id is the natural key, but
+    // a status-only record may not have one, so the position in the list is the
+    // fallback.
+    function orderListKey(order, index) {
+        const id = order.id || order.order_id;
+        if (id !== undefined && id !== null && id !== '') return 'id=' + encodeURIComponent(String(id));
+        return 'pos=' + encodeURIComponent(String(index));
+    }
+
+    // The order named in the address bar, if the list still holds it.
+    function findOrderByKey(params, orders) {
+        const id = params.get('id');
+        if (id) {
+            const byId = orders.find(o => String(o.id || o.order_id) === String(id));
+            if (byId) return byId;
+        }
+        const pos = params.get('pos');
+        if (pos !== null && pos !== '') {
+            const idx = parseInt(pos, 10);
+            if (!isNaN(idx) && idx >= 0 && idx < orders.length) return orders[idx];
+        }
+        return null;
     }
 
     function showOrderListAgain() {
-        if (!currentOrders || currentOrders.length < 2) return;
+        if (!currentOrders || currentOrders.length < 1) return;
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
         renderOrderList(currentOrders, !currentToken);
@@ -418,24 +465,21 @@
 
     window.addEventListener('popstate', function(e) {
         const params = new URLSearchParams(window.location.search);
-        const id = params.get('id');
         const token = params.get('t');
         if (token && token !== currentToken) { trackByToken(token); return; }
         if (!currentPhone || !currentOrders) return;
-        if (id) {
-            const order = currentOrders.find(o => String(o.id || o.order_id) === String(id));
-            if (order) {
-                currentOrder = order;
-                currentOrderId = String(id);
-                renderTracker(order);
-                $('orderListCard').classList.remove('show');
-                $('backToOrdersBar').classList.add('show');
-                return;
-            }
+        const order = findOrderByKey(params, currentOrders);
+        if (order) {
+            currentOrder = order;
+            currentOrderId = (order.id || order.order_id) ? String(order.id || order.order_id) : null;
+            renderTracker(order);
+            $('orderListCard').classList.remove('show');
+            $('backToOrdersBar').classList.add('show');
+            return;
         }
         $('resultCard').classList.remove('show');
         $('backToOrdersBar').classList.remove('show');
-        if (currentOrders.length >= 2) renderOrderList(currentOrders, !currentToken);
+        if (currentOrders.length >= 1) renderOrderList(currentOrders, !currentToken);
         if (currentPhone) setHeaderOrderPageLink('index.html?phone=' + encodeURIComponent(currentPhone));
     });
 
@@ -654,7 +698,25 @@
     }
 
     function renderTracker(order) {
-        $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
+        // A phone lookup never carries a token, and a status-only record has no
+        // games, price or repairs in it. Counting what is missing would print
+        // "0 games" for an order that has games, so the counts are left out and
+        // only what the record really holds is shown.
+        const statusOnly = !currentToken;
+
+        if (statusOnly) {
+            // A list position, not a shop order number: orders_by_phone does not
+            // send one and the shop never numbered these orders that way.
+            let idx = currentOrders ? currentOrders.indexOf(order) : -1;
+            if (idx === -1 && currentOrders && (order.id || order.order_id)) {
+                idx = currentOrders.findIndex(o => String(o.id || o.order_id) === String(order.id || order.order_id));
+            }
+            const pos = idx > -1 ? idx + 1 : 1;
+            const total = currentOrders ? currentOrders.length : 1;
+            $('summaryId').innerText = `Order ${pos} of ${total}`;
+        } else {
+            $('summaryId').innerText = `Order #${order.phone_ending || 'N/A'}`;
+        }
 
         // The order form opens on the private token, never on the sequential id.
         // The old ?order=<id> link is exactly what the token replaced, and
@@ -676,12 +738,18 @@
         const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
 
         const detailParts = [];
-        detailParts.push(serviceLabel);
-        if (order.service_type !== 'repair_only') {
-            detailParts.push(`<strong>${gameCount}</strong> game${gameCount !== 1 ? 's' : ''}`);
-            detailParts.push(`<strong>${sizeGb}</strong> GB`);
+        if (statusOnly) {
+            // Service and status: the two things a status-only record carries.
+            detailParts.push(escapeHtml(serviceLabel));
+            detailParts.push(escapeHtml(order.status || 'Pending'));
+        } else {
+            detailParts.push(serviceLabel);
+            if (order.service_type !== 'repair_only') {
+                detailParts.push(`<strong>${gameCount}</strong> game${gameCount !== 1 ? 's' : ''}`);
+                detailParts.push(`<strong>${sizeGb}</strong> GB`);
+            }
+            if (rCount > 0) detailParts.push(`<strong>${rCount}</strong> repair${rCount !== 1 ? 's' : ''}`);
         }
-        if (rCount > 0) detailParts.push(`<strong>${rCount}</strong> repair${rCount !== 1 ? 's' : ''}`);
 
         $('summaryDetail').innerHTML = detailParts.join(' &nbsp;<span style="color:#6a6357;">·</span>&nbsp; ');
         $('summaryPlaced').className = 'order-placed-line';
