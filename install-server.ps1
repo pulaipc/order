@@ -72,6 +72,22 @@ $script:HasConsole = $true
 try { $script:HasConsole = ($null -ne $Host.UI.RawUI) -and ([Console]::WindowWidth -gt 0) } catch { $script:HasConsole = $false }
 $script:Quiet = $Quiet -or (-not $script:HasConsole)
 
+# The log is kept to one generation and a size cap, so it cannot grow without
+# bound. The cap is checked as the log is written, not only at start, because a
+# helper can run for months without a restart.
+$script:LogLimit = 1MB
+$script:LogBytes = 0
+
+function Rotate-Log {
+    # Keep the previous log as .old and start a fresh one.
+    try {
+        if (Test-Path -LiteralPath $LogFile) {
+            Move-Item -LiteralPath $LogFile -Destination "$LogFile.old" -Force -ErrorAction SilentlyContinue
+        }
+    } catch { }
+    $script:LogBytes = 0
+}
+
 function Write-Note {
     param([string]$Text, [string]$Color = 'Gray', [switch]$NoLog)
     if (-not $script:Quiet) {
@@ -81,6 +97,10 @@ function Write-Note {
         try {
             $stamp = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss')
             Add-Content -LiteralPath $LogFile -Value "$stamp  $Text" -Encoding UTF8 -ErrorAction SilentlyContinue
+            # Roughly the size of what was just added: the timestamp, two spaces
+            # and the text, plus a newline. Close enough for a size cap.
+            $script:LogBytes += $Text.Length + 24
+            if ($script:LogBytes -gt $script:LogLimit) { Rotate-Log }
         } catch { }
     }
 }
@@ -89,8 +109,9 @@ function Write-Note {
 if (Test-Path -LiteralPath $LogFile) {
     try {
         $size = (Get-Item -LiteralPath $LogFile).Length
-        if ($size -gt 1MB) { Move-Item -LiteralPath $LogFile -Destination "$LogFile.old" -Force }
-    } catch { }
+        $script:LogBytes = $size
+        if ($size -gt $script:LogLimit) { Rotate-Log }
+    } catch { $script:LogBytes = 0 }
 }
 # A stale ready flag from a previous run would lie about this one.
 Remove-Item -LiteralPath $ReadyFile -ErrorAction SilentlyContinue
