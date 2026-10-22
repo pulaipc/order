@@ -20,10 +20,11 @@
   The admin page normally runs from GitHub Pages, which is a different origin
   from 127.0.0.1 and cannot read a file sitting next to the helper. It
   therefore asks /config for the helper's url and token. That endpoint only
-  answers an origin on the -AllowedOrigin list whose Referer is the admin
-  page, so the token never reaches the customer-facing pages (which share the
-  same origin) nor any other site the admin may have open in the same
-  browser. Every other endpoint still needs the token as well.
+  answers an origin on the -AllowedOrigin list whose request names the admin
+  page, in a header or in the Referer, so the token never reaches the
+  customer-facing pages (which share the same origin) nor any other site
+  the admin may have open in the same browser. Every other endpoint still
+  needs the token as well.
 
 .EXAMPLE
   .\install-server.ps1
@@ -49,7 +50,8 @@ param(
     [string]$AllowedOrigin = 'https://pulaipc.github.io,http://127.0.0.1:*,http://localhost:*',
     # The admin page's file name. The customer-facing pages are served from
     # the same origin as the admin page, so the origin alone cannot tell them
-    # apart - the Referer can, and only the admin page asks for the token.
+    # apart - the admin page has to name itself instead, in a header or in the
+    # Referer. Only the admin page asks for the token.
     # Leave it empty to skip that check.
     [string]$AdminPagePath = 'admin.html'
 )
@@ -358,6 +360,17 @@ function Test-AllowedOrigin {
     return $false
 }
 
+function Write-Access {
+    # A one-line record of a request that mattered: who asked, what they said
+    # they were, and what was answered. This is what tells you why a browser
+    # could not reach the helper - a request that never arrives shows up by
+    # its absence, and one that arrives says exactly what it sent.
+    param([string]$Method, [string]$Path, [string]$Origin, [string]$Referer, [string]$Result)
+    $o = if ([string]::IsNullOrWhiteSpace($Origin)) { '(none)' } else { $Origin }
+    $r = if ([string]::IsNullOrWhiteSpace($Referer)) { '(none)' } else { $Referer }
+    Write-Note ("{0} {1}  origin={2}  referer={3}  -> {4}" -f $Method, $Path, $o, $r, $Result) 'DarkGray'
+}
+
 function Send-Json {
     param($Context, $Object, [int]$StatusCode = 200)
     $json = $Object | ConvertTo-Json -Depth 6 -Compress
@@ -379,7 +392,7 @@ function Send-Json {
     # Keep a browser from running the reply as script if something loads it
     # with a <script> tag.
     $Context.Response.Headers['X-Content-Type-Options'] = 'nosniff'
-    $Context.Response.Headers['Access-Control-Allow-Headers'] = 'content-type, x-install-token'
+    $Context.Response.Headers['Access-Control-Allow-Headers'] = 'content-type, x-install-token, x-admin-page'
     $Context.Response.Headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
     $Context.Response.OutputStream.Write($bytes, 0, $bytes.Length)
     $Context.Response.OutputStream.Close()
@@ -491,26 +504,38 @@ while ($listener.IsListening) {
         # no other site in this browser can ever learn the token.
         if ($path -eq '/config') {
             $caller = $context.Request.Headers['Origin']
+            $referer = $context.Request.Headers['Referer']
+            $adminPage = $context.Request.Headers['X-Admin-Page']
             if (-not (Test-AllowedOrigin $caller)) {
+                Write-Access $method $path $caller $referer '403 origin not allowed'
                 Send-Json $context @{ ok = $false; error = 'origin not allowed' } 403 | Out-Null
                 continue
             }
             # The customer-facing pages come from the same origin as the admin
-            # page, so the origin check alone cannot tell them apart. The
-            # Referer can: only the admin page asks for the token, so a script
-            # running on the public shop page never gets it.
+            # page, so the origin check alone cannot tell them apart. The admin
+            # page has to identify itself instead, and the Referer is not
+            # enough for that: Firefox drops the Referer when the page is https
+            # and the helper is http, which is exactly the case here. So the
+            # page also sends its own name in a header, and either signal is
+            # enough. A script on the public shop page sends neither.
+            $fromAdmin = $true
             if ($AdminPagePath) {
-                $referer = $context.Request.Headers['Referer']
-                if ([string]::IsNullOrWhiteSpace($referer) -or ($referer -notlike "*$AdminPagePath*")) {
-                    Send-Json $context @{ ok = $false; error = 'not the admin page' } 403 | Out-Null
-                    continue
-                }
+                $fromAdmin = $false
+                if (-not [string]::IsNullOrWhiteSpace($referer) -and ($referer -like "*$AdminPagePath*")) { $fromAdmin = $true }
+                if (-not [string]::IsNullOrWhiteSpace($adminPage) -and ($adminPage -like "*$AdminPagePath*")) { $fromAdmin = $true }
             }
+            if (-not $fromAdmin) {
+                Write-Access $method $path $caller $referer '403 not the admin page'
+                Send-Json $context @{ ok = $false; error = 'not the admin page' } 403 | Out-Null
+                continue
+            }
+            Write-Access $method $path $caller $referer '200 ok'
             Send-Json $context @{ ok = $true; url = $prefix.TrimEnd('/'); token = $Token; port = $Port } | Out-Null
             continue
         }
 
         if (-not (Test-Authorised $context)) {
+            Write-Access $method $path $context.Request.Headers['Origin'] $context.Request.Headers['Referer'] '401 bad or missing token'
             Send-Json $context @{ ok = $false; error = 'bad or missing token' } 401 | Out-Null
             continue
         }

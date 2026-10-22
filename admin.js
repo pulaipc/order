@@ -2561,12 +2561,31 @@
     }
 
     function installFetchJson(url) {
-        // referrerPolicy 'unsafe-url' sends the whole page URL, not just the
-        // origin. The helper uses that to tell the admin page apart from the
-        // customer pages, which share the same origin.
-        return fetch(url, { method: 'GET', cache: 'no-store', referrerPolicy: 'unsafe-url' })
+        // The helper only hands out its token to the admin page, and the page
+        // has to say which page it is. A Referer is the obvious way, but it
+        // cannot be relied on: Firefox drops the Referer when the page is https
+        // and the helper is http, which is exactly the case here, and the
+        // helper would then turn the admin page away. So the page also names
+        // itself in a header, which no browser strips.
+        return fetch(url, {
+            method: 'GET',
+            cache: 'no-store',
+            referrerPolicy: 'unsafe-url',
+            headers: { 'X-Admin-Page': installAdminPageName() }
+        })
             .then(function(r) { return r.ok ? r.json() : null; })
             .catch(function() { return null; });
+    }
+
+    // The file name of this page, used to tell the helper that the caller is
+    // the admin page and not the customer-facing pages on the same origin.
+    function installAdminPageName() {
+        try {
+            var name = window.location.pathname.split('/').pop();
+            return name || 'admin.html';
+        } catch (e) {
+            return 'admin.html';
+        }
     }
 
     function installFindHelper() {
