@@ -2546,6 +2546,7 @@
     var installPendingGames = [];
     var installCfg = null;        // {url, token} once the helper has been found
     var installCfgWait = null;    // the lookup in flight, so we only try once
+    var installFindNotes = [];    // what each port did during the last lookup
 
     // Where the helper may be listening. 8787 is the default; when that port is
     // taken the helper steps to the next free one, up to four ports along, so
@@ -2578,8 +2579,14 @@
             referrerPolicy: 'unsafe-url',
             headers: { 'X-Admin-Page': installAdminPageName() }
         })
-            .then(function(r) { return r.ok ? r.json() : null; })
-            .catch(function() { return null; });
+            .then(function(r) {
+                return r.json()
+                    .then(function(j) { return { reached: true, status: r.status, body: j }; })
+                    .catch(function() { return { reached: true, status: r.status, body: null }; });
+            })
+            // The request never got an answer: nothing is listening, or the
+            // browser refused to make it at all (an ad blocker, or a firewall).
+            .catch(function() { return { reached: false, status: 0, body: null }; });
     }
 
     // The file name of this page, used to tell the helper that the caller is
@@ -2606,15 +2613,30 @@
             if (override > 0 && override < 65536 && ports.indexOf(override) === -1) ports.unshift(override);
         } catch (e) { }
 
+        // What each port did, so a failure can say something useful instead of
+        // just "not found".
+        var notes = [];
         var i = 0;
         function next() {
-            if (i >= ports.length) return Promise.resolve(null);
+            if (i >= ports.length) {
+                installFindNotes = notes;
+                return Promise.resolve(null);
+            }
             var port = ports[i++];
             return installFetchJson('http://127.0.0.1:' + port + '/config')
-                .then(function(j) {
-                    if (j && j.ok && j.url && j.token) {
-                        installCfg = { url: j.url, token: j.token };
-                        return installCfg;
+                .then(function(r) {
+                    if (r.reached) {
+                        if (r.body && r.body.ok && r.body.url && r.body.token) {
+                            installCfg = { url: r.body.url, token: r.body.token };
+                            return installCfg;
+                        }
+                        if (r.status === 401 || r.status === 403) {
+                            notes.push('port ' + port + ' answered but refused the page (HTTP ' + r.status + ')');
+                        } else {
+                            notes.push('port ' + port + ' answered oddly (HTTP ' + r.status + ')');
+                        }
+                    } else {
+                        notes.push('port ' + port + ' gave no answer');
                     }
                     return next();
                 });
@@ -2671,6 +2693,38 @@
         installPendingGames = [];
     }
 
+    // Why the helper could not be reached, in words the admin can act on.
+    // The most common causes look identical from the page's side - nothing came
+    // back - so the message has to cover them all rather than guess.
+    function installHelperFailureText() {
+        var notes = installFindNotes || [];
+        var refused = notes.some(function(n) { return n.indexOf('refused') >= 0; });
+        var lines = ['The page asked 127.0.0.1 for the install helper and got nowhere.'];
+        if (notes.length) {
+            lines.push('');
+            lines.push('What it saw:');
+            notes.forEach(function(n) { lines.push('  - ' + n); });
+        }
+        lines.push('');
+        if (refused) {
+            lines.push('A helper is running, but it does not recognise this page.');
+            lines.push('That is what an older copy of the helper does, so restart it:');
+            lines.push('    powershell -ExecutionPolicy Bypass -File install-server-hidden.ps1');
+        } else {
+            lines.push('Most likely one of these:');
+            lines.push('  * the helper is not running - start it on this PC:');
+            lines.push('      powershell -ExecutionPolicy Bypass -File install-server-hidden.ps1');
+            lines.push('  * something is stopping the page from reaching 127.0.0.1 - an ad');
+            lines.push('    blocker or privacy extension, or a firewall. Allow this site to');
+            lines.push('    reach your local network.');
+            lines.push('  * the helper is on some other port - add ?installPort=<port> to the');
+            lines.push('    address.');
+        }
+        lines.push('');
+        lines.push('Until then, use "Copy Game List" and copy the file over yourself.');
+        return lines.join('\n');
+    }
+
     function installOnSwitch(btn) {
         var order = currentModalOrder;
         if (!order) return;
@@ -2696,10 +2750,10 @@
         installResolveConfig().then(function(cfg) {
             if (!cfg) {
                 installSetStatus('No install helper found', 'fail');
-                installAppendLog(['! No local install helper found.']);
-                alert('No local install helper found.\n\n' +
-                      'Start install-server.ps1 on this PC (or run install-server-hidden.ps1), then try again.\n' +
-                      'Without it the browser cannot start the copy - use "Copy Game List" instead.');
+                var lines = ['! No local install helper found.'];
+                (installFindNotes || []).forEach(function(n) { lines.push('  - ' + n); });
+                installAppendLog(lines);
+                alert(installHelperFailureText());
                 return;
             }
             // Offer the choice in the panel rather than a browser confirm: a
