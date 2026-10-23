@@ -2547,6 +2547,8 @@
     var installCfg = null;        // {url, token} once the helper has been found
     var installCfgWait = null;    // the lookup in flight, so we only try once
     var installFindNotes = [];    // what each port did during the last lookup
+    var installCopyingLabel = null; // the folder the copy is on right now
+    var installRunOrder = null;   // the order the current run belongs to
 
     // Where the helper may be listening. 8787 is the default; when that port is
     // taken the helper steps to the next free one, up to four ports along, so
@@ -2680,6 +2682,78 @@
         if (atBottom) box.scrollTop = box.scrollHeight;
     }
 
+    // ---- auto-tick the games the copy actually installed -------------------
+    // The copy script prints the folder it is copying, which is the name on the
+    // SD card and not always the name on the order. It matches a folder to a
+    // requested name with a folded key - brackets, punctuation and case do not
+    // count - so the same fold is used here to find the game on the order that
+    // the copied folder belongs to.
+    function installNormKey(name) {
+        var s = String(name == null ? '' : name);
+        var bracket = s.indexOf('[');
+        if (bracket >= 0) s = s.substring(0, bracket);
+        // ' " , ‘ ’ . * ?   and then - and _ become a space
+        s = s.replace(/['",.*?\u2018\u2019]/g, '');
+        s = s.replace(/[-_]/g, ' ');
+        while (s.indexOf('  ') >= 0) s = s.replace(/  /g, ' ');
+        return s.trim().toLowerCase();
+    }
+
+    // "  [1/3] Animal Crossing New Horizons [NSZ] (10.8 GB)" - the folder on
+    // the card, which may carry a tag the name on the order does not have.
+    var INSTALL_GAME_LINE = /^\s*\[\d+\/\d+\]\s+(.+)\s+\([^()]*\)\s*$/;
+    // "      -> took 12s (12.3 MB/s)" - the copy finished.
+    var INSTALL_DONE_LINE = /^\s*->\s*took\b/;
+    // "  !! failed to copy <folder> to <target> (<error>)" - and any other
+    // "!!" line, which the copy script only writes when a copy did not happen.
+    var INSTALL_FAIL_LINE = /^\s*!!/;
+
+    // Mark a game as installed once its copy is through, so the tick list keeps
+    // itself up to date and a later run does not copy it again.
+    function installTickCopied(label) {
+        // The order on screen is the one being installed; the run's own order is
+        // kept as a fallback for when the modal was closed mid-run.
+        var order = currentModalOrder || installRunOrder;
+        if (!order || !label) return;
+        var key = installNormKey(label);
+        if (!key) return;
+        var list = gameListOf(order);
+        for (var i = 0; i < list.length; i++) {
+            if (installNormKey(list[i]) === key) {
+                setGameTick(order, list[i], true);
+                installAppendLog(['  [ticked] ' + list[i] + ' is now marked as installed']);
+                return;
+            }
+        }
+    }
+
+    // Read the copy output as it arrives and tick whatever has just finished.
+    // A game that was not found is left alone: nothing was copied, so it still
+    // has to be dealt with.
+    function installAutoTickFromLog(lines) {
+        for (var i = 0; i < lines.length; i++) {
+            var line = String(lines[i] || '');
+            var m = INSTALL_GAME_LINE.exec(line);
+            if (m) {
+                // The essentials phase prints "[1/5] Found: <file>", which is not
+                // a game and must not be mistaken for one.
+                if (!/^(Not )?Found:/.test(m[1].trim())) {
+                    installCopyingLabel = m[1];
+                }
+                continue;
+            }
+            if (installCopyingLabel && INSTALL_DONE_LINE.test(line)) {
+                var done = installCopyingLabel;
+                installCopyingLabel = null;
+                installTickCopied(done);
+                continue;
+            }
+            if (INSTALL_FAIL_LINE.test(line)) {
+                installCopyingLabel = null;
+            }
+        }
+    }
+
     function installShowPanel() {
         var panel = document.getElementById('installPanel');
         if (panel) panel.classList.add('show');
@@ -2737,6 +2811,9 @@
             return;
         }
         installPendingGames = gameList;
+        // Remember which order this run is for, so a game that is copied after
+        // the modal was closed still gets ticked on the right order.
+        installRunOrder = order;
 
         // The helper has to be found before anything can be sent to it. When the
         // page comes from GitHub Pages that means asking each candidate port
@@ -2854,6 +2931,8 @@
         var box = document.getElementById('installLog');
         if (box) box.innerHTML = '';
         installSeen = 0;
+        // A new run starts with nothing being copied.
+        installCopyingLabel = null;
         installSetStatus('Starting...', 'busy');
         var stopBtn = document.getElementById('installStopBtn');
         if (stopBtn) stopBtn.style.display = '';
@@ -2891,8 +2970,12 @@
                     // The helper returns the whole log; only add what is new.
                     if (s.lines.length < installSeen) installSeen = 0;
                     if (s.lines.length > installSeen) {
-                        installAppendLog(s.lines.slice(installSeen));
+                        var fresh = s.lines.slice(installSeen);
                         installSeen = s.lines.length;
+                        installAppendLog(fresh);
+                        // A game that has just been copied is on the Switch now,
+                        // so it is ticked as installed without being asked.
+                        installAutoTickFromLog(fresh);
                     }
                 }
                 var stopBtn = document.getElementById('installStopBtn');
