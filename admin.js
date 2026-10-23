@@ -2757,6 +2757,11 @@
     function installShowPanel() {
         var panel = document.getElementById('installPanel');
         if (panel) panel.classList.add('show');
+        // The console lives inside the games section, so open that section too;
+        // otherwise the panel would be shown inside a collapsed section and the
+        // admin would see nothing of the run.
+        var games = document.getElementById('modalGamesSection');
+        if (games) games.classList.remove('collapsed');
     }
 
     function hideInstallPanel() {

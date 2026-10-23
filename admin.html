@@ -538,6 +538,9 @@
         }
         #modalGamesSection .install-panel { order: -1; }
         #modalGamesSection #modalGameGrid { order: 0; }
+        /* The rule above is more specific than .collapsed, so it would keep the
+           body open when the section is closed - close it explicitly here. */
+        #modalGamesSection.collapsed > .modal-section-body { display: none; }
 
         /* Three-way chooser rendered in the games section */
         .install-chooser {
