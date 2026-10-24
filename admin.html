@@ -1155,6 +1155,7 @@
 
         <div class="admin-tabs">
             <button class="admin-tab active" data-tab="orders" onclick="switchTab('orders', this)">&#128230; Orders</button>
+            <button class="admin-tab" data-tab="pricing" onclick="switchTab('pricing', this)">&#128184; Service Pricing</button>
             <button class="admin-tab" data-tab="repairs" onclick="switchTab('repairs', this)">&#128295; Repair Catalog</button>
         </div>
 
@@ -1182,6 +1183,18 @@
             </div>
 
             <div id="ordersContainer" class="orders-grid"></div>
+        </div>
+
+        <!-- ===== SERVICE PRICING TAB ===== -->
+        <div id="tabPricing" class="tab-view">
+            <div class="catalog-header">
+                <h2>Service Base Prices &amp; Add-ons</h2>
+                <button class="catalog-add-btn" onclick="saveServicePrices()" id="savePricingBtn">&#128190; Save Price Changes</button>
+            </div>
+            <div style="font-size: 13px; color: #b8b0a0; margin-bottom: 16px; line-height: 1.4;">
+                Update base pricing for jailbreak models, system setup, system update, repair diagnostic fee, SD cards, and add-on modes. Changes take effect immediately across customer order forms.
+            </div>
+            <div id="servicePricingContainer"></div>
         </div>
 
         <!-- ===== REPAIR CATALOG TAB ===== -->

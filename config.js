@@ -204,6 +204,37 @@ Object.defineProperty(APP_CONFIG, 'gamesList', {
 // SHARED HELPERS — used by index.html, track.html, admin.html
 // ===========================================================================
 
+/**
+ * Fetch active service pricing from Supabase and override APP_CONFIG if present.
+ * @returns {Promise<Object>}
+ */
+async function loadServicePricing(supabaseClient) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('service_pricing')
+            .select('*')
+            .limit(1)
+            .single();
+        if (error) throw error;
+        if (data) {
+            if (data.jailbreak_oled != null) APP_CONFIG.jailbreakPrices.OLED = Number(data.jailbreak_oled);
+            if (data.jailbreak_v1_v2 != null) APP_CONFIG.jailbreakPrices.V1_V2 = Number(data.jailbreak_v1_v2);
+            if (data.jailbreak_lite != null) APP_CONFIG.jailbreakPrices.LITE = Number(data.jailbreak_lite);
+            if (data.system_setup != null) APP_CONFIG.systemSetupPrice = Number(data.system_setup);
+            if (data.system_update != null) APP_CONFIG.systemUpdatePrice = Number(data.system_update);
+            if (data.repair_only_fee != null) APP_CONFIG.repairOnlyBaseFee = Number(data.repair_only_fee);
+            if (data.sd_128 != null) APP_CONFIG.sdCardRetailPrices[128] = Number(data.sd_128);
+            if (data.sd_256 != null) APP_CONFIG.sdCardRetailPrices[256] = Number(data.sd_256);
+            if (data.sd_512 != null) APP_CONFIG.sdCardRetailPrices[512] = Number(data.sd_512);
+            if (data.addon_android != null) APP_CONFIG.addonPrices.android = Number(data.addon_android);
+            if (data.addon_linux != null) APP_CONFIG.addonPrices.linux = Number(data.addon_linux);
+        }
+    } catch (err) {
+        console.warn('Service pricing DB fetch failed, using APP_CONFIG defaults:', err);
+    }
+    return APP_CONFIG;
+}
+
 /** Runtime repair-services cache. Populated by loadRepairServices(). */
 window.REPAIR_SERVICES = [];
 

@@ -768,8 +768,11 @@
         const footerWa = $('footerWaLink');
         if (footerWa) footerWa.href = 'https://wa.me/' + getWhatsAppNumber();
 
-        // Load repair catalog first
-        await loadRepairServices(supabaseClient);
+        // Load service pricing and repair catalog first
+        await Promise.all([
+            loadServicePricing(supabaseClient),
+            loadRepairServices(supabaseClient)
+        ]);
 
         const params = new URLSearchParams(window.location.search);
         const urlToken = params.get('t');

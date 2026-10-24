@@ -253,6 +253,7 @@
     });
 
     async function loadAll() {
+        await loadServicePricing(supabaseClient);
         await loadRepairServices(supabaseClient);
         await loadRepairsAdmin();
         loadOrders();
@@ -287,7 +288,9 @@
 
     function refreshCurrentTab() {
         var ordersTab = document.getElementById('tabOrders');
+        var pricingTab = document.getElementById('tabPricing');
         if (ordersTab && ordersTab.classList.contains('active')) loadOrders();
+        else if (pricingTab && pricingTab.classList.contains('active')) loadServicePricingAdmin();
         else Promise.all([loadRepairServices(supabaseClient), loadRepairsAdmin()]).then(renderCatalog);
     }
 
@@ -296,6 +299,7 @@
         document.querySelectorAll('.tab-view').forEach(function(v) { v.classList.remove('active'); });
         btn.classList.add('active');
         if (name === 'orders') document.getElementById('tabOrders').classList.add('active');
+        else if (name === 'pricing') { document.getElementById('tabPricing').classList.add('active'); loadServicePricingAdmin(); }
         else if (name === 'repairs') { document.getElementById('tabRepairs').classList.add('active'); renderCatalog(); }
     }
 
@@ -2534,7 +2538,171 @@
         });
     }
 
-    // ===== INSTALL ON SWITCH ==================================================
+    // ===== SERVICE PRICING CONFIG MANAGEMENT =====
+    var currentServicePrices = null;
+
+    async function loadServicePricingAdmin() {
+        var container = document.getElementById('servicePricingContainer');
+        if (!container) return;
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #8a8272;">Loading pricing config...</div>';
+
+        try {
+            // Fetch configuration table from Supabase if exists, or fallback to APP_CONFIG defaults
+            var res = await supabaseClient.from('service_pricing').select('*').limit(1).single();
+            var data = res.data;
+            if (!data || res.error) {
+                // Initialize default config object from APP_CONFIG
+                currentServicePrices = {
+                    jailbreak_oled: APP_CONFIG.jailbreakPrices.OLED || 300,
+                    jailbreak_v1_v2: APP_CONFIG.jailbreakPrices.V1_V2 || 190,
+                    jailbreak_lite: APP_CONFIG.jailbreakPrices.LITE || 230,
+                    system_setup: APP_CONFIG.systemSetupPrice || 50,
+                    system_update: APP_CONFIG.systemUpdatePrice || 30,
+                    repair_only_fee: APP_CONFIG.repairOnlyBaseFee || 30,
+                    sd_128: APP_CONFIG.sdCardRetailPrices[128] || 110,
+                    sd_256: APP_CONFIG.sdCardRetailPrices[256] || 200,
+                    sd_512: APP_CONFIG.sdCardRetailPrices[512] || 400,
+                    addon_android: APP_CONFIG.addonPrices.android || 30,
+                    addon_linux: APP_CONFIG.addonPrices.linux || 30
+                };
+            } else {
+                currentServicePrices = {
+                    jailbreak_oled: data.jailbreak_oled != null ? data.jailbreak_oled : (APP_CONFIG.jailbreakPrices.OLED || 300),
+                    jailbreak_v1_v2: data.jailbreak_v1_v2 != null ? data.jailbreak_v1_v2 : (APP_CONFIG.jailbreakPrices.V1_V2 || 190),
+                    jailbreak_lite: data.jailbreak_lite != null ? data.jailbreak_lite : (APP_CONFIG.jailbreakPrices.LITE || 230),
+                    system_setup: data.system_setup != null ? data.system_setup : (APP_CONFIG.systemSetupPrice || 50),
+                    system_update: data.system_update != null ? data.system_update : (APP_CONFIG.systemUpdatePrice || 30),
+                    repair_only_fee: data.repair_only_fee != null ? data.repair_only_fee : (APP_CONFIG.repairOnlyBaseFee || 30),
+                    sd_128: data.sd_128 != null ? data.sd_128 : (APP_CONFIG.sdCardRetailPrices[128] || 110),
+                    sd_256: data.sd_256 != null ? data.sd_256 : (APP_CONFIG.sdCardRetailPrices[256] || 200),
+                    sd_512: data.sd_512 != null ? data.sd_512 : (APP_CONFIG.sdCardRetailPrices[512] || 400),
+                    addon_android: data.addon_android != null ? data.addon_android : (APP_CONFIG.addonPrices.android || 30),
+                    addon_linux: data.addon_linux != null ? data.addon_linux : (APP_CONFIG.addonPrices.linux || 30)
+                };
+            }
+            renderServicePricingForm();
+        } catch (err) {
+            console.warn('Failed to load service pricing from DB, using APP_CONFIG defaults:', err);
+            currentServicePrices = {
+                jailbreak_oled: APP_CONFIG.jailbreakPrices.OLED || 300,
+                jailbreak_v1_v2: APP_CONFIG.jailbreakPrices.V1_V2 || 190,
+                jailbreak_lite: APP_CONFIG.jailbreakPrices.LITE || 230,
+                system_setup: APP_CONFIG.systemSetupPrice || 50,
+                system_update: APP_CONFIG.systemUpdatePrice || 30,
+                repair_only_fee: APP_CONFIG.repairOnlyBaseFee || 30,
+                sd_128: APP_CONFIG.sdCardRetailPrices[128] || 110,
+                sd_256: APP_CONFIG.sdCardRetailPrices[256] || 200,
+                sd_512: APP_CONFIG.sdCardRetailPrices[512] || 400,
+                addon_android: APP_CONFIG.addonPrices.android || 30,
+                addon_linux: APP_CONFIG.addonPrices.linux || 30
+            };
+            renderServicePricingForm();
+        }
+    }
+
+    function renderServicePricingForm() {
+        var container = document.getElementById('servicePricingContainer');
+        if (!container || !currentServicePrices) return;
+
+        var html = '';
+        html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">';
+
+        // 1. Jailbreak Base Prices
+        html += '<div class="catalog-group" style="padding: 16px; margin: 0;">';
+        html += '<h3 style="margin-top: 0; color: #ffc000; font-size: 15px; border-bottom: 1px solid #3a3018; padding-bottom: 8px;">Jailbreak Base Prices (RM)</h3>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>Switch OLED</label><input type="number" id="sp_jb_oled" class="search-box" value="' + currentServicePrices.jailbreak_oled + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>Switch V1 / V2 (Erista/Mariko)</label><input type="number" id="sp_jb_v1_v2" class="search-box" value="' + currentServicePrices.jailbreak_v1_v2 + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 0;"><label>Switch Lite</label><input type="number" id="sp_jb_lite" class="search-box" value="' + currentServicePrices.jailbreak_lite + '" min="0" step="1"></div>';
+        html += '</div>';
+
+        // 2. Services & Repair Fee
+        html += '<div class="catalog-group" style="padding: 16px; margin: 0;">';
+        html += '<h3 style="margin-top: 0; color: #ffc000; font-size: 15px; border-bottom: 1px solid #3a3018; padding-bottom: 8px;">Services &amp; Bench Fee (RM)</h3>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>System Setup Base Price</label><input type="number" id="sp_sys_setup" class="search-box" value="' + currentServicePrices.system_setup + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>System Update Base Price</label><input type="number" id="sp_sys_update" class="search-box" value="' + currentServicePrices.system_update + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 0;"><label>Repair-Only Base / Diagnostic Fee</label><input type="number" id="sp_repair_fee" class="search-box" value="' + currentServicePrices.repair_only_fee + '" min="0" step="1"></div>';
+        html += '</div>';
+
+        // 3. SD Card Retail & Add-ons
+        html += '<div class="catalog-group" style="padding: 16px; margin: 0;">';
+        html += '<h3 style="margin-top: 0; color: #ffc000; font-size: 15px; border-bottom: 1px solid #3a3018; padding-bottom: 8px;">SD Cards &amp; Add-on Modes (RM)</h3>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>128GB SD Card Retail</label><input type="number" id="sp_sd_128" class="search-box" value="' + currentServicePrices.sd_128 + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>256GB SD Card Retail</label><input type="number" id="sp_sd_256" class="search-box" value="' + currentServicePrices.sd_256 + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>512GB SD Card Retail</label><input type="number" id="sp_sd_512" class="search-box" value="' + currentServicePrices.sd_512 + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>Android Mode Add-on</label><input type="number" id="sp_addon_android" class="search-box" value="' + currentServicePrices.addon_android + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 0;"><label>Linux Mode Add-on</label><input type="number" id="sp_addon_linux" class="search-box" value="' + currentServicePrices.addon_linux + '" min="0" step="1"></div>';
+        html += '</div>';
+
+        html += '</div>';
+        html += '<div style="margin-top: 16px; text-align: right;"><button class="catalog-add-btn" onclick="saveServicePrices()" id="savePricingBtnBottom">&#128190; Save Price Changes</button></div>';
+
+        container.innerHTML = html;
+    }
+
+    async function saveServicePrices() {
+        var btn1 = document.getElementById('savePricingBtn');
+        var btn2 = document.getElementById('savePricingBtnBottom');
+        if (btn1) { btn1.disabled = true; btn1.textContent = 'Saving...'; }
+        if (btn2) { btn2.disabled = true; btn2.textContent = 'Saving...'; }
+
+        try {
+            var payload = {
+                id: 1,
+                jailbreak_oled: parseFloat(document.getElementById('sp_jb_oled').value) || 300,
+                jailbreak_v1_v2: parseFloat(document.getElementById('sp_jb_v1_v2').value) || 190,
+                jailbreak_lite: parseFloat(document.getElementById('sp_jb_lite').value) || 230,
+                system_setup: parseFloat(document.getElementById('sp_sys_setup').value) || 50,
+                system_update: parseFloat(document.getElementById('sp_sys_update').value) || 30,
+                repair_only_fee: parseFloat(document.getElementById('sp_repair_fee').value) || 30,
+                sd_128: parseFloat(document.getElementById('sp_sd_128').value) || 110,
+                sd_256: parseFloat(document.getElementById('sp_sd_256').value) || 200,
+                sd_512: parseFloat(document.getElementById('sp_sd_512').value) || 400,
+                addon_android: parseFloat(document.getElementById('sp_addon_android').value) || 30,
+                addon_linux: parseFloat(document.getElementById('sp_addon_linux').value) || 30,
+                updated_at: new Date().toISOString()
+            };
+
+            // Upsert into service_pricing table
+            var res = await supabaseClient.from('service_pricing').upsert([payload]);
+            if (res.error) throw res.error;
+
+            // Also update local runtime APP_CONFIG so current session picks it up instantly
+            APP_CONFIG.jailbreakPrices.OLED = payload.jailbreak_oled;
+            APP_CONFIG.jailbreakPrices.V1_V2 = payload.jailbreak_v1_v2;
+            APP_CONFIG.jailbreakPrices.LITE = payload.jailbreak_lite;
+            APP_CONFIG.systemSetupPrice = payload.system_setup;
+            APP_CONFIG.systemUpdatePrice = payload.system_update;
+            APP_CONFIG.repairOnlyBaseFee = payload.repair_only_fee;
+            APP_CONFIG.sdCardRetailPrices[128] = payload.sd_128;
+            APP_CONFIG.sdCardRetailPrices[256] = payload.sd_256;
+            APP_CONFIG.sdCardRetailPrices[512] = payload.sd_512;
+            APP_CONFIG.addonPrices.android = payload.addon_android;
+            APP_CONFIG.addonPrices.linux = payload.addon_linux;
+
+            currentServicePrices = {
+                jailbreak_oled: payload.jailbreak_oled,
+                jailbreak_v1_v2: payload.jailbreak_v1_v2,
+                jailbreak_lite: payload.jailbreak_lite,
+                system_setup: payload.system_setup,
+                system_update: payload.system_update,
+                repair_only_fee: payload.repair_only_fee,
+                sd_128: payload.sd_128,
+                sd_256: payload.sd_256,
+                sd_512: payload.sd_512,
+                addon_android: payload.addon_android,
+                addon_linux: payload.addon_linux
+            };
+
+            alert('Service pricing updated successfully!');
+        } catch (err) {
+            alert('Failed to save pricing: ' + (err.message || err));
+        } finally {
+            if (btn1) { btn1.disabled = false; btn1.textContent = '💾 Save Price Changes'; }
+            if (btn2) { btn2.disabled = false; btn2.textContent = '💾 Save Price Changes'; }
+        }
+    }
+
+
     // A browser cannot run copygame.ps1 or write to the Switch, so this talks to
     // install-server.ps1 running on the same PC (127.0.0.1 only, shared token in
     // the git-ignored install_local.js). The helper writes games_to_copy.txt and
