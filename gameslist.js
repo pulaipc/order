@@ -60,6 +60,7 @@ const games = [
       { name: "Demon Slayer 2", size: 16.45 },
       { name: "Demon Slayer The Hinokami Chronicles Kimetsu no Yaiba", size: 11.07 },
       { name: "Devil May Cry Trilogy", size: 13.15 },
+      { name: "Diablo 2 Resurrected", size: 8.45 },
       { name: "Diablo 3", size: 22.25 },
       { name: "Digimon Story Cyber Sleuth Complete Edition", size: 3.84 },
       { name: "Digimon Story Time Stranger", size: 9.19 },
@@ -352,4 +353,5 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
+
 
