@@ -36,6 +36,7 @@ const games = [
       { name: "Captain Blood", size: 3.37 },
       { name: "Captain Toad Treasure Tracker", size: 1.89 },
       { name: "Cars 3", size: 3.27 },
+      { name: "Castlevania Belmonts Curse", size: 3.49 },
       { name: "Celeste", size: 0.91 },
       { name: "Chef Life a Restaurant Simulator", size: 3.46 },
       { name: "Circuit Superstars", size: 1.34 },
@@ -353,6 +354,7 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
+
 
 
 
