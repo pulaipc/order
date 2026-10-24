@@ -523,12 +523,14 @@
     function updateStats() {
         document.getElementById('statTotal').innerText = allOrders.length;
 
-        var queue = 0, needs = 0, revenue = 0;
+        var queue = 0, needs = 0, completed = 0;
         allOrders.forEach(function(o) {
             var s = o.progress_stage || 'Order Received';
             var status = o.status || 'Pending';
             if (status === 'Cancelled') return;
-            revenue += Number(o.estimated_price) || 0;
+            if (s === 'Completed') {
+                completed++;
+            }
             if (s !== 'Completed' && s !== 'Cancelled') {
                 needs++;
                 // "In queue" = console received but work not started yet
@@ -538,7 +540,20 @@
         });
         document.getElementById('statQueue').innerText = queue;
         document.getElementById('statNeeds').innerText = needs;
-        document.getElementById('statRevenue').innerText = 'RM' + Math.round(revenue);
+        var elComp = document.getElementById('statCompleted');
+        if (elComp) elComp.innerText = completed;
+    }
+
+    function clickStatCard(statusFilter) {
+        currentStatusFilter = statusFilter;
+        document.querySelectorAll('.filter-btn[data-status]').forEach(function(b) {
+            if (b.getAttribute('data-status') === statusFilter) {
+                b.classList.add('active');
+            } else {
+                b.classList.remove('active');
+            }
+        });
+        filterAndRenderOrders();
     }
 
     function setStatusFilter(status, btn) {

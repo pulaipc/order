@@ -60,7 +60,8 @@
 
         /* ===== STATS ===== */
         .stats-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
-        .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px; text-align: center; }
+        .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+        .stat-card:hover { border-color: #ffc000; background: #262013; }
         .stat-card .val { font-size: 20px; font-weight: bold; color: #ffc000; margin-top: 4px; }
         .stat-card .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; }
 
@@ -1162,10 +1163,10 @@
         <!-- ===== ORDERS TAB ===== -->
         <div id="tabOrders" class="tab-view active">
             <div class="stats-overview">
-                <div class="stat-card"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
-                <div class="stat-card"><div class="lbl">In Queue</div><div class="val" id="statQueue" style="color:#7dd3fc;">0</div></div>
-                <div class="stat-card"><div class="lbl">Needs Action</div><div class="val" id="statNeeds" style="color:#ffb74d;">0</div></div>
-                <div class="stat-card"><div class="lbl">Est. Revenue</div><div class="val" id="statRevenue">RM0</div></div>
+                <div class="stat-card" onclick="clickStatCard('ALL')"><div class="lbl">Total Orders</div><div class="val" id="statTotal">0</div></div>
+                <div class="stat-card" onclick="clickStatCard('QUEUED')"><div class="lbl">In Queue</div><div class="val" id="statQueue" style="color:#7dd3fc;">0</div></div>
+                <div class="stat-card" onclick="clickStatCard('NEEDS')"><div class="lbl">Needs Action</div><div class="val" id="statNeeds" style="color:#ffb74d;">0</div></div>
+                <div class="stat-card" onclick="clickStatCard('Completed')"><div class="lbl">Completed</div><div class="val" id="statCompleted" style="color:#00e676;">0</div></div>
             </div>
 
             <div class="controls-row">
