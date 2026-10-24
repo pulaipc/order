@@ -51,10 +51,10 @@
         .btn-logout:hover { background: #e57373; color: #14110a; border-color: #e57373; }
 
         /* ===== TABS ===== */
-        .admin-tabs { display: flex; gap: 6px; margin-bottom: 18px; background: #1a1814; border: 1px solid #2e2716; border-radius: 8px; padding: 5px; }
-        .admin-tab { flex: 1; background: transparent; color: #b8b0a0; border: none; padding: 11px 14px; border-radius: 6px; cursor: pointer; font-size: 13.5px; font-weight: 700; font-family: inherit; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .admin-tabs { display: flex; gap: 4px; margin-bottom: 18px; background: #1a1814; border: 1px solid #2e2716; border-radius: 8px; padding: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .admin-tab { flex: 1; background: transparent; color: #b8b0a0; border: none; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; transition: all 0.2s; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; text-align: center; }
         .admin-tab:hover { color: #f0e9d8; background: #221c10; }
-        .admin-tab.active { background: #ffc000; color: #14110a; }
+        .admin-tab.active { background: #ffc000; color: #14110a; font-weight: 700; }
         .tab-view { display: none; }
         .tab-view.active { display: block; }
 
@@ -1155,9 +1155,9 @@
         </div>
 
         <div class="admin-tabs">
-            <button class="admin-tab active" data-tab="orders" onclick="switchTab('orders', this)">&#128230; Orders</button>
-            <button class="admin-tab" data-tab="pricing" onclick="switchTab('pricing', this)">&#128184; Service Pricing</button>
-            <button class="admin-tab" data-tab="repairs" onclick="switchTab('repairs', this)">&#128295; Repair Catalog</button>
+            <button class="admin-tab active" data-tab="orders" onclick="switchTab('orders', this)">Orders</button>
+            <button class="admin-tab" data-tab="pricing" onclick="switchTab('pricing', this)">Service Pricing</button>
+            <button class="admin-tab" data-tab="repairs" onclick="switchTab('repairs', this)">Repair Catalog</button>
         </div>
 
         <!-- ===== ORDERS TAB ===== -->
