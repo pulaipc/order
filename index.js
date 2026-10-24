@@ -823,6 +823,7 @@
             updateSaveButtonLabel();
             clearStatusMessage();
             // The header Track link is the only other place that needs the token.
+setStatusMessage('Order loaded successfully. Review and proceed to payment/modification.', '#25D366', 5000);
             const trackLinkNow = $('headerTrackLink');
             if (trackLinkNow) trackLinkNow.href = buildTrackUrl(state.currentEditingToken) || 'track.html';
             // The private link is rendered inside the summary card by
