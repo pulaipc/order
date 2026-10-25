@@ -52,8 +52,9 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         $relPath = $fullName.Substring($dir.FullName.Length)
         if ($relPath -match '\\DLC\\|/DLC/|\\dlc\\|/dlc/') { continue }
 
-        # Skip DLC packs by filename
-        if ($fileName -match '\[DLC') { continue }
+        # Skip DLC packs by filename — catches [DLC], [All DLC], [Standalone DLC],
+        # [DLC Pack], [DLC Bundle], etc. (case-insensitive, anywhere inside [])
+        if ($fileName -match '\[.*?\bdlc\b.*?\]') { continue }
 
         # Extract title ID from [] - 16 hex chars like [010083801AA14000]
         $titleId = $null
