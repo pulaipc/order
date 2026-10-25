@@ -1156,7 +1156,6 @@
                 <a href="index.html" target="_blank" class="btn-action">Main Page</a>
                 <a href="track.html" target="_blank" class="btn-action">Tracker</a>
                 <button class="btn-action" onclick="syncGameList()">Sync Game List</button>
-                <span id="lastSyncDisplay" style="font-size: 11px; color: #8a8272; white-space: nowrap; padding: 0 4px;">Last sync: —</span>
                 <button class="btn-action" onclick="refreshCurrentTab()">Refresh</button>
                 <button class="btn-action btn-logout" onclick="logout()">Logout</button>
             </div>
@@ -1166,6 +1165,9 @@
             <button class="admin-tab active" data-tab="orders" onclick="switchTab('orders', this)">Orders</button>
             <button class="admin-tab" data-tab="pricing" onclick="switchTab('pricing', this)">Service Pricing</button>
             <button class="admin-tab" data-tab="repairs" onclick="switchTab('repairs', this)">Repair Catalog</button>
+        </div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; margin: -4px 0 10px 0; padding: 0 4px;">
+            <span id="lastSyncDisplay" style="font-size: 10px; color: #8a8272; white-space: nowrap;">Game list last sync: —</span>
         </div>
 
         <!-- ===== ORDERS TAB ===== -->

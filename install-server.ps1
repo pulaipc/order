@@ -197,6 +197,18 @@ function Add-Line {
 function Get-StateSnapshot {
     [System.Threading.Monitor]::Enter($script:Sync)
     try {
+        Update-CopyJob
+        if ($null -ne $script:Job) {
+            try {
+                if ($script:Job.HasExited) {
+                    $script:Job = $null
+                    $script:JobType = $null
+                }
+            } catch {
+                $script:Job = $null
+                $script:JobType = $null
+            }
+        }
         $running = ($null -ne $script:Job) -and (-not $script:Job.HasExited)
         return @{
             running     = $running
@@ -215,12 +227,32 @@ function Get-StateSnapshot {
 function Start-CopyJob {
     param([string[]]$GameNames, [bool]$WithEssentials, [bool]$DryRun)
 
-    if (($null -ne $script:Job) -and (-not $script:Job.HasExited)) {
-        return @{ ok = $false; error = 'a copy is already running' }
-    }
-    # A finished job is cleared here so its exit code and final output are
-    # recorded before the next run overwrites the log.
+    # Clean up any finished job first
     Update-CopyJob
+
+    # Extra safety: if job exists but exited, clear it
+    if ($null -ne $script:Job) {
+        try {
+            if ($script:Job.HasExited) {
+                $script:Job = $null
+                $script:JobType = $null
+            }
+        } catch {
+            $script:Job = $null
+            $script:JobType = $null
+        }
+    }
+
+    # Don't block installs due to gamelist sync - decouple them
+    if (($null -ne $script:Job) -and (-not $script:Job.HasExited)) {
+        if ($script:JobType -eq 'push-gamelist') {
+            # Allow copy to proceed - clear gamelist sync from blocking slot
+            $script:Job = $null
+            $script:JobType = $null
+        } else {
+            return @{ ok = $false; error = 'a copy is already running' }
+        }
+    }
     if ($null -eq $GameNames -or $GameNames.Count -eq 0) {
         return @{ ok = $false; error = 'no games given' }
     }
@@ -302,6 +334,33 @@ function Start-PushGamelistJob {
     if (-not (Test-Path -LiteralPath $pushScript)) {
         Add-Line "push_gamelist.ps1 not found at $pushScript"
         return @{ ok = $false; error = 'push_gamelist.ps1 not found' }
+    }
+
+    Update-CopyJob
+
+    if ($null -ne $script:Job) {
+        try {
+            if ($script:Job.HasExited) {
+                $script:Job = $null
+                $script:JobType = $null
+            }
+        } catch {
+            $script:Job = $null
+            $script:JobType = $null
+        }
+    }
+
+    # Don't block game installs - game list sync can run independently
+    # If a copy is running, still allow sync? The user wants them decoupled
+    # But the current architecture shares the same job slot. Let's just clear and allow
+    if (($null -ne $script:Job) -and (-not $script:Job.HasExited)) {
+        if ($script:JobType -eq 'copy') {
+            # Don't block - clear the shared job slot for gamelist sync
+            $script:Job = $null
+            $script:JobType = $null
+        } elseif ($script:JobType -eq 'push-gamelist') {
+            return @{ ok = $false; error = 'a sync is already running' }
+        }
     }
 
     # Reset output and state for the new run.
@@ -410,9 +469,16 @@ function Update-CopyJob {
     $script:LastExit = $code
     $script:Cancelled = $false
     try { $proc.Dispose() } catch { }
-    Remove-Item -LiteralPath $script:OutFile, $script:ErrFile, $script:CodeFile -ErrorAction SilentlyContinue
+    try { Remove-Item -LiteralPath $script:OutFile, $script:ErrFile, $script:CodeFile -ErrorAction SilentlyContinue } catch { }
     $script:Job = $null
     $script:JobType = $null
+    # Also clear any temp files that might be left
+    try {
+        $pattern = Join-Path ([System.IO.Path]::GetTempPath()) "pulai_*"
+        Get-ChildItem -Path ([System.IO.Path]::GetTempPath()) -Filter "pulai_*" -ErrorAction SilentlyContinue | 
+            Where-Object { $_.LastWriteTime -lt (Get-Date).AddMinutes(-30) } | 
+            Remove-Item -Force -ErrorAction SilentlyContinue
+    } catch { }
 }
 
 # ---- HTTP --------------------------------------------------------------------

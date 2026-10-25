@@ -3075,8 +3075,8 @@
                     if (fresh && fresh.length) {
                         for (var i = 0; i < fresh.length; i++) {
                             var ln = fresh[i] || '';
-                            if (/\[COMPLETED\]/i.test(ln) || /up.to.date|pushed|Live website config updated/i.test(ln)) {
-                                // Will be handled below if not running
+                            if (/\[COMPLETED\]/i.test(ln) || /Live website config updated successfully/i.test(ln) || /up.to.date|pushed to github/i.test(ln)) {
+                                hasCompletedMarker = true;
                             }
                         }
                     }
@@ -3085,10 +3085,23 @@
                 var hasCompletedMarker = false;
                 if (s && s.lines && s.lines.length) {
                     for (var j = 0; j < s.lines.length; j++) {
-                        if (/\[COMPLETED\]/i.test(s.lines[j] || '')) { hasCompletedMarker = true; break; }
+                        var lj = s.lines[j] || '';
+                        if (/\[COMPLETED\]/i.test(lj) || /Live website config updated successfully/i.test(lj) || /up.to.date/i.test(lj) || /to github\.com/i.test(lj) || /Auto-update game list/i.test(lj) || /Everything up.to.date/i.test(lj)) {
+                            hasCompletedMarker = true;
+                            break;
+                        }
                     }
                 }
-                if (s && s.running) {
+                if (fresh && fresh.length) {
+                    for (var fi = 0; fi < fresh.length; fi++) {
+                        var fl = fresh[fi] || '';
+                        if (/\[COMPLETED\]/i.test(fl) || /Live website config updated successfully/i.test(fl) || /up.to.date/i.test(fl) || /to github\.com/i.test(fl) || /Everything up.to.date/i.test(fl)) {
+                            hasCompletedMarker = true;
+                            break;
+                        }
+                    }
+                }
+                if (s && s.running && !hasCompletedMarker) {
                     installSetStatus('Syncing...', 'busy');
                     if (stopBtn) stopBtn.style.display = '';
                     if (syncGameListPollCount > 300) {
@@ -3111,10 +3124,11 @@
                         if (s.lastSync) {
                             try {
                                 var lastSyncDate = new Date(s.lastSync);
-                                var formatted = isNaN(lastSyncDate.getTime()) ? s.lastSync : lastSyncDate.toLocaleString();
-                                installAppendLog(['', '[INFO] Last successful sync: ' + formatted]);
+                                var formatted = isNaN(lastSyncDate.getTime()) ? s.lastSync : lastSyncDate.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                                installAppendLog(['', '[INFO] Game list last sync: ' + formatted]);
                                 updateLastSyncDisplay(s.lastSync);
                             } catch (e) {
+                                installAppendLog(['', '[INFO] Game list last sync: ' + s.lastSync]);
                                 updateLastSyncDisplay(s.lastSync);
                             }
                         }
@@ -3159,7 +3173,7 @@
             } catch (e) {
                 // keep as-is
             }
-            el.textContent = 'Last sync: ' + display;
+            el.textContent = 'Game list last sync: ' + display;
             el.title = formatted;
             el.style.color = '#ffc000';
         }
