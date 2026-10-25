@@ -39,7 +39,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     '      { name: "' + $cleanName + '", size: ' + $gbSize + ' }'
 }
 
-$gamesJsBlock = "const games = [`r`n" + ($gameEntries -join ",`r`n") + "`r`n    ];"
+$gamesJsBlock = "const games = [`r`n" + ($gameEntries -join ",`r`n") + "`r`n    ];`r`n`r`nconst gamesLastSync = '" + $currentDate + "';"
 
 Write-Host "[2/3] Updating gameslist.js game dataset..." -ForegroundColor Cyan
 

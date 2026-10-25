@@ -3111,9 +3111,41 @@
     }
 
     function fetchLastSync() {
+        // Try to read from gameslist.js first (deployed version)
+        try {
+            fetch('gameslist.js?t=' + Date.now())
+                .then(function(r) { if (!r.ok) throw new Error('no'); return r.text(); })
+                .then(function(txt) {
+                    var m = txt.match(/gamesLastSync\s*=\s*['"]([^'"]+)['"]/);
+                    if (m && m[1]) {
+                        updateLastSyncDisplay(m[1]);
+                        return;
+                    }
+                    // Fallback to local file if running locally
+                    return fetch('install-server-last-sync.txt?t=' + Date.now())
+                        .then(function(r) { if (!r.ok) throw new Error('no file'); return r.text(); })
+                        .then(function(tx2) {
+                            var ts = (tx2 || '').trim();
+                            if (ts) {
+                                try {
+                                    var d = new Date(ts);
+                                    if (!isNaN(d.getTime())) {
+                                        updateLastSyncDisplay(d.toLocaleString());
+                                        return;
+                                    }
+                                } catch (e) {}
+                                updateLastSyncDisplay(ts);
+                            }
+                        });
+                })
+                .catch(function() {});
+            return;
+        } catch (e) {
+            // ignore
+        }
+
         installResolveConfig().then(function(cfg) {
             if (!cfg) {
-                // Fallback: try to read last sync file directly if running on same machine
                 try {
                     fetch('install-server-last-sync.txt?t=' + Date.now())
                         .then(function(r) { if (!r.ok) throw new Error('no file'); return r.text(); })
