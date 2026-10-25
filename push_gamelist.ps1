@@ -48,9 +48,11 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         $fullName = $f.FullName
         $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
 
-        # Skip files inside DLC subfolders
+        # Skip files inside DLC subfolders — any directory segment containing
+        # "dlc" (e.g. "DLC", "dlc", "58 DLC", "dlc pack", etc.) is excluded.
         $relPath = $fullName.Substring($dir.FullName.Length)
-        if ($relPath -match '\\DLC\\|/DLC/|\\dlc\\|/dlc/') { continue }
+        $dlcFolder = $relPath -split '[\\/]' | Where-Object { $_ -match 'dlc' }
+        if ($dlcFolder) { continue }
 
         # Skip DLC packs by filename — catches [DLC], [All DLC], [Standalone DLC],
         # [DLC Pack], [DLC Bundle], etc. (case-insensitive, anywhere inside [])
