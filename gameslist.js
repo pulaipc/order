@@ -99,7 +99,7 @@ const games = [
       { name: "Fever Sport collection 1-4", size: 1.08, fileCount: 4 },
       { name: "FIFA 2023 Legacy edition", size: 12.49, fileCount: 1 },
       { name: "Final Fantasy Resonance", size: 8.57, fileCount: 1 },
-      { name: "Final Fantasy VII Reunion Crisis Core", size: 14.63, fileCount: 2 },
+      { name: "Final Fantasy VII Reunion Crisis Core", size: 14.63, fileCount: 1 },
       { name: "Fire Emblem Engage", size: 13.46, fileCount: 1 },
       { name: "Fire Emblem Three Houses", size: 12.59, fileCount: 1 },
       { name: "Fishing games for Nintendo Switch", size: 5.38, fileCount: 3 },
@@ -190,7 +190,7 @@ const games = [
       { name: "Monument Valley 1-2", size: 0.5, fileCount: 2 },
       { name: "Moonlight Peaks", size: 1.96, fileCount: 1 },
       { name: "Morbid the Lords of Ire", size: 3.08, fileCount: 1 },
-      { name: "Mortal Kombat 1", size: 40.03, fileCount: 2 },
+      { name: "Mortal Kombat 1", size: 40.03, fileCount: 1 },
       { name: "Mortal Kombat 11", size: 28.25, fileCount: 1 },
       { name: "MotoGP 23", size: 11.13, fileCount: 1 },
       { name: "MotoGP 25", size: 8.52, fileCount: 1 },
@@ -278,7 +278,7 @@ const games = [
       { name: "Sonic Frontiers", size: 11.95, fileCount: 1 },
       { name: "Sonic Mania", size: 0.37, fileCount: 1 },
       { name: "Sonic Racing Cross Worlds", size: 8.86, fileCount: 1 },
-      { name: "Sonic Superstars", size: 6.22, fileCount: 2 },
+      { name: "Sonic Superstars", size: 6.22, fileCount: 1 },
       { name: "Sonic x Shadow Generation", size: 10.25, fileCount: 1 },
       { name: "Splatoon 3", size: 12.67, fileCount: 1 },
       { name: "Split", size: 0.61, fileCount: 1 },
@@ -329,7 +329,7 @@ const games = [
       { name: "Tony Hawks Pro Skater 1+2", size: 8.89, fileCount: 1 },
       { name: "Tridents Tale", size: 3.21, fileCount: 1 },
       { name: "Twin Stick Arcade Shooters pack for Nintendo Switch", size: 1.14, fileCount: 1 },
-      { name: "Unicorn Overlord", size: 5.75, fileCount: 2 },
+      { name: "Unicorn Overlord", size: 5.75, fileCount: 1 },
       { name: "Unpacking", size: 0.32, fileCount: 1 },
       { name: "Unravel Two", size: 1.81, fileCount: 1 },
       { name: "Untitled Goose Game", size: 0.33, fileCount: 1 },
@@ -352,11 +352,12 @@ const games = [
       { name: "Yakuza Kiwami Switch edition", size: 14.28, fileCount: 1 },
       { name: "Yoshis Crafted World", size: 5.6, fileCount: 1 },
       { name: "Ys Memories of Celceta (JAP+ENG MOD)", size: 5.96, fileCount: 1 },
-      { name: "YS X Nordics (JAP)", size: 4.9, fileCount: 1 },
+      { name: "YS X Nordics (JAP)", size: 4.9, fileCount: 2 },
       { name: "Zombie Army Trilogy", size: 3.98, fileCount: 1 }
     ];
 
-const gamesLastSync = '2026-10-25T22:15:11.3984945+08:00';
+const gamesLastSync = '2026-10-25T22:44:15.5513714+08:00';
+
 
 
 
