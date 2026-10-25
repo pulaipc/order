@@ -177,7 +177,7 @@ const games = [
       { name: "Metroid Dread", size: 3.23 },
       { name: "Metroid Prime 4 Beyond", size: 21.84 },
       { name: "Metroid Prime Remastered", size: 6.76 },
-      { name: "MGS Master Collection Vol 2", size: 30.54 },
+      { name: "MGS Master Collection Vol 2", size: 45.77 },
       { name: "MGS Master Collection", size: 46.17 },
       { name: "Minecraft Dungeons", size: 3.9 },
       { name: "Minecraft Legends", size: 7.34 },
@@ -355,6 +355,9 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
+
+const gamesLastSync = '2026-10-25T14:37:44.1919250+08:00';
+
 
 
 
