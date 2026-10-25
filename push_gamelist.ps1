@@ -37,23 +37,44 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     $gbSize = [math]::Round($bytes / 1GB, 2)
 
     # Count actual games in the folder by reading filenames.
-    # A single game may span multiple files (base + update + DLC), so we extract
-    # a game key from each filename and count unique keys. Unknown folders fall
-    # back to 1.
+    # A single game may span multiple NSP files (base + update), so we use the
+    # title ID inside [] (e.g. [010083801AA14000]) to group them, ignoring the
+    # last 3 digits so version bumps map to the same game. DLC packs and files
+    # inside DLC subfolders are excluded. Unknown folders fall back to 1.
     $gameFileExts = @('.nsp', '.nsx', '.xci', '.xcz', '.nsz')
     $gameFiles = $files | Where-Object { $gameFileExts -contains $_.Extension }
     $gameKeys = @{}
     foreach ($f in $gameFiles) {
-        $name = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
-        # Strip region tags [USA], [EUR], [JAP], etc.
-        $name = $name -replace '\s*\[.*?\]', ''
-        # Strip version tags v0, v1, v123, etc.
-        $name = $name -replace '\s*v\d+', ''
-        # Strip update/DLC/base indicators
-        $name = $name -replace '\s*(update|dlc|base|main)', ''
-        # Strip trailing spaces/dots/dashes
-        $name = $name -replace '[\s.\-]+$', ''
-        $key = $name.Trim().ToLower()
+        $fullName = $f.FullName
+        $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+
+        # Skip files inside DLC subfolders
+        $relPath = $fullName.Substring($dir.FullName.Length)
+        if ($relPath -match '\\DLC\\|/DLC/|\\dlc\\|/dlc/') { continue }
+
+        # Skip DLC packs by filename
+        if ($fileName -match '\[DLC') { continue }
+
+        # Extract title ID from [] - 16 hex chars like [010083801AA14000]
+        $titleId = $null
+        if ($fileName -match '\[([0-9A-Fa-f]{16})\]') {
+            $titleId = $matches[1]
+        }
+
+        if ($titleId) {
+            # Ignore last 3 digits so [010083801AA14000] and [010083801AA14800]
+            # (base + update of the same game) map to one key
+            $key = $titleId.Substring(0, $titleId.Length - 3).ToLower()
+        } else {
+            # Fall back to cleaned filename when no title ID is present
+            $key = $fileName
+            $key = $key -replace '\s*\[.*?\]', ''   # strip all remaining []
+            $key = $key -replace '\s*v\d+', ''       # strip version tags
+            $key = $key -replace '\s*(update|dlc|base|main)', ''
+            $key = $key -replace '[\s.\-]+$', ''
+            $key = $key.Trim().ToLower()
+        }
+
         if ($key.Length -gt 0) { $gameKeys[$key] = $true }
     }
     $fileCount = if ($gameKeys.Count -gt 0) { $gameKeys.Count } else { 1 }

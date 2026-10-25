@@ -148,7 +148,7 @@ function pricingInputsForOrder(order, freeGames) {
     return {
         serviceType: o.service_type || '',
         consoleModel: o.console_model || '',
-        count: gameCountTotal(gameListOf(o)),
+        count: (o.manual_game_count && Number(o.manual_game_count) > 0) ? Number(o.manual_game_count) : gameCountTotal(gameListOf(o)),
         totalGb: Number(o.total_size_gb) || 0,
         freeGames: Number(freeGames) || 0,
         repairs: getEnrichedRepairs(o),
