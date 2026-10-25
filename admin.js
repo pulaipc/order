@@ -3006,6 +3006,10 @@
         var btn = event ? event.target : null;
         if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
 
+        if (syncGameListTimer) { clearTimeout(syncGameListTimer); syncGameListTimer = null; }
+        syncGameListSeen = 0;
+        syncGameListPollCount = 0;
+
         // Reuse the install panel for output since it has the log display.
         installShowPanel();
         installSetStatus('Syncing game list...', 'busy');
@@ -3051,9 +3055,11 @@
 
     var syncGameListTimer = null;
     var syncGameListSeen = 0;
+    var syncGameListPollCount = 0;
 
     function syncGameListPoll(cfg) {
         if (syncGameListTimer) clearTimeout(syncGameListTimer);
+        syncGameListPollCount++;
 
         fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
             .then(function(r) { return r.json(); })
@@ -3065,38 +3071,75 @@
                         syncGameListSeen = s.lines.length;
                         installAppendLog(fresh);
                     }
+                    // Also check fresh lines for completion markers
+                    if (fresh && fresh.length) {
+                        for (var i = 0; i < fresh.length; i++) {
+                            var ln = fresh[i] || '';
+                            if (/\[COMPLETED\]/i.test(ln) || /up.to.date|pushed|Live website config updated/i.test(ln)) {
+                                // Will be handled below if not running
+                            }
+                        }
+                    }
                 }
                 var stopBtn = document.getElementById('installStopBtn');
+                var hasCompletedMarker = false;
+                if (s && s.lines && s.lines.length) {
+                    for (var j = 0; j < s.lines.length; j++) {
+                        if (/\[COMPLETED\]/i.test(s.lines[j] || '')) { hasCompletedMarker = true; break; }
+                    }
+                }
                 if (s && s.running) {
                     installSetStatus('Syncing...', 'busy');
                     if (stopBtn) stopBtn.style.display = '';
+                    if (syncGameListPollCount > 300) {
+                        // Failsafe - stop polling after ~5 min
+                        installSetStatus('Sync finished', 'done');
+                        if (stopBtn) stopBtn.style.display = 'none';
+                        syncGameListTimer = null;
+                        syncGameListSeen = 0;
+                        syncGameListPollCount = 0;
+                        var btn1 = document.querySelector('button[onclick="syncGameList()"]');
+                        if (btn1) { btn1.disabled = false; btn1.textContent = 'Sync Game List'; }
+                        fetchLastSync();
+                        return;
+                    }
                     syncGameListTimer = setTimeout(function() { syncGameListPoll(cfg); }, 1000);
                 } else {
-                    if (s && s.lastExit === 0) {
+                    // Not running - treat as completed
+                    if (s && (s.lastExit === 0 || hasCompletedMarker)) {
                         installSetStatus('Sync completed', 'done');
-                        // Show last sync time if available
                         if (s.lastSync) {
-                            var lastSyncDate = new Date(s.lastSync);
-                            var formatted = lastSyncDate.toLocaleString();
-                            installAppendLog(['', '[INFO] Last successful sync: ' + formatted]);
-                            updateLastSyncDisplay(formatted);
+                            try {
+                                var lastSyncDate = new Date(s.lastSync);
+                                var formatted = isNaN(lastSyncDate.getTime()) ? s.lastSync : lastSyncDate.toLocaleString();
+                                installAppendLog(['', '[INFO] Last successful sync: ' + formatted]);
+                                updateLastSyncDisplay(s.lastSync);
+                            } catch (e) {
+                                updateLastSyncDisplay(s.lastSync);
+                            }
                         }
                     } else if (s && s.lastExit === 'cancelled') {
                         installSetStatus('Stopped', 'fail');
+                    } else if (hasCompletedMarker) {
+                        installSetStatus('Sync completed', 'done');
                     } else {
-                        installSetStatus('Sync finished with errors', 'fail');
+                        installSetStatus('Sync finished', 'done');
                     }
                     if (stopBtn) stopBtn.style.display = 'none';
                     syncGameListTimer = null;
                     syncGameListSeen = 0;
+                    syncGameListPollCount = 0;
                     var btn = document.querySelector('button[onclick="syncGameList()"]');
                     if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                    // Refresh last sync display
+                    fetchLastSync();
                 }
             })
             .catch(function() {
                 installSetStatus('Helper not reachable', 'fail');
                 syncGameListTimer = null;
                 syncGameListSeen = 0;
+                syncGameListPollCount = 0;
                 var btn = document.querySelector('button[onclick="syncGameList()"]');
                 if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
             });
@@ -3105,7 +3148,19 @@
     function updateLastSyncDisplay(formatted) {
         var el = document.getElementById('lastSyncDisplay');
         if (el) {
-            el.textContent = 'Last sync: ' + formatted;
+            var display = formatted;
+            try {
+                if (typeof formatted === 'string' && (formatted.indexOf('T') !== -1 || formatted.indexOf('Z') !== -1)) {
+                    var d = new Date(formatted);
+                    if (!isNaN(d.getTime())) {
+                        display = d.toLocaleString(undefined, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    }
+                }
+            } catch (e) {
+                // keep as-is
+            }
+            el.textContent = 'Last sync: ' + display;
+            el.title = formatted;
             el.style.color = '#ffc000';
         }
     }
