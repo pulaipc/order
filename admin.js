@@ -3112,7 +3112,30 @@
 
     function fetchLastSync() {
         installResolveConfig().then(function(cfg) {
-            if (!cfg) return;
+            if (!cfg) {
+                // Fallback: try to read last sync file directly if running on same machine
+                try {
+                    fetch('install-server-last-sync.txt?t=' + Date.now())
+                        .then(function(r) { if (!r.ok) throw new Error('no file'); return r.text(); })
+                        .then(function(txt) {
+                            var ts = (txt || '').trim();
+                            if (ts) {
+                                try {
+                                    var d = new Date(ts);
+                                    if (!isNaN(d.getTime())) {
+                                        updateLastSyncDisplay(d.toLocaleString());
+                                        return;
+                                    }
+                                } catch (e) {}
+                                updateLastSyncDisplay(ts);
+                            }
+                        })
+                        .catch(function() {});
+                    return;
+                } catch (e) {
+                    return;
+                }
+            }
             fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
                 .then(function(r) { return r.json(); })
                 .then(function(s) {
