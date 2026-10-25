@@ -48,7 +48,7 @@ $DryRun = $false
 $NoPause = $false
 $SaveTarget = $false
 $EssentialsMode = -1          # -1 ask, 1 copy, 0 skip
-$DelaySeconds = 5             # pause after an unconfirmed file, so DBI can catch up
+$DelaySeconds = 10             # pause after an unconfirmed file, so DBI can catch up
 $Target = ''
 $TargetGiven = $false
 
@@ -1166,11 +1166,15 @@ function Copy-FolderTree {
             if ($note) {
                 $script:unconfirmed++
                 Write-Host ('      ! {0}' -f $note)
-                # Give DBI a moment to finish the previous file before starting
-                # the next one, so the MTP device isn't overwhelmed.
+                # Give DBI a moment to finish installing the previous file before
+                # starting the next one, so the MTP device isn't overwhelmed.
                 if ($DelaySeconds -gt 0) {
-                    Write-Host ("      (pausing {0}s for DBI...)" -f $DelaySeconds)
-                    Start-Sleep -Seconds $DelaySeconds
+                    for ($s = $DelaySeconds; $s -gt 0; $s--) {
+                        Write-Host ("      (pausing for DBI: {0}s left...)" -f $s) -NoNewline
+                        Start-Sleep -Seconds 1
+                        Write-Host ''
+                    }
+                    Write-Host '      (resuming)'
                 }
             }
         }
