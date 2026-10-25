@@ -98,6 +98,7 @@ const games = [
       { name: "Farm simulators for Nintendo Switch", size: 0.9 },
       { name: "Fever Sport collection 1-4", size: 1.08 },
       { name: "FIFA 2023 Legacy edition", size: 12.49 },
+      { name: "Final Fantasy Resonance", size: 8.57 },
       { name: "Final Fantasy VII Reunion Crisis Core", size: 14.63 },
       { name: "Fire Emblem Engage", size: 13.46 },
       { name: "Fire Emblem Three Houses", size: 12.59 },
@@ -176,7 +177,7 @@ const games = [
       { name: "Metroid Dread", size: 3.23 },
       { name: "Metroid Prime 4 Beyond", size: 21.84 },
       { name: "Metroid Prime Remastered", size: 6.76 },
-      { name: "MGS Master Collection Vol 2", size: 29.51 },
+      { name: "MGS Master Collection Vol 2", size: 30.54 },
       { name: "MGS Master Collection", size: 46.17 },
       { name: "Minecraft Dungeons", size: 3.9 },
       { name: "Minecraft Legends", size: 7.34 },
@@ -354,8 +355,6 @@ const games = [
       { name: "YS X Nordics (JAP)", size: 4.9 },
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
-
-const gamesLastSync = '';
 
 
 

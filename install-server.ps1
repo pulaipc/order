@@ -64,7 +64,6 @@ $CopyScript = Join-Path $ScriptDir 'copygame.ps1'
 $TokenFile = Join-Path $ScriptDir 'install_server_token.txt'
 $LogFile = Join-Path $ScriptDir 'install-server.log'
 $ReadyFile = Join-Path $ScriptDir 'install-server.ready'
-$LastSyncFile = Join-Path $ScriptDir 'install-server-last-sync.txt'
 
 # A hidden run has no console to print to, so Write-Host output would vanish and
 # a failure would be silent. Detect that case and mirror every message to the
@@ -199,10 +198,6 @@ function Get-StateSnapshot {
     [System.Threading.Monitor]::Enter($script:Sync)
     try {
         $running = ($null -ne $script:Job) -and (-not $script:Job.HasExited)
-        $lastSync = $null
-        if (Test-Path -LiteralPath $LastSyncFile) {
-            try { $lastSync = (Get-Content -LiteralPath $LastSyncFile -TotalCount 1).Trim() } catch { }
-        }
         return @{
             running     = $running
             pause       = $script:PausePending
@@ -210,7 +205,6 @@ function Get-StateSnapshot {
             lastExit    = $script:LastExit
             total       = $script:Lines.Count
             lines       = @($script:Lines)
-            lastSync    = $lastSync
         }
     } finally { [System.Threading.Monitor]::Exit($script:Sync) }
 }
@@ -411,13 +405,6 @@ function Update-CopyJob {
     if ($null -eq $code) {
         # Killed before it could write: report that honestly, not as exit 0.
         $code = if ($script:Cancelled) { 'cancelled' } else { 'unknown' }
-    }
-    # If this was a push-gamelist job and it succeeded, record the sync time.
-    if ($script:JobType -eq 'push-gamelist' -and $code -eq 0) {
-        try {
-            Set-Content -LiteralPath $LastSyncFile -Value (Get-Date).ToString('o') -Encoding UTF8
-            Add-Line "[SUCCESS] Last sync recorded: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-        } catch { }
     }
     Add-Line ("=== install finished (exit {0}) at {1} ===" -f $code, (Get-Date).ToString('HH:mm:ss'))
     $script:LastExit = $code

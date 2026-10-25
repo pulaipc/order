@@ -3121,53 +3121,30 @@
                         updateLastSyncDisplay(m[1]);
                         return;
                     }
-                    // Fallback to local file if running locally
-                    return fetch('install-server-last-sync.txt?t=' + Date.now())
-                        .then(function(r) { if (!r.ok) throw new Error('no file'); return r.text(); })
-                        .then(function(tx2) {
-                            var ts = (tx2 || '').trim();
-                            if (ts) {
-                                try {
-                                    var d = new Date(ts);
-                                    if (!isNaN(d.getTime())) {
-                                        updateLastSyncDisplay(d.toLocaleString());
-                                        return;
-                                    }
-                                } catch (e) {}
-                                updateLastSyncDisplay(ts);
-                            }
-                        });
                 })
-                .catch(function() {});
+                .catch(function() {
+                    // Fall back to helper /status if gameslist.js doesn't have it yet
+                    installResolveConfig().then(function(cfg) {
+                        if (!cfg) return;
+                        fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+                            .then(function(r) { return r.json(); })
+                            .then(function(s) {
+                                if (s && s.lastSync) {
+                                    var lastSyncDate = new Date(s.lastSync);
+                                    var formatted = lastSyncDate.toLocaleString();
+                                    updateLastSyncDisplay(formatted);
+                                }
+                            })
+                            .catch(function() { });
+                    });
+                });
             return;
         } catch (e) {
             // ignore
         }
 
         installResolveConfig().then(function(cfg) {
-            if (!cfg) {
-                try {
-                    fetch('install-server-last-sync.txt?t=' + Date.now())
-                        .then(function(r) { if (!r.ok) throw new Error('no file'); return r.text(); })
-                        .then(function(txt) {
-                            var ts = (txt || '').trim();
-                            if (ts) {
-                                try {
-                                    var d = new Date(ts);
-                                    if (!isNaN(d.getTime())) {
-                                        updateLastSyncDisplay(d.toLocaleString());
-                                        return;
-                                    }
-                                } catch (e) {}
-                                updateLastSyncDisplay(ts);
-                            }
-                        })
-                        .catch(function() {});
-                    return;
-                } catch (e) {
-                    return;
-                }
-            }
+            if (!cfg) return;
             fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
                 .then(function(r) { return r.json(); })
                 .then(function(s) {

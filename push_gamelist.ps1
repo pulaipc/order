@@ -39,11 +39,15 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     '      { name: "' + $cleanName + '", size: ' + $gbSize + ' }'
 }
 
-$gamesJsBlock = "const games = [`r`n" + ($gameEntries -join ",`r`n") + "`r`n    ];`r`n`r`nconst gamesLastSync = '" + $currentDate + "';"
+$currentDateIso = Get-Date -Format "o"
+$gamesJsBlock = "const games = [`r`n" + ($gameEntries -join ",`r`n") + "`r`n    ];`r`n`r`nconst gamesLastSync = '" + $currentDateIso + "';"
 
 Write-Host "[2/3] Updating gameslist.js game dataset..." -ForegroundColor Cyan
 
 $configContent = Get-Content $configPath -Raw
+
+# Remove any existing gamesLastSync declaration before inserting new one
+$configContent = [regex]::Replace($configContent, '[\s\r\n]*const gamesLastSync\s*=\s*[^\r\n;]+;?', '')
 
 # Regex replace only the 'const games = [...]' section in gameslist.js, preserving credentials & pricing settings
 $updatedConfig = [regex]::Replace($configContent, 'const games = \[[\s\S]*?\];', { param($m)$gamesJsBlock })
