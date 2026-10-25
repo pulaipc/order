@@ -1968,13 +1968,19 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 gamesBody.appendChild(p);
             } else {
                 let idx = 1;
+                const catalog = typeof games !== 'undefined' && Array.isArray(games) ? games : [];
+                const catalogMap = {};
+                catalog.forEach(g => { catalogMap[g.name] = g; });
                 state.selectedGames.forEach((size, name) => {
                     const item = document.createElement('div');
                     item.className = 'cart-item';
                     let tag = '';
                     if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#e8dcc0; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
+                    const g = catalogMap[name];
+                    const gCount = g && g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                    const badgeHtml = gCount ? '<span class="game-count-badge">' + gCount + '</span>' : '';
                     const titleSpan = document.createElement('span');
-                    titleSpan.innerHTML = `${idx}. ${name} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${effectiveGb(size)} GB)</span>`;
+                    titleSpan.innerHTML = `${idx}. ${name}${badgeHtml} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${effectiveGb(size)} GB)</span>`;
                     const btn = document.createElement('button');
                     btn.className = 'remove-btn';
                     btn.textContent = 'Remove';
