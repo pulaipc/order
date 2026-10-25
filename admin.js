@@ -2661,7 +2661,7 @@
         html += '</div>';
 
         html += '</div>';
-        html += '<div style="margin-top: 16px; text-align: right;"><button class="catalog-add-btn" onclick="saveServicePrices()" id="savePricingBtnBottom">&#128190; Save Price Changes</button></div>';
+        html += '<div style="margin-top: 16px; text-align: right;"><button class="catalog-add-btn" onclick="saveServicePrices()" id="savePricingBtnBottom">Save Price Changes</button></div>';
 
         container.innerHTML = html;
     }
