@@ -3061,8 +3061,40 @@
                 return r.json().then(function(j) { return { status: r.status, body: j }; });
             }).then(function(res) {
                 if (!res.body || !res.body.ok) {
+                    var err = (res.body && res.body.error) || ('HTTP ' + res.status);
+                    // Auto force-stop a stuck sync, then retry once
+                    if (/already running|sync is running/i.test(err)) {
+                        installSetStatus('Stuck sync detected — force stopping...', 'busy');
+                        fetch(cfg.url + '/cancel', { method: 'POST', headers: { 'X-Install-Token': cfg.token } })
+                            .then(function() { return res.json ? res.json() : {}; })
+                            .then(function() {
+                                installAppendLog(['! Previous sync was stuck, forcing stop and retrying...']);
+                                return fetch(cfg.url + '/push-gamelist', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'X-Install-Token': cfg.token },
+                                    body: JSON.stringify({})
+                                });
+                            })
+                            .then(function(r2) {
+                                return r2.json().then(function(j2) { return { status: r2.status, body: j2 }; });
+                            })
+                            .then(function(res2) {
+                                if (!res2.body || !res2.body.ok) {
+                                    installSetStatus('Could not start sync', 'fail');
+                                    installAppendLog(['! ' + ((res2.body && res2.body.error) || ('HTTP ' + res2.status))]);
+                                    if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                                    return;
+                                }
+                                syncGameListPoll(cfg);
+                            }).catch(function(err2) {
+                                installSetStatus('Helper not reachable', 'fail');
+                                installAppendLog(['! ' + err2.message, '! Is install-server.ps1 still running?']);
+                                if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                            });
+                        return;
+                    }
                     installSetStatus('Could not start sync', 'fail');
-                    installAppendLog(['! ' + ((res.body && res.body.error) || ('HTTP ' + res.status))]);
+                    installAppendLog(['! ' + err]);
                     if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
                     return;
                 }
