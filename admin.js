@@ -346,7 +346,7 @@
         var repairs = getEnrichedRepairs(order);
         var repairCount = repairs.length;
         var games = gameListOf(order);
-        var gameCount = games.length;
+        var gameCount = gameCountTotal(games);
 
         // Task wording, not completed-state wording: an unticked item labelled
         // "Modchip installed" reads as a fact that isn't true yet. Ticking is
@@ -657,6 +657,7 @@
         if (bulkSelectedIds[String(orderId)]) card.classList.add('selected-for-bulk');
 
         var gameList = gameListOf(order);
+        var realGameCount = gameCountTotal(gameList);
         var repairs = getEnrichedRepairs(order);
         var phoneCount = orderCountByPhone[order.phone_ending] || 1;
         var isChecked = bulkSelectedIds[String(orderId)] ? ' checked' : '';
@@ -671,7 +672,7 @@
             var sdSourceLabel = order.sd_source === 'buy' ? 'New SD' : 'Own SD';
             if (sdSize > 0) summaryParts.push(sdSourceLabel + ' <strong>' + sdSizeLabel + '</strong>');
         }
-        if (order.service_type !== 'repair_only') summaryParts.push('<strong>' + gameList.length + '</strong> game' + (gameList.length === 1 ? '' : 's'));
+        if (order.service_type !== 'repair_only') summaryParts.push('<strong>' + realGameCount + '</strong> game' + (realGameCount === 1 ? '' : 's'));
         if (repairs.length > 0) summaryParts.push('<strong>' + repairs.length + '</strong> repair' + (repairs.length === 1 ? '' : 's'));
         var summaryLine = summaryParts.join(' <span class="muted">·</span> ');
 
@@ -883,7 +884,7 @@
         var order = findOrder(adjustState.orderId);
         if (!order) return 0;
         var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
-        return Math.max(0, gameListOf(order).length - (isJbOrSetup ? 3 : 0));
+        return Math.max(0, gameCountTotal(gameListOf(order)) - (isJbOrSetup ? 3 : 0));
     }
 
     /**
@@ -1054,7 +1055,7 @@
         el('freeGamesPlus').disabled = (freeGames >= ceiling);
 
         // Explain a dead stepper instead of leaving it looking broken.
-        var gameCount = gameListOf(order).length;
+        var gameCount = gameCountTotal(gameListOf(order));
         var isJbOrSetup = (order.service_type === 'jailbreak' || order.service_type === 'system_setup');
         var noWaivable = el('adjustNoGamesNote');
         if (ceiling === 0) {
@@ -1411,7 +1412,7 @@
         // admin can no longer see, because the block above is hidden. Drop them,
         // but say so rather than silently losing the selection.
         if (svc === 'repair_only' && orderEdit.games.length) {
-            var dropped = orderEdit.games.length;
+            var dropped = gameCountTotal(orderEdit.games);
             orderEdit.games = [];
             renderEditGameOptions();
             renderEditSelectedGames();
@@ -1489,10 +1490,11 @@
     function renderEditSelectedGames() {
         var box = el('oeSelectedGames');
         var totalGb = editGameFootprint();
+        var realCount = gameCountTotal(orderEdit.games);
         el('oeSelectedGamesHead').innerHTML =
-            'On this order (' + orderEdit.games.length + ' &middot; ' + totalGb.toFixed(1) + ' GB' + installBufferNote() + ')';
+            'On this order (' + realCount + ' &middot; ' + totalGb.toFixed(1) + ' GB' + installBufferNote() + ')';
 
-        if (orderEdit.games.length === 0) {
+        if (realCount === 0) {
             box.innerHTML = '<div class="oe-opt-empty">No games on this order.</div>';
             return;
         }
@@ -1594,7 +1596,7 @@
             android_mode: jb ? orderEdit.android : false,
             linux_mode: jb ? orderEdit.linux : false,
             games: names,
-            total_games: names.length,
+            total_games: gameCountTotal(names),
             total_size_gb: Math.round(editGameTotalGb() * 100) / 100,
             repairs: repairSnapshot(Object.keys(orderEdit.repairs).map(function (k) { return orderEdit.repairs[k]; }))
         };

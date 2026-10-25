@@ -36,7 +36,29 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     $bytes = ($files | Measure-Object -Property Length -Sum).Sum
     $gbSize = [math]::Round($bytes / 1GB, 2)
 
-    '      { name: "' + $cleanName + '", size: ' + $gbSize + ' }'
+    # Count actual games in the folder by reading filenames.
+    # A single game may span multiple files (base + update + DLC), so we extract
+    # a game key from each filename and count unique keys. Unknown folders fall
+    # back to 1.
+    $gameFileExts = @('.nsp', '.nsx', '.xci', '.xcz', '.nsz')
+    $gameFiles = $files | Where-Object { $gameFileExts -contains $_.Extension }
+    $gameKeys = @{}
+    foreach ($f in $gameFiles) {
+        $name = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+        # Strip region tags [USA], [EUR], [JAP], etc.
+        $name = $name -replace '\s*\[.*?\]', ''
+        # Strip version tags v0, v1, v123, etc.
+        $name = $name -replace '\s*v\d+', ''
+        # Strip update/DLC/base indicators
+        $name = $name -replace '\s*(update|dlc|base|main)', ''
+        # Strip trailing spaces/dots/dashes
+        $name = $name -replace '[\s.\-]+$', ''
+        $key = $name.Trim().ToLower()
+        if ($key.Length -gt 0) { $gameKeys[$key] = $true }
+    }
+    $fileCount = if ($gameKeys.Count -gt 0) { $gameKeys.Count } else { 1 }
+
+    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + ' }'
 }
 
 $currentDateIso = Get-Date -Format "o"

@@ -83,6 +83,16 @@ function gameSizeTotal(names) {
     return (names || []).reduce(function (sum, n) { return sum + (sizes[n] || 0); }, 0);
 }
 
+/** Real game count of a game-name list, using the catalog fileCount field.
+ *  A folder that contains multiple NSP/XCI files (a collection/multi-pack)
+ *  counts as more than one game. Unknown names fall back to 1. */
+function gameCountTotal(names) {
+    const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
+    const counts = {};
+    catalog.forEach(function (g) { counts[g.name] = Number(g.fileCount) || 1; });
+    return (names || []).reduce(function (sum, n) { return sum + (counts[n] || 1); }, 0);
+}
+
 /**
  * A game's real SD footprint after extraction/install is larger than its listed
  * download size, so storage has to be planned against raw * INSTALL_SIZE_BUFFER
@@ -138,7 +148,7 @@ function pricingInputsForOrder(order, freeGames) {
     return {
         serviceType: o.service_type || '',
         consoleModel: o.console_model || '',
-        count: gameListOf(o).length,
+        count: gameCountTotal(gameListOf(o)),
         totalGb: Number(o.total_size_gb) || 0,
         freeGames: Number(freeGames) || 0,
         repairs: getEnrichedRepairs(o),

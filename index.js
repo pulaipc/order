@@ -361,7 +361,7 @@
         const gameList = gameListOf(order);
         // Left in the order the customer picked them, which is the order they
         // will be copied in. The catalogue order would throw that away.
-        const gameCount = gameList.length;
+        const gameCount = gameCountTotal(gameList);
         let totalGb = 0;
         let unknownSizeCount = 0;
         const gamesWithSize = [];
@@ -1502,7 +1502,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
     }
 
     function updateCartSummary() {
-        const count = state.selectedGames.size;
+        const gameNames = Array.from(state.selectedGames.keys());
+        const count = gameCountTotal(gameNames);
         const serviceType = valOf('serviceTypeSelect');
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
@@ -1834,7 +1835,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
         const isRepairOnly = serviceType === 'repair_only';
 
-        const count = state.selectedGames.size;
+        const gameNames2 = Array.from(state.selectedGames.keys());
+        const count = gameCountTotal(gameNames2);
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         const footprint = selectedGamesFootprint();
@@ -2165,7 +2167,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (!validatePhoneProvided()) return;
 
         const phone = valOf('phoneInput').trim();
-        const count = state.selectedGames.size;
+        const gameNames = Array.from(state.selectedGames.keys());
+        const count = gameCountTotal(gameNames);
         const submitLabel = (serviceType === 'jailbreak') ? 'Jailbreak' : 'System Setup';
 
         const tierRec = checkTierRecommendation(count, serviceType);
@@ -2200,7 +2203,6 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         btn.disabled = true;
         btn.style.pointerEvents = 'none';
 
-        const gameNames = Array.from(state.selectedGames.keys());
         const consoleModel = valOf('consoleModelSelect');
         const freeStorage = valOf('userFreeStorageInput');
         const sdSource = isJbOrSetup ? valOf('sdSourceSelect') : 'own';
@@ -2328,7 +2330,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const android = $('androidModeCheck').checked;
         const linux = $('linuxModeCheck').checked;
         const remarks = (state.savedRemarksText || '').trim();
-        const count = state.selectedGames.size;
+        const gameNames3 = Array.from(state.selectedGames.keys());
+        const count = gameCountTotal(gameNames3);
         let gSize = 0;
         state.selectedGames.forEach(s => gSize += s);
         const details = calculatePriceDetails(count, gSize);

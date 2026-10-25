@@ -358,7 +358,7 @@
                 extra = renderStageDetail(order);
             } else {
                 const orderId = String(order.id || order.order_id);
-                const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+                const gameCount = gameCountTotal(gameListOf(order));
                 const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
                 const total = getOrderTotals(order).total ? 'RM' + getOrderTotals(order).total : '';
                 detailParts = [escapeHtml(serviceLabel)];
@@ -733,7 +733,7 @@
         };
         const serviceLabel = serviceLabels[order.service_type] || 'Order';
 
-        const gameCount = Array.isArray(order.games) ? order.games.length : 0;
+        const gameCount = gameCountTotal(gameListOf(order));
         const sizeGb = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
         const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
 
@@ -852,7 +852,7 @@
 
                         let metaLine = '';
                         if (sub === 'Game Installation' && isCur && !isDone) {
-                            const gc = Array.isArray(order.games) ? order.games.length : 0;
+                            const gc = gameCountTotal(gameListOf(order));
                             const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                             if (gc > 0) metaLine = `Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total`;
                         }
@@ -877,7 +877,7 @@
                     const simple = document.createElement('div');
                     simple.className = 'substage-simple';
                     const desc = (APP_CONFIG.subStageDescriptions && APP_CONFIG.subStageDescriptions[stagesList[0]]) || 'Working on it...';
-                    const gc = Array.isArray(order.games) ? order.games.length : 0;
+                    const gc = gameCountTotal(gameListOf(order));
                     const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                     let detail = '';
                     if (gc > 0 && stagesList[0] === 'Game Installation') detail = `<div style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total</div>`;
