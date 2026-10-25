@@ -64,6 +64,7 @@ $CopyScript = Join-Path $ScriptDir 'copygame.ps1'
 $TokenFile = Join-Path $ScriptDir 'install_server_token.txt'
 $LogFile = Join-Path $ScriptDir 'install-server.log'
 $ReadyFile = Join-Path $ScriptDir 'install-server.ready'
+$LastSyncFile = Join-Path $ScriptDir 'install-server-last-sync.txt'
 
 # A hidden run has no console to print to, so Write-Host output would vanish and
 # a failure would be silent. Detect that case and mirror every message to the
@@ -168,7 +169,8 @@ window.INSTALL_LOCAL = { url: 'http://127.0.0.1:$Port', token: '$Token' };
 }
 
 # ---- state -------------------------------------------------------------------
-$script:Job = $null          # running copygame.ps1, when one is active
+$script:Job = $null          # running copygame.ps1 or push_gamelist.ps1, when one is active
+$script:JobType = $null      # 'copy' or 'push-gamelist'
 $script:Lines = New-Object System.Collections.Generic.List[string]
 $script:StartedAt = $null
 $script:LastExit = $null
@@ -197,6 +199,10 @@ function Get-StateSnapshot {
     [System.Threading.Monitor]::Enter($script:Sync)
     try {
         $running = ($null -ne $script:Job) -and (-not $script:Job.HasExited)
+        $lastSync = $null
+        if (Test-Path -LiteralPath $LastSyncFile) {
+            try { $lastSync = (Get-Content -LiteralPath $LastSyncFile -TotalCount 1).Trim() } catch { }
+        }
         return @{
             running     = $running
             pause       = $script:PausePending
@@ -204,6 +210,7 @@ function Get-StateSnapshot {
             lastExit    = $script:LastExit
             total       = $script:Lines.Count
             lines       = @($script:Lines)
+            lastSync    = $lastSync
         }
     } finally { [System.Threading.Monitor]::Exit($script:Sync) }
 }
@@ -286,6 +293,54 @@ function Start-CopyJob {
         -RedirectStandardOutput $script:OutFile -RedirectStandardError $script:ErrFile
 
     $script:Job = $proc
+    $script:JobType = 'copy'
+    $script:OutPos = 0
+    $script:ErrPos = 0
+
+    Add-Line ("> " + $psExe + ' ' + $inner)
+    return @{ ok = $true; started = $true }
+}
+
+# ---- push_gamelist ------------------------------------------------------------
+# Runs push_gamelist.ps1 to scan the nsp folder, update gameslist.js, and push to GitHub.
+function Start-PushGamelistJob {
+    $pushScript = Join-Path $ScriptDir 'push_gamelist.ps1'
+    if (-not (Test-Path -LiteralPath $pushScript)) {
+        Add-Line "push_gamelist.ps1 not found at $pushScript"
+        return @{ ok = $false; error = 'push_gamelist.ps1 not found' }
+    }
+
+    # Reset output and state for the new run.
+    [System.Threading.Monitor]::Enter($script:Sync)
+    try {
+        $script:Lines.Clear()
+        $script:LastExit = $null
+        $script:StartedAt = Get-Date
+        $script:PausePending = $false
+    } finally { [System.Threading.Monitor]::Exit($script:Sync) }
+
+    Add-Line ("=== push_gamelist started {0} ===" -f (Get-Date).ToString('HH:mm:ss'))
+
+    $psExe = (Get-Process -Id $PID).Path
+
+    # Output goes to files, not pipes.
+    $script:OutFile = Join-Path ([System.IO.Path]::GetTempPath()) "pulai_push_gamelist_$PID.out"
+    $script:ErrFile = Join-Path ([System.IO.Path]::GetTempPath()) "pulai_push_gamelist_$PID.err"
+    $script:CodeFile = Join-Path ([System.IO.Path]::GetTempPath()) "pulai_push_gamelist_$PID.code"
+    Remove-Item -LiteralPath $script:OutFile, $script:ErrFile, $script:CodeFile -ErrorAction SilentlyContinue
+
+    $inner = '& ' + ('"' + ($pushScript -replace '"', '""') + '"')
+    $inner += '; $ec = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } else { 0 }'
+    $inner += '; Set-Content -LiteralPath ' + ("'" + $script:CodeFile + "'") + ' -Value $ec -Encoding ASCII'
+    $inner += '; exit $ec'
+
+    $proc = Start-Process -FilePath $psExe `
+        -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', $inner) `
+        -WorkingDirectory $ScriptDir -WindowStyle Hidden -PassThru `
+        -RedirectStandardOutput $script:OutFile -RedirectStandardError $script:ErrFile
+
+    $script:Job = $proc
+    $script:JobType = 'push-gamelist'
     $script:OutPos = 0
     $script:ErrPos = 0
 
@@ -357,12 +412,20 @@ function Update-CopyJob {
         # Killed before it could write: report that honestly, not as exit 0.
         $code = if ($script:Cancelled) { 'cancelled' } else { 'unknown' }
     }
+    # If this was a push-gamelist job and it succeeded, record the sync time.
+    if ($script:JobType -eq 'push-gamelist' -and $code -eq 0) {
+        try {
+            Set-Content -LiteralPath $LastSyncFile -Value (Get-Date).ToString('o') -Encoding UTF8
+            Add-Line "[SUCCESS] Last sync recorded: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+        } catch { }
+    }
     Add-Line ("=== install finished (exit {0}) at {1} ===" -f $code, (Get-Date).ToString('HH:mm:ss'))
     $script:LastExit = $code
     $script:Cancelled = $false
     try { $proc.Dispose() } catch { }
     Remove-Item -LiteralPath $script:OutFile, $script:ErrFile, $script:CodeFile -ErrorAction SilentlyContinue
     $script:Job = $null
+    $script:JobType = $null
 }
 
 # ---- HTTP --------------------------------------------------------------------
@@ -598,6 +661,12 @@ while ($listener.IsListening) {
             }
             '/health' {
                 Send-Json $context @{ ok = $true; script = $CopyScript } | Out-Null
+            }
+            '/push-gamelist' {
+                if ($method -ne 'POST') { Send-Json $context @{ ok = $false; error = 'use POST' } 405 | Out-Null; continue }
+                $result = Start-PushGamelistJob
+                $code = if ($result.ok) { 200 } else { 409 }
+                Send-Json $context $result $code | Out-Null
             }
             default {
                 Send-Json $context @{ ok = $false; error = 'unknown endpoint' } 404 | Out-Null
