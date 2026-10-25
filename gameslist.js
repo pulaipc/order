@@ -356,7 +356,8 @@ const games = [
       { name: "Zombie Army Trilogy", size: 3.98 }
     ];
 
-const gamesLastSync = '2026-10-25T15:53:23.4405802+08:00';
+const gamesLastSync = '2026-10-25T15:56:52.5199288+08:00';
+
 
 
 
