@@ -15,11 +15,11 @@ const games = [
       { name: "Ace Combat 7 Skies Unknown (US)", size: 13.1, fileCount: 1 },
       { name: "AEW Fight Forever", size: 14.36, fileCount: 1 },
       { name: "Alien Isolation", size: 14.48, fileCount: 1 },
-      { name: "Animal Crossing New Horizons", size: 10.84, fileCount: 3 },
+      { name: "Animal Crossing New Horizons", size: 10.84, fileCount: 2 },
       { name: "AO Tennis 2", size: 8.14, fileCount: 1 },
       { name: "Assassins Creed The Ezio Collection", size: 28.73, fileCount: 1 },
       { name: "Assassins Creed The Rebel Collection", size: 13.6, fileCount: 1 },
-      { name: "Attack on Titan 2 Final Battle", size: 18.54, fileCount: 2 },
+      { name: "Attack on Titan 2 Final Battle", size: 18.54, fileCount: 1 },
       { name: "Avatar The Last Airbender - Quest for Balance", size: 3.82, fileCount: 1 },
       { name: "Batman Arkham Trilogy", size: 44.11, fileCount: 3 },
       { name: "Bayonetta 1+2", size: 18.16, fileCount: 2 },
@@ -196,7 +196,7 @@ const games = [
       { name: "MotoGP 25", size: 8.52, fileCount: 1 },
       { name: "MotoGP24", size: 10.75, fileCount: 1 },
       { name: "Moving Out 2", size: 1.69, fileCount: 1 },
-      { name: "My Hero Ones Justice", size: 14.47, fileCount: 3 },
+      { name: "My Hero Ones Justice", size: 14.47, fileCount: 2 },
       { name: "My Sims Cozy Bundle", size: 3.18, fileCount: 2 },
       { name: "NARUTO", size: 12.25, fileCount: 1 },
       { name: "Naruto Shippuden Ultimate Ninja Storm Trilogy", size: 17.63, fileCount: 1 },
@@ -352,11 +352,12 @@ const games = [
       { name: "Yakuza Kiwami Switch edition", size: 14.28, fileCount: 1 },
       { name: "Yoshis Crafted World", size: 5.6, fileCount: 1 },
       { name: "Ys Memories of Celceta (JAP+ENG MOD)", size: 5.96, fileCount: 1 },
-      { name: "YS X Nordics (JAP)", size: 4.9, fileCount: 2 },
+      { name: "YS X Nordics (JAP)", size: 4.9, fileCount: 1 },
       { name: "Zombie Army Trilogy", size: 3.98, fileCount: 1 }
     ];
 
-const gamesLastSync = '2026-10-25T22:44:15.5513714+08:00';
+const gamesLastSync = '2026-10-25T23:17:38.8681043+08:00';
+
 
 
 
