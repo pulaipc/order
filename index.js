@@ -466,8 +466,9 @@
             } else {
                 gamesWithSize.forEach(g => {
                     var gCount = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                    var badgeHtml = gCount ? '<span class="game-count-badge">' + gCount + '</span>' : '';
                     html += '<div class="summary-game-item">';
-                    html += '<div class="summary-game-name">' + escapeHtml(g.name) + gCount + '</div>';
+                    html += '<div class="summary-game-name">' + escapeHtml(g.name) + badgeHtml + '</div>';
                     html += '<div class="summary-game-size' + (g.known ? '' : ' unknown') + '">' +
                              (g.known ? effectiveGb(g.size).toFixed(1) + ' GB' : 'size n/a') + '</div>';
                     html += '</div>';
@@ -1357,7 +1358,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
                 const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${count}</span></div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
+                var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -1414,7 +1416,13 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             const titleSpan = document.createElement('span');
             titleSpan.className = 'game-title';
             const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
-            titleSpan.textContent = g.name + count;
+            titleSpan.textContent = g.name;
+            if (count) {
+                var badge = document.createElement('span');
+                badge.className = 'game-count-badge';
+                badge.textContent = count;
+                titleSpan.appendChild(badge);
+            }
             infoDiv.appendChild(titleSpan);
             const sizeSpan = document.createElement('span');
             sizeSpan.className = 'game-size';
