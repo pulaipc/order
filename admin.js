@@ -3104,9 +3104,10 @@
 
     function updateLastSyncDisplay(formatted) {
         var el = document.getElementById('lastSyncDisplay');
-        if (el) { el.textContent = 'Last sync: ' + formatted; }
-        var statEl = document.getElementById('statLastSyncVal');
-        if (statEl) { statEl.textContent = formatted; statEl.style.color = '#ffc000'; }
+        if (el) {
+            el.textContent = 'Last sync: ' + formatted;
+            el.style.color = '#ffc000';
+        }
     }
 
     function fetchLastSync() {
