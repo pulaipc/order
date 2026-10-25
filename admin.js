@@ -248,6 +248,8 @@
                 document.getElementById('loginOverlay').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 loadAll();
+                // Fetch last sync time from helper
+                setTimeout(fetchLastSync, 500);
             }
         });
     });
@@ -274,15 +276,23 @@
                 bulkSelectedIds = {};
                 updateStats();
                 filterAndRenderOrders();
+            })
+            .catch(function(err) {
+                console.error('loadOrders failed:', err);
+                container.innerHTML = '<div class="no-orders" style="color:#e57373;">Failed to load orders: ' + (err.message || err) + '</div>';
             });
     }
 
     function loadRepairsAdmin() {
         return supabaseClient.from('repair_services').select('*').order('sort_order', { ascending: true })
             .then(function(res) {
-                if (res.error) { allRepairServices = []; return; }
+                if (res.error) { console.error('loadRepairsAdmin error:', res.error); allRepairServices = []; return; }
                 allRepairServices = res.data || [];
                 return allRepairServices;
+            })
+            .catch(function(err) {
+                console.error('loadRepairsAdmin failed:', err);
+                allRepairServices = [];
             });
     }
 
@@ -521,7 +531,8 @@
 
     // ===== STATS =====
     function updateStats() {
-        document.getElementById('statTotal').innerText = allOrders.length;
+        var elTotal = document.getElementById('statTotal');
+        if (elTotal) elTotal.innerText = allOrders.length;
 
         var queue = 0, needs = 0, completed = 0;
         allOrders.forEach(function(o) {
@@ -533,13 +544,14 @@
             }
             if (s !== 'Completed' && s !== 'Cancelled') {
                 needs++;
-                // "In queue" = console received but work not started yet
                 var ticked = deriveTickedSteps(o);
                 if (ticked.received && !ticked.start && s !== 'Ready') queue++;
             }
         });
-        document.getElementById('statQueue').innerText = queue;
-        document.getElementById('statNeeds').innerText = needs;
+        var elQueue = document.getElementById('statQueue');
+        if (elQueue) elQueue.innerText = queue;
+        var elNeeds = document.getElementById('statNeeds');
+        if (elNeeds) elNeeds.innerText = needs;
         var elComp = document.getElementById('statCompleted');
         if (elComp) elComp.innerText = completed;
     }
@@ -2736,7 +2748,7 @@
     // Where the helper may be listening. 8787 is the default; when that port is
     // taken the helper steps to the next free one, up to four ports along, so
     // all of those are worth a look.
-    var INSTALL_PORTS = [8787, 8788, 8789, 8790, 8791];
+    var INSTALL_PORTS = [8787, 8788, 8789, 8790, 8791, 8792, 8793, 8794, 8795, 8796, 8797, 8798, 8799];
 
     // The helper's url and token. Two ways to get them:
     //   * install_local.js, written next to the helper and loaded only when the
@@ -2985,6 +2997,132 @@
         lines.push('');
         lines.push('Until then, use "Copy Game List" and copy the file over yourself.');
         return lines.join('\n');
+    }
+
+    // ===== SYNC GAME LIST =====
+    // Runs push_gamelist.ps1 via the local helper to scan the nsp folder,
+    // update gameslist.js, and push changes to GitHub.
+    function syncGameList() {
+        var btn = event ? event.target : null;
+        if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
+
+        // Reuse the install panel for output since it has the log display.
+        installShowPanel();
+        installSetStatus('Syncing game list...', 'busy');
+        var logBox = document.getElementById('installLog');
+        if (logBox) logBox.innerHTML = '';
+
+        var stopBtn = document.getElementById('installStopBtn');
+        if (stopBtn) stopBtn.style.display = 'none';
+
+        installResolveConfig().then(function(cfg) {
+            if (!cfg) {
+                installSetStatus('No install helper found', 'fail');
+                var lines = ['! No local install helper found.'];
+                (installFindNotes || []).forEach(function(n) { lines.push('  - ' + n); });
+                installAppendLog(lines);
+                alert(installHelperFailureText());
+                if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                return;
+            }
+
+            fetch(cfg.url + '/push-gamelist', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-Install-Token': cfg.token },
+                body: JSON.stringify({})
+            }).then(function(r) {
+                return r.json().then(function(j) { return { status: r.status, body: j }; });
+            }).then(function(res) {
+                if (!res.body || !res.body.ok) {
+                    installSetStatus('Could not start sync', 'fail');
+                    installAppendLog(['! ' + ((res.body && res.body.error) || ('HTTP ' + res.status))]);
+                    if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                    return;
+                }
+                // Poll for output like the install does
+                syncGameListPoll(cfg);
+            }).catch(function(err) {
+                installSetStatus('Helper not reachable', 'fail');
+                installAppendLog(['! ' + err.message, '! Is install-server.ps1 still running?']);
+                if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+            });
+        });
+    }
+
+    var syncGameListTimer = null;
+    var syncGameListSeen = 0;
+
+    function syncGameListPoll(cfg) {
+        if (syncGameListTimer) clearTimeout(syncGameListTimer);
+
+        fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+            .then(function(r) { return r.json(); })
+            .then(function(s) {
+                if (s && s.lines) {
+                    if (s.lines.length < syncGameListSeen) syncGameListSeen = 0;
+                    if (s.lines.length > syncGameListSeen) {
+                        var fresh = s.lines.slice(syncGameListSeen);
+                        syncGameListSeen = s.lines.length;
+                        installAppendLog(fresh);
+                    }
+                }
+                var stopBtn = document.getElementById('installStopBtn');
+                if (s && s.running) {
+                    installSetStatus('Syncing...', 'busy');
+                    if (stopBtn) stopBtn.style.display = '';
+                    syncGameListTimer = setTimeout(function() { syncGameListPoll(cfg); }, 1000);
+                } else {
+                    if (s && s.lastExit === 0) {
+                        installSetStatus('Sync completed', 'done');
+                        // Show last sync time if available
+                        if (s.lastSync) {
+                            var lastSyncDate = new Date(s.lastSync);
+                            var formatted = lastSyncDate.toLocaleString();
+                            installAppendLog(['', '[INFO] Last successful sync: ' + formatted]);
+                            updateLastSyncDisplay(formatted);
+                        }
+                    } else if (s && s.lastExit === 'cancelled') {
+                        installSetStatus('Stopped', 'fail');
+                    } else {
+                        installSetStatus('Sync finished with errors', 'fail');
+                    }
+                    if (stopBtn) stopBtn.style.display = 'none';
+                    syncGameListTimer = null;
+                    syncGameListSeen = 0;
+                    var btn = document.querySelector('button[onclick="syncGameList()"]');
+                    if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                }
+            })
+            .catch(function() {
+                installSetStatus('Helper not reachable', 'fail');
+                syncGameListTimer = null;
+                syncGameListSeen = 0;
+                var btn = document.querySelector('button[onclick="syncGameList()"]');
+                if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+            });
+    }
+
+    function updateLastSyncDisplay(formatted) {
+        var el = document.getElementById('lastSyncDisplay');
+        if (el) { el.textContent = 'Last sync: ' + formatted; }
+        var statEl = document.getElementById('statLastSyncVal');
+        if (statEl) { statEl.textContent = formatted; statEl.style.color = '#ffc000'; }
+    }
+
+    function fetchLastSync() {
+        installResolveConfig().then(function(cfg) {
+            if (!cfg) return;
+            fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+                .then(function(r) { return r.json(); })
+                .then(function(s) {
+                    if (s && s.lastSync) {
+                        var lastSyncDate = new Date(s.lastSync);
+                        var formatted = lastSyncDate.toLocaleString();
+                        updateLastSyncDisplay(formatted);
+                    }
+                })
+                .catch(function() { });
+        });
     }
 
     function installOnSwitch(btn) {

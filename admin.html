@@ -41,7 +41,7 @@
         .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
         .header-left .site-logo { margin: 0; width: 48px; height: 48px; flex-shrink: 0; }
         h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
-        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
         /* .btn-action lives in shared.css. A local copy used to sit here and it
            overrode only the properties it redeclared: the buttons kept
            shared.css's 42px min-height but lost its inline-flex centring, so
@@ -59,11 +59,15 @@
         .tab-view.active { display: block; }
 
         /* ===== STATS ===== */
-        .stats-overview { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 16px; }
-        .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; }
+        .stats-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-bottom: 16px; }
+        .stat-card { background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; transition: border-color 0.2s, background-color 0.2s; min-width: 0; }
         .stat-card:hover { border-color: #ffc000; background: #262013; }
-        .stat-card .val { font-size: 20px; font-weight: bold; color: #ffc000; margin-top: 4px; }
-        .stat-card .lbl { font-size: 11px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-card .val { font-size: 18px; font-weight: bold; color: #ffc000; margin-top: 4px; white-space: nowrap; }
+        .stat-card .lbl { font-size: 10px; color: #8a8272; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+        @media (max-width: 640px) {
+            .stats-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .stat-card .val { font-size: 16px; }
+        }
 
         /* ===== CONTROLS ===== */
         .controls-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
@@ -1149,6 +1153,7 @@
             <div class="header-actions">
                 <a href="index.html" target="_blank" class="btn-action">Main Page</a>
                 <a href="track.html" target="_blank" class="btn-action">Tracker</a>
+                <button class="btn-action" onclick="syncGameList()">Sync Game List</button>
                 <button class="btn-action" onclick="refreshCurrentTab()">Refresh</button>
                 <button class="btn-action btn-logout" onclick="logout()">Logout</button>
             </div>
