@@ -29,6 +29,8 @@ read and converted automatically, so your existing default keeps working.
   .\copygame.ps1 --default "DBI MTP Responder\5: SD Card install"
   .\copygame.ps1 --dry-run                    # only print what would be copied
   .\copygame.ps1 --no-pause                   # don't pause between essentials and games
+  .\copygame.ps1 --delay 10                   # wait 10s after each unconfirmed file
+  .\copygame.ps1 --no-delay                   # skip the DBI catch-up pause
   .\copygame.ps1 --essentials                 # copy essentials, don't ask
   .\copygame.ps1 --skip-essentials            # skip essentials, don't ask
 
@@ -46,14 +48,18 @@ $DryRun = $false
 $NoPause = $false
 $SaveTarget = $false
 $EssentialsMode = -1          # -1 ask, 1 copy, 0 skip
+$DelaySeconds = 5             # pause after an unconfirmed file, so DBI can catch up
 $Target = ''
 $TargetGiven = $false
 
 # ---- argument parsing --------------------------------------------------------
-foreach ($arg in $args) {
+for ($i = 0; $i -lt $args.Count; $i++) {
+    $arg = $args[$i]
     switch ($arg) {
         '--dry-run'         { $DryRun = $true; break }
         '--no-pause'        { $NoPause = $true; break }
+        '--no-delay'        { $DelaySeconds = 0; break }
+        '--delay'           { if ($i + 1 -lt $args.Count) { $DelaySeconds = [int]$args[$i + 1]; $i++ } break }
         '--default'         { $SaveTarget = $true; break }
         '--essentials'      { $EssentialsMode = 1; break }
         '--skip-essentials' { $EssentialsMode = 0; break }
@@ -1160,6 +1166,12 @@ function Copy-FolderTree {
             if ($note) {
                 $script:unconfirmed++
                 Write-Host ('      ! {0}' -f $note)
+                # Give DBI a moment to finish the previous file before starting
+                # the next one, so the MTP device isn't overwhelmed.
+                if ($DelaySeconds -gt 0) {
+                    Write-Host ("      (pausing {0}s for DBI...)" -f $DelaySeconds)
+                    Start-Sleep -Seconds $DelaySeconds
+                }
             }
         }
     }
