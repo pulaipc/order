@@ -250,6 +250,7 @@
                 loadAll();
                 // Fetch last sync time from helper
                 setTimeout(fetchLastSync, 500);
+                setTimeout(fetchServerStatus, 700);
             }
         });
     });
@@ -3147,6 +3148,7 @@
                     if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
                     // Refresh last sync display
                     fetchLastSync();
+                    fetchServerStatus();
                 }
             })
             .catch(function() {
@@ -3156,6 +3158,7 @@
                 syncGameListPollCount = 0;
                 var btn = document.querySelector('button[onclick="syncGameList()"]');
                 if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
+                fetchServerStatus();
             });
     }
 
@@ -3177,6 +3180,42 @@
             el.title = formatted;
             el.style.color = '#ffc000';
         }
+    }
+
+    // Helper server status indicator (online / offline)
+    function fetchServerStatus() {
+        var el = document.getElementById('serverStatusDisplay');
+        if (!el) return;
+        installResolveConfig().then(function(cfg) {
+            if (!cfg) {
+                el.textContent = '● Helper offline';
+                el.title = 'Install helper not reachable';
+                el.style.color = '#ff5555';
+                return;
+            }
+            fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+                .then(function(r) { return r.json(); })
+                .then(function(s) {
+                    if (s && s.running) {
+                        el.textContent = '● Helper online';
+                        el.title = 'Install helper is running';
+                        el.style.color = '#00e676';
+                    } else {
+                        el.textContent = '● Helper offline';
+                        el.title = 'Install helper not running';
+                        el.style.color = '#ff5555';
+                    }
+                })
+                .catch(function() {
+                    el.textContent = '● Helper offline';
+                    el.title = 'Install helper not reachable';
+                    el.style.color = '#ff5555';
+                });
+        }).catch(function() {
+            el.textContent = '● Helper offline';
+            el.title = 'Install helper not reachable';
+            el.style.color = '#ff5555';
+        });
     }
 
     function fetchLastSync() {
