@@ -1483,8 +1483,9 @@
         }
         var html = '';
         matches.forEach(function (g) {
+            var count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
             html += '<button type="button" class="oe-opt" data-name="' + escapeHtml(g.name) + '">' +
-                    '<span class="oe-opt-name">' + escapeHtml(g.name) + '</span>' +
+                    '<span class="oe-opt-name">' + escapeHtml(g.name) + count + '</span>' +
                     '<span class="oe-opt-size">' + effectiveGb(g.size) + ' GB</span></button>';
         });
         if (capped) html += '<div class="oe-opt-empty">' + matches.length +
@@ -1509,10 +1510,13 @@
             return;
         }
         var sizes = editGameSizes();
+        var counts = {};
+        ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).forEach(function (g) { counts[g.name] = g.fileCount || 1; });
         var html = '';
         orderEdit.games.forEach(function (name) {
+            var count = counts[name] && counts[name] > 1 ? ' (' + counts[name] + ' Games)' : '';
             html += '<div class="oe-opt">' +
-                    '<span class="oe-opt-name">' + escapeHtml(name) + '</span>' +
+                    '<span class="oe-opt-name">' + escapeHtml(name) + count + '</span>' +
                     '<span class="oe-opt-size">' + (sizes[name] != null ? effectiveGb(sizes[name]) + ' GB' : 'size n/a') + '</span>' +
                     '<button type="button" class="oe-opt-remove" data-name="' + escapeHtml(name) +
                     '" aria-label="Remove ' + escapeHtml(name) + '">&times;</button></div>';

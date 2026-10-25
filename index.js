@@ -465,8 +465,9 @@
                 html += '<div style="text-align:center; color:#8a8272; padding:14px; font-size:13px;">No games selected yet.</div>';
             } else {
                 gamesWithSize.forEach(g => {
+                    var gCount = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
                     html += '<div class="summary-game-item">';
-                    html += '<div class="summary-game-name">' + escapeHtml(g.name) + '</div>';
+                    html += '<div class="summary-game-name">' + escapeHtml(g.name) + gCount + '</div>';
                     html += '<div class="summary-game-size' + (g.known ? '' : ' unknown') + '">' +
                              (g.known ? effectiveGb(g.size).toFixed(1) + ' GB' : 'size n/a') + '</div>';
                     html += '</div>';
@@ -1355,7 +1356,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             hidden.forEach(g => {
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span></div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
+                const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${count}</span></div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -1411,7 +1413,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             infoDiv.appendChild(cb);
             const titleSpan = document.createElement('span');
             titleSpan.className = 'game-title';
-            titleSpan.textContent = g.name;
+            const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+            titleSpan.textContent = g.name + count;
             infoDiv.appendChild(titleSpan);
             const sizeSpan = document.createElement('span');
             sizeSpan.className = 'game-size';
