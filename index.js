@@ -374,7 +374,7 @@
             if (!found) unknownSizeCount++;
             const size = found ? found.size : 0;
             totalGb += found ? effectiveGb(size) : 0;
-            gamesWithSize.push({ name: name, size: size, known: !!found });
+            gamesWithSize.push({ name: name, size: size, known: !!found, fileCount: found ? found.fileCount : 1 });
         });
 
         const repairs = getEnrichedRepairs(order);
