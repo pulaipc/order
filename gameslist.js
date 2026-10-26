@@ -15,7 +15,7 @@ const games = [
       { name: "Ace Combat 7 Skies Unknown (US)", size: 13.1, fileCount: 1 },
       { name: "AEW Fight Forever", size: 14.36, fileCount: 1 },
       { name: "Alien Isolation", size: 14.48, fileCount: 1 },
-      { name: "Animal Crossing New Horizons", size: 10.84, fileCount: 2 },
+      { name: "Animal Crossing New Horizons", size: 10.8, fileCount: 1 },
       { name: "AO Tennis 2", size: 8.14, fileCount: 1 },
       { name: "Assassins Creed The Ezio Collection", size: 28.73, fileCount: 1 },
       { name: "Assassins Creed The Rebel Collection", size: 13.6, fileCount: 1 },
@@ -356,7 +356,8 @@ const games = [
       { name: "Zombie Army Trilogy", size: 3.98, fileCount: 1 }
     ];
 
-const gamesLastSync = '2026-10-26T20:54:45.0161563+08:00';
+const gamesLastSync = '2026-10-26T21:35:05.9881984+08:00';
+
 
 
 
