@@ -1483,7 +1483,7 @@
         }
         var html = '';
         matches.forEach(function (g) {
-            var count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+            var count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
             var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
             html += '<button type="button" class="oe-opt" data-name="' + escapeHtml(g.name) + '">' +
                     '<span class="oe-opt-name">' + escapeHtml(g.name) + badgeHtml + '</span>' +
@@ -1515,7 +1515,7 @@
         ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).forEach(function (g) { counts[g.name] = g.fileCount || 1; });
         var html = '';
         orderEdit.games.forEach(function (name) {
-            var count = counts[name] && counts[name] > 1 ? ' (' + counts[name] + ' Games)' : '';
+            var count = counts[name] && counts[name] > 1 ? counts[name] + ' Games' : '';
             var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
             html += '<div class="oe-opt">' +
                     '<span class="oe-opt-name">' + escapeHtml(name) + badgeHtml + '</span>' +

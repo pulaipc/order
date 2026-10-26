@@ -465,7 +465,7 @@
                 html += '<div style="text-align:center; color:#8a8272; padding:14px; font-size:13px;">No games selected yet.</div>';
             } else {
                 gamesWithSize.forEach(g => {
-                    var gCount = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                    var gCount = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                     var badgeHtml = gCount ? '<span class="game-count-badge">' + gCount + '</span>' : '';
                     html += '<div class="summary-game-item">';
                     html += '<div class="summary-game-name">' + escapeHtml(g.name) + badgeHtml + '</div>';
@@ -1357,7 +1357,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             hidden.forEach(g => {
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
-                const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                 var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
                 card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
                 hiddenContainer.appendChild(card);
@@ -1415,7 +1415,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             infoDiv.appendChild(cb);
             const titleSpan = document.createElement('span');
             titleSpan.className = 'game-title';
-            const count = g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+            const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
             titleSpan.textContent = g.name;
             if (count) {
                 var badge = document.createElement('span');
@@ -1977,7 +1977,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                     let tag = '';
                     if (isJbOrSetup) tag = idx <= 3 ? ' <span style="color:#e8dcc0; font-size:10px;">[INCLUDED]</span>' : ' <span style="color:#ffb74d; font-size:10px;">[ADDON]</span>';
                     const g = catalogMap[name];
-                    const gCount = g && g.fileCount && g.fileCount > 1 ? ' (' + g.fileCount + ' Games)' : '';
+                    const gCount = g && g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                     const badgeHtml = gCount ? '<span class="game-count-badge">' + gCount + '</span>' : '';
                     const titleSpan = document.createElement('span');
                     titleSpan.innerHTML = `${idx}. ${name}${badgeHtml} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${effectiveGb(size)} GB)</span>`;
