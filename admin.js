@@ -3252,15 +3252,11 @@
             fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
                 .then(function(r) { return r.json(); })
                 .then(function(s) {
-                    if (s && s.running) {
-                        el.textContent = '● Helper online';
-                        el.title = 'Install helper is running';
-                        el.style.color = '#00e676';
-                    } else {
-                        el.textContent = '● Helper offline';
-                        el.title = 'Install helper not running';
-                        el.style.color = '#ff5555';
-                    }
+                    // A successful /status response means the helper IS online,
+                    // regardless of whether a job is currently running.
+                    el.textContent = '● Helper online';
+                    el.title = 'Install helper is running' + (s && s.running ? ' (busy)' : ' (idle)');
+                    el.style.color = '#00e676';
                 })
                 .catch(function() {
                     el.textContent = '● Helper offline';
