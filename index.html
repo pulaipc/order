@@ -380,6 +380,30 @@
         .hidden-notice-toggle { background: transparent; color: #e8dcc0; border: 1px solid #3a3018; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; font-family: inherit; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
         .hidden-notice-toggle:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
         .hidden-games-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+
+        /* ===== GAME LIST VIEW TOGGLE (cover grid vs compact list) ===== */
+        .search-row { display: flex; gap: 8px; align-items: stretch; }
+        .search-row .search-input-wrapper { flex: 1; min-width: 0; }
+        .view-toggle { display: flex; border: 1px solid #3a3018; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #1f190e; }
+        .view-toggle-btn { background: transparent; border: none; color: #8a8272; font-size: 17px; line-height: 1; padding: 0 13px; min-height: 44px; cursor: pointer; font-family: inherit; }
+        .view-toggle-btn + .view-toggle-btn { border-left: 1px solid #3a3018; }
+        .view-toggle-btn.active { background: rgba(255, 192, 0, 0.14); color: #ffc000; }
+
+        /* Cover grid mode */
+        .game-list.grid-view { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+        .game-list.grid-view .hidden-games-notice { grid-column: 1 / -1; }
+        .hidden-games-container.grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+        .game-card.grid-card { flex-direction: column; align-items: stretch; padding: 0; gap: 0; min-height: 0; overflow: hidden; }
+        .game-cover { position: relative; width: 100%; aspect-ratio: 1 / 1; background: linear-gradient(135deg, #2a2312, #1a1508); overflow: hidden; }
+        .game-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .game-cover-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: #6a6357; letter-spacing: 1px; }
+        .game-cover-check { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #ffc000; color: #14110a; font-size: 13px; font-weight: 900; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.5); transition: opacity 0.15s, transform 0.15s; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .game-card.grid-card.selected .game-cover-check { opacity: 1; transform: scale(1); }
+        .game-cover-lock { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(20,17,10,0.75); color: #b8b0a0; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+        .game-cover-name { padding: 6px 8px 0; font-size: 11.5px; font-weight: 600; color: #f0e9d8; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px; }
+        .game-cover-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px 8px; }
+        .game-cover-size { color: #8a8272; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+        .game-cover-badge { color: #ffc000; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
         .game-card.hidden-game { background: #1a1508; border: 1px dashed #3a3018; opacity: 0.55; cursor: not-allowed; pointer-events: none; }
         .game-card.hidden-game .game-title { color: #8a8272; }
         .game-lock-icon { font-size: 15px; flex-shrink: 0; line-height: 1; opacity: 0.7; }
@@ -761,9 +785,15 @@
 
             <div id="gameSectionWrapper" class="game-section-wrapper" style="display: none;">
                 <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" class="search-box" placeholder="Search games in library..." onkeyup="filterGames()">
-                        <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">&times;</button>
+                    <div class="search-row">
+                        <div class="search-input-wrapper">
+                            <input type="text" id="searchInput" class="search-box" placeholder="Search games in library..." onkeyup="filterGames()">
+                            <button id="clearSearchBtn" class="clear-search-btn" onclick="clearSearch()" title="Clear search">&times;</button>
+                        </div>
+                        <div class="view-toggle" role="group" aria-label="Game list view">
+                            <button type="button" id="viewGridBtn" class="view-toggle-btn" onclick="setGameViewMode('grid')" title="Cover grid view" aria-label="Cover grid view">&#9638;</button>
+                            <button type="button" id="viewListBtn" class="view-toggle-btn" onclick="setGameViewMode('list')" title="Compact list view" aria-label="Compact list view">&#9776;</button>
+                        </div>
                     </div>
                     <span class="field-hint" style="margin-left: 2px;">Type game title or keyword to filter the game list</span>
                 </div>

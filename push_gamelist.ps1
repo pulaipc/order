@@ -44,6 +44,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     $gameFileExts = @('.nsp', '.nsx', '.xci', '.xcz', '.nsz')
     $gameFiles = $files | Where-Object { $gameFileExts -contains $_.Extension }
     $gameKeys = @{}
+    $coverIds = @{}
     foreach ($f in $gameFiles) {
         $fullName = $f.FullName
         $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
@@ -68,6 +69,9 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
             # Ignore last 3 digits so [010083801AA14000] and [010083801AA14800]
             # (base + update of the same game) map to one key
             $key = $titleId.Substring(0, $titleId.Length - 3).ToLower()
+            # Base ID form (first 13 chars + '000') is what cover art databases
+            # key on, so remember it for the catalog entry.
+            $coverIds[($titleId.Substring(0, 13) + '000').ToLower()] = $true
         } else {
             # Fall back to cleaned filename when no title ID is present
             $key = $fileName
@@ -82,7 +86,14 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     }
     $fileCount = if ($gameKeys.Count -gt 0) { $gameKeys.Count } else { 1 }
 
-    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + ' }'
+    # Cover art: for multi-game collections pick the alphabetically-first base
+    # ID so the choice is deterministic; folders with no title IDs get none and
+    # the site falls back to a letter tile.
+    $coverId = $null
+    if ($coverIds.Count -gt 0) { $coverId = $coverIds.Keys | Sort-Object | Select-Object -First 1 }
+    $coverField = if ($coverId) { ', titleId: "' + $coverId + '"' } else { '' }
+
+    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + $coverField + ' }'
 }
 
 $currentDateIso = Get-Date -Format "o"

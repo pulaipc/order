@@ -1322,9 +1322,139 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         state.gamesRerenderTimer = setTimeout(() => { state.gamesRerenderTimer = null; filterGames(); }, 120);
     }
 
+    // ===== GAME LIST VIEW MODE (cover grid vs compact list) =====
+    // Remembered per browser so customers get their preferred layout back.
+    function gameViewMode() {
+        var m = null;
+        try { m = localStorage.getItem('pulai.gameView'); } catch (e) {}
+        return (m === 'list') ? 'list' : 'grid';
+    }
+
+    function applyGameViewMode() {
+        var grid = gameViewMode() === 'grid';
+        var listEl = $('gameList');
+        if (listEl) listEl.classList.toggle('grid-view', grid);
+        var gb = $('viewGridBtn'), lb = $('viewListBtn');
+        if (gb) gb.classList.toggle('active', grid);
+        if (lb) lb.classList.toggle('active', !grid);
+    }
+
+    function setGameViewMode(mode) {
+        try { localStorage.setItem('pulai.gameView', mode === 'list' ? 'list' : 'grid'); } catch (e) {}
+        applyGameViewMode();
+        filterGames();
+    }
+
+    // Cover art by title ID. Nlib is the live source; tinfoil is the backup in
+    // case it comes back. Anything that fails both falls back to a letter tile.
+    function coverSourcesFor(titleId) {
+        if (!titleId) return [];
+        return [
+            'https://api.nlib.cc/nx/' + titleId + '/icon/256',
+            'https://tinfoil.media/ti/' + titleId + '/box/'
+        ];
+    }
+
+    function buildCoverPlaceholder(name) {
+        var ph = document.createElement('div');
+        ph.className = 'game-cover-ph';
+        var letter = (name || '?').replace(/[^A-Za-z0-9]/g, '').charAt(0).toUpperCase();
+        ph.textContent = letter || '?';
+        return ph;
+    }
+
+    // Cover tile shared by grid cards. A title ID chains Nlib -> tinfoil; no
+    // ID (or both failed) leaves the letter tile showing underneath.
+    function buildGameCover(g, locked) {
+        var cover = document.createElement('div');
+        cover.className = 'game-cover';
+        cover.appendChild(buildCoverPlaceholder(g.name));
+        var sources = coverSourcesFor(g.titleId);
+        if (sources.length) {
+            var img = document.createElement('img');
+            img.loading = 'lazy';
+            img.decoding = 'async';
+            img.alt = g.name;
+            img.src = sources[0];
+            img.onerror = function () {
+                if (this.dataset.tried === '1') { this.remove(); return; }
+                this.dataset.tried = '1';
+                this.src = sources[1];
+            };
+            cover.appendChild(img);
+        }
+        if (locked) {
+            var lock = document.createElement('span');
+            lock.className = 'game-cover-lock';
+            lock.innerHTML = '&#128274;';
+            cover.appendChild(lock);
+        } else {
+            var check = document.createElement('span');
+            check.className = 'game-cover-check';
+            check.innerHTML = '&#10003;';
+            cover.appendChild(check);
+        }
+        return cover;
+    }
+
+    function buildGridMeta(g) {
+        const wrap = document.createElement('div');
+        const name = document.createElement('div');
+        name.className = 'game-cover-name';
+        name.textContent = g.name;
+        const meta = document.createElement('div');
+        meta.className = 'game-cover-meta';
+        const size = document.createElement('span');
+        size.className = 'game-cover-size';
+        size.textContent = `${effectiveGb(g.size)} GB`;
+        meta.appendChild(size);
+        if (g.fileCount && g.fileCount > 1) {
+            const badge = document.createElement('span');
+            badge.className = 'game-cover-badge';
+            badge.textContent = g.fileCount + ' Games';
+            meta.appendChild(badge);
+        }
+        wrap.appendChild(name);
+        wrap.appendChild(meta);
+        return wrap;
+    }
+
+    function buildGridGameCard(g, isSel) {
+        const card = document.createElement('div');
+        card.className = 'game-card grid-card' + (isSel ? ' selected' : '');
+        card.dataset.gameName = g.name;
+        card.dataset.gameSize = g.size;
+
+        card.onclick = (e) => {
+            if (!validatePhoneProvided()) return;
+            if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) at the top before picking games!'); $('userFreeStorageInput').focus(); return; }
+            const willSelect = !state.selectedGames.has(g.name);
+            let cur = selectedGamesFootprint();
+            if (willSelect && state.usableStorageLimit > 0 && (cur + effectiveGb(g.size) > state.usableStorageLimit)) {
+                alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your available remaining space (${state.usableStorageLimit} GB)!`);
+                return;
+            }
+            toggleGame(g.name, g.size, willSelect, card);
+        };
+
+        card.appendChild(buildGameCover(g, false));
+        card.appendChild(buildGridMeta(g));
+        return card;
+    }
+
+    function buildGridHiddenCard(g) {
+        const card = document.createElement('div');
+        card.className = 'game-card grid-card hidden-game';
+        card.appendChild(buildGameCover(g, true));
+        card.appendChild(buildGridMeta(g));
+        return card;
+    }
+
     function renderGames(list) {
         const container = $('gameList');
         if (!container) return;
+        const gridMode = gameViewMode() === 'grid';
+        applyGameViewMode();
         container.innerHTML = '';
 
         if (!list || list.length === 0) {
@@ -1349,12 +1479,13 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             container.appendChild(notice);
 
             const hiddenContainer = document.createElement('div');
-            hiddenContainer.className = 'hidden-games-container';
+            hiddenContainer.className = 'hidden-games-container' + (gridMode ? ' grid-view' : '');
             hiddenContainer.id = noticeId;
             hiddenContainer.style.display = 'none';
 
             hidden.sort((a, b) => a.size - b.size);
             hidden.forEach(g => {
+                if (gridMode) { hiddenContainer.appendChild(buildGridHiddenCard(g)); return; }
                 const card = document.createElement('div');
                 card.className = 'game-card hidden-game';
                 const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
@@ -1368,11 +1499,13 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (fitting.length === 0 && hidden.length > 0) {
             const p = document.createElement('p');
             p.style.cssText = 'text-align:center;color:#8a8272;margin:10px 0;';
+            if (gridMode) p.style.gridColumn = '1 / -1';
             p.innerText = 'No more games fit in your remaining storage.';
             container.appendChild(p);
         }
 
         fitting.forEach(g => {
+            if (gridMode) { container.appendChild(buildGridGameCard(g, state.selectedGames.has(g.name))); return; }
             const isSel = state.selectedGames.has(g.name);
             const card = document.createElement('div');
             card.className = `game-card ${isSel ? 'selected' : ''}`;
@@ -1439,7 +1572,10 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (!c) return;
         const notice = c.previousElementSibling;
         const btn = notice ? notice.querySelector('.hidden-notice-toggle') : null;
-        if (c.style.display === 'none') { c.style.display = 'flex'; if (btn) btn.textContent = 'Hide'; }
+        if (c.style.display === 'none') {
+            c.style.display = c.classList.contains('grid-view') ? 'grid' : 'flex';
+            if (btn) btn.textContent = 'Hide';
+        }
         else { c.style.display = 'none'; if (btn) btn.textContent = 'Show'; }
     }
 
