@@ -52,7 +52,12 @@
         // Shop-side adjustments applied by the admin (admin.html). Preserved
         // across customer re-saves so a granted discount is never lost.
         freeGamesCount: 0,
-        discountRm: 0
+        discountRm: 0,
+        // Popularity from real past orders (loaded via the game_order_counts
+        // RPC). Counts maps title -> how many orders included it; hotGames is
+        // the top slice that earns the fire badge in the selection list.
+        gameOrderCounts: null,
+        hotGames: new Set()
     };
 
     const $ = id => document.getElementById(id);
@@ -800,6 +805,9 @@
         toggleServiceFields();
         updateSdLimit();
         filterGames();
+        // Popular titles (from real orders) load async and re-render with the
+        // fire badge when they arrive.
+        loadHotGames();
         updateSaveButtonLabel();
         renderRepairSection();
     };
@@ -1322,6 +1330,40 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         state.gamesRerenderTimer = setTimeout(() => { state.gamesRerenderTimer = null; filterGames(); }, 120);
     }
 
+    // ===== HOT GAMES (badged from real past orders) =====
+    // The top HOT_GAME_TOP most-ordered titles (with at least HOT_GAME_MIN
+    // orders) earn a fire badge in the selection list. Kept as constants so
+    // the shop can tune what counts as "hot" without touching the SQL.
+    const HOT_GAME_TOP = 10;
+    const HOT_GAME_MIN = 2;
+
+    function hotBadgeHtml(name) {
+        if (!state.hotGames || !state.hotGames.has(name)) return '';
+        const n = (state.gameOrderCounts && state.gameOrderCounts[name]) || 0;
+        return '<span class="hot-badge" title="Popular — ordered in ' + n +
+            ' order' + (n !== 1 ? 's' : '') + '">&#128293;</span>';
+    }
+
+    // Fills state.hotGames from the DB, then re-renders the list so the
+    // badges appear. Silent on failure: a missing RPC or offline DB simply
+    // means no badges, never a broken page.
+    async function loadHotGames() {
+        try {
+            const { data, error } = await supabaseClient.rpc('game_order_counts');
+            if (error || !Array.isArray(data) || data.length === 0) return;
+            const counts = {};
+            data.forEach(row => { counts[row.game_name] = Number(row.order_count) || 0; });
+            state.gameOrderCounts = counts;
+            state.hotGames = new Set(
+                Object.keys(counts)
+                    .filter(name => counts[name] >= HOT_GAME_MIN)
+                    .sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
+                    .slice(0, HOT_GAME_TOP)
+            );
+            filterGames();
+        } catch (e) { /* cosmetic only */ }
+    }
+
     // ===== GAME LIST VIEW MODE (cover grid vs compact list) =====
     // Remembered per browser so customers get their preferred layout back.
     function gameViewMode() {
@@ -1383,6 +1425,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             };
             cover.appendChild(img);
         }
+        cover.insertAdjacentHTML('beforeend', hotBadgeHtml(g.name));
         if (locked) {
             var lock = document.createElement('span');
             lock.className = 'game-cover-lock';
@@ -1490,7 +1533,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 card.className = 'game-card hidden-game';
                 const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                 var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${hotBadgeHtml(g.name)}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -1550,6 +1593,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             titleSpan.className = 'game-title';
             const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
             titleSpan.textContent = g.name;
+            titleSpan.insertAdjacentHTML('beforeend', hotBadgeHtml(g.name));
             if (count) {
                 var badge = document.createElement('span');
                 badge.className = 'game-count-badge';
