@@ -53,20 +53,6 @@ function catalog() {
     return (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
 }
 
-/** Enrichment record for a catalog entry, or null. gamedata.js is optional —
- *  the page must still work if it failed to generate. Entries whose files had
- *  no [titleId] tag fall back to the name-resolved map. */
-function gameDataFor(g) {
-    if (g.titleId && typeof gameData !== 'undefined') {
-        const d = gameData[String(g.titleId).toLowerCase()];
-        if (d) return d;
-    }
-    if (typeof gameDataByName !== 'undefined' && gameDataByName[g.name]) {
-        return gameDataByName[g.name];
-    }
-    return null;
-}
-
 /** Pill markup for a score + source ('mc' | 'oc'), or '' when absent. */
 function ratingPillHtml(score, src) {
     if (score === undefined || score === null) return '';
@@ -100,23 +86,22 @@ function buildCoverTile(g) {
     const letter = (g.name || '?').replace(/[^A-Za-z0-9]/g, '').charAt(0).toUpperCase();
     ph.textContent = letter || '?';
     cover.appendChild(ph);
-    // Cover sources, best first: a gamedata override image (homebrew ports
-    // that art databases don't know) beats the title-ID endpoints; the
-    // standard Nlib/tinfoil chain follows (using the name-resolved ID for
-    // entries whose files had no title ID); a letter tile shows if all fail.
-    const data = gameDataFor(g);
-    let sources = coverSourcesFor((data && data.tid) || g.titleId);
-    if (data && data.i) sources = [data.i].concat(sources);
+    // Cover sources from shared.js: a gamedata override image (homebrew ports
+    // that art databases don't know) first, then the standard Nlib/tinfoil
+    // chain (using the name-resolved ID for entries whose files had no title
+    // ID); a letter tile shows if all fail.
+    const sources = gameCoverSourcesFor(g);
     if (sources.length) {
         const img = document.createElement('img');
         img.loading = 'lazy';
         img.decoding = 'async';
         img.alt = g.name;
+        let srcIndex = 0;
         img.src = sources[0];
         img.onerror = function () {
-            if (this.dataset.tried === '1') { this.remove(); return; }
-            this.dataset.tried = '1';
-            this.src = sources[1];
+            srcIndex++;
+            if (srcIndex >= sources.length) { this.remove(); return; }
+            this.src = sources[srcIndex];
         };
         cover.appendChild(img);
     }

@@ -1382,8 +1382,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         filterGames();
     }
 
-    // Cover art by title ID: sources come from shared.js (coverSourcesFor).
-    // Anything that fails both falls back to a letter tile.
+    // Letter tile shown while a cover loads or when every source fails.
     function buildCoverPlaceholder(name) {
         var ph = document.createElement('div');
         ph.className = 'game-cover-ph';
@@ -1392,23 +1391,27 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         return ph;
     }
 
-    // Cover tile shared by grid cards. A title ID chains Nlib -> tinfoil; no
-    // ID (or both failed) leaves the letter tile showing underneath.
+    // Cover tile shared by grid cards. Sources come from shared.js
+    // (gameCoverSourcesFor): a gamedata override image (homebrew ports)
+    // first, then the Nlib -> tinfoil chain keyed by the file-derived or
+    // name-resolved title ID; no ID (or every source failing) leaves the
+    // letter tile showing underneath.
     function buildGameCover(g, locked) {
         var cover = document.createElement('div');
         cover.className = 'game-cover';
         cover.appendChild(buildCoverPlaceholder(g.name));
-        var sources = coverSourcesFor(g.titleId);
+        var sources = gameCoverSourcesFor(g);
         if (sources.length) {
             var img = document.createElement('img');
             img.loading = 'lazy';
             img.decoding = 'async';
             img.alt = g.name;
+            var srcIndex = 0;
             img.src = sources[0];
             img.onerror = function () {
-                if (this.dataset.tried === '1') { this.remove(); return; }
-                this.dataset.tried = '1';
-                this.src = sources[1];
+                srcIndex++;
+                if (srcIndex >= sources.length) { this.remove(); return; }
+                this.src = sources[srcIndex];
             };
             cover.appendChild(img);
         }

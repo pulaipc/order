@@ -124,6 +124,32 @@ function coverSourcesFor(titleId) {
     ];
 }
 
+/** Enrichment record for a catalog entry, or null. Reads gamedata.js, which
+ *  is optional — callers must work when it failed to generate. Entries whose
+ *  files carried no [titleId] tag fall back to the name-resolved map. */
+function gameDataFor(g) {
+    if (g.titleId && typeof gameData !== 'undefined') {
+        const d = gameData[String(g.titleId).toLowerCase()];
+        if (d) return d;
+    }
+    if (typeof gameDataByName !== 'undefined' && gameDataByName[g.name]) {
+        return gameDataByName[g.name];
+    }
+    return null;
+}
+
+/** Cover art sources for a catalog entry, best first: a gamedata override
+ *  image (homebrew ports that art databases don't know) beats the title-ID
+ *  endpoints; the standard Nlib/tinfoil chain follows, using the name-resolved
+ *  ID for entries whose files had no title ID. A letter tile shows if all
+ *  fail. */
+function gameCoverSourcesFor(g) {
+    const data = gameDataFor(g);
+    let sources = coverSourcesFor((data && data.tid) || g.titleId);
+    if (data && data.i) sources = [data.i].concat(sources);
+    return sources;
+}
+
 /**
  * An order stops being customer-editable once it leaves "Order Received".
  * The shop can still edit it from admin.html; this only governs the customer link.
