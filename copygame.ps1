@@ -33,6 +33,7 @@ read and converted automatically, so your existing default keeps working.
   .\copygame.ps1 --no-delay                   # skip the DBI catch-up pause
   .\copygame.ps1 --essentials                 # copy essentials, don't ask
   .\copygame.ps1 --skip-essentials            # skip essentials, don't ask
+  .\copygame.ps1 --essentials-only            # copy essentials, then stop - no games phase, no pause
 
 While files are transferring the script holds the PC awake, because idle sleep
 would drop the device connection mid-copy. Closing the lid still sleeps it.
@@ -48,6 +49,7 @@ $DryRun = $false
 $NoPause = $false
 $SaveTarget = $false
 $EssentialsMode = -1          # -1 ask, 1 copy, 0 skip
+$EssentialsOnly = $false      # --essentials-only: copy essentials, then stop
 $DelaySeconds = 10             # pause after an unconfirmed file, so DBI can catch up
 $Target = ''
 $TargetGiven = $false
@@ -63,6 +65,7 @@ for ($i = 0; $i -lt $args.Count; $i++) {
         '--default'         { $SaveTarget = $true; break }
         '--essentials'      { $EssentialsMode = 1; break }
         '--skip-essentials' { $EssentialsMode = 0; break }
+        '--essentials-only' { $EssentialsMode = 1; $EssentialsOnly = $true; break }
         '--tmp'             { break }   # accepted alias for a plain temporary target
         default {
             if ($arg -like '-*') {
@@ -1300,7 +1303,7 @@ if ($copyEss -and $essentials.Count -gt 0) {
 # Pause only when essentials were just copied, so the Switch can be put into
 # full DBI mode before the games; restarting a failed run that skips essentials
 # does not need another pause.
-if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun) -and (-not $NoPause)) {
+if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun) -and (-not $NoPause) -and (-not $EssentialsOnly)) {
     Write-Host ''
     Write-Host 'Essentials finished copying.'
     Write-Host 'Open DBI on the Switch for full DBI mode now, then press Enter to install the games.'
@@ -1310,7 +1313,7 @@ if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun) -and (-not $NoPause
 # DBI drops and re-adds the MTP device when it changes mode, so the session
 # opened before the pause is dead by the time the games start. Wait until the
 # target answers again instead of failing the first game on a stale handle.
-if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun)) {
+if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun) -and (-not $EssentialsOnly)) {
     $spec = $parsed
     if ($null -eq $spec -and $null -ne $session) {
         $spec = New-Object psobject -Property @{ Device = $session.FriendlyName; Path = @() }
@@ -1333,7 +1336,13 @@ if ($copyEss -and $requested.Count -gt 0 -and (-not $DryRun)) {
 $gameOk = 0
 $gameFail = 0
 $gamesSeconds = 0
-if ($requested.Count -gt 0) {
+if ($EssentialsOnly) {
+    # Deliberate half-run: the admin page installs essentials and games as two
+    # separate runs, because the between-phases pause (switch DBI to full mode)
+    # needs a person at the terminal and a headless run cannot have one.
+    Write-Host 'Essentials-only run: the games were not touched.'
+    Write-Host 'Run again with Games only once the Switch is back in full DBI mode.'
+} elseif ($requested.Count -gt 0) {
     Write-Host '--- Games ---'
     # First pass: resolve every match, remember its size for byte-accurate progress.
     $foundDirs = New-Object System.Collections.Generic.List[string]

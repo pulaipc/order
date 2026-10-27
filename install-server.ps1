@@ -225,7 +225,7 @@ function Get-StateSnapshot {
 # One run at a time: two copygame runs would fight over the same device and the
 # same games_to_copy.txt, so a second request is refused, not queued.
 function Start-CopyJob {
-    param([string[]]$GameNames, [bool]$WithEssentials, [bool]$DryRun)
+    param([string[]]$GameNames, [bool]$WithEssentials, [bool]$EssentialsOnly, [bool]$DryRun)
 
     # Clean up any finished job first
     Update-CopyJob
@@ -276,7 +276,11 @@ function Start-CopyJob {
         $script:PausePending = $false
     } finally { [System.Threading.Monitor]::Exit($script:Sync) }
 
-    Add-Line ("=== install started {0} ({1} game(s)) ===" -f (Get-Date).ToString('HH:mm:ss'), $clean.Count)
+    if ($EssentialsOnly) {
+        Add-Line ("=== install started {0} (essentials only; {1} game(s) stay queued for the Games only run) ===" -f (Get-Date).ToString('HH:mm:ss'), $clean.Count)
+    } else {
+        Add-Line ("=== install started {0} ({1} game(s)) ===" -f (Get-Date).ToString('HH:mm:ss'), $clean.Count)
+    }
 
     $psExe = (Get-Process -Id $PID).Path
 
@@ -298,8 +302,12 @@ function Start-CopyJob {
     $switches = @()
     # Explicit either way: --essentials copies them, --skip-essentials means "do
     # not ask". Leaving it out would fall through to the script's Y/n prompt,
-    # which a headless run can never answer.
-    if ($WithEssentials) { $switches += '--essentials' } else { $switches += '--skip-essentials' }
+    # which a headless run can never answer. --essentials-only is the half-run
+    # the admin page uses: essentials now, games as a second run, so the
+    # between-phases pause (switch DBI to full mode) is done by a human.
+    if ($EssentialsOnly) { $switches += '--essentials-only' }
+    elseif ($WithEssentials) { $switches += '--essentials' }
+    else { $switches += '--skip-essentials' }
     if ($DryRun) { $switches += '--dry-run' }
     $switches += '--no-pause'
     if ($switches.Count -gt 0) {
@@ -690,9 +698,11 @@ while ($listener.IsListening) {
                 if ($body.games) { $names = @($body.games) }
                 $withEss = $true
                 if ($null -ne $body.essentials) { $withEss = [bool]$body.essentials }
+                $essOnly = $false
+                if ($null -ne $body.essentialsOnly) { $essOnly = [bool]$body.essentialsOnly }
                 $dry = $false
                 if ($null -ne $body.dryRun) { $dry = [bool]$body.dryRun }
-                $result = Start-CopyJob -GameNames $names -WithEssentials $withEss -DryRun $dry
+                $result = Start-CopyJob -GameNames $names -WithEssentials $withEss -EssentialsOnly $essOnly -DryRun $dry
                 $code = if ($result.ok) { 200 } else { 409 }
                 Send-Json $context $result $code | Out-Null
             }

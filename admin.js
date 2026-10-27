@@ -2758,8 +2758,9 @@
     // A browser cannot run copygame.ps1 or write to the Switch, so this talks to
     // install-server.ps1 running on the same PC (127.0.0.1 only, shared token in
     // the git-ignored install_local.js). The helper writes games_to_copy.txt and
-    // runs the same script the manual flow uses, so the essentials-then-games
-    // behaviour is identical - nothing about the copying is duplicated here.
+    // runs the same script the manual flow uses, so nothing about the copying is
+    // duplicated here. Essentials and games are two separate runs, since the
+    // between-phases pause needs someone at the Switch.
 
     var installTimer = null;
     var installSeen = 0;
@@ -3353,14 +3354,16 @@
                 return;
             }
             // Offer the choice in the panel rather than a browser confirm: a
-            // confirm box only has OK/Cancel, and "skip essentials" needs a
-            // third answer.
+            // confirm box only has OK/Cancel, and installing needs a choice of
+            // what to copy. Essentials and games run as two separate installs,
+            // because the pause between the phases (switch DBI to full mode)
+            // needs a person at the terminal and a headless run cannot have one.
             installShowChooser(gameList);
         });
     }
 
-    // The first thing the panel shows: what is about to be installed, and the
-    // three ways to answer (essentials + games / games only / nothing).
+    // The first thing the panel shows: what is queued, and the two ways to
+    // answer (essentials only / games only / nothing).
     function installShowChooser(gameList) {
         installShowPanel();
         installSetStatus('Ready to install', '');
@@ -3378,7 +3381,7 @@
         } catch (e) { }
 
         var head = document.createElement('div');
-        head.textContent = gameList.length + ' game' + (gameList.length !== 1 ? 's' : '') + ' will be copied, in this order:';
+        head.textContent = gameList.length + ' game' + (gameList.length !== 1 ? 's' : '') + ' queued for this order, in this order:';
         box.appendChild(head);
 
         if (skipped > 0) {
@@ -3400,7 +3403,7 @@
 
         var ask = document.createElement('div');
         ask.className = 'warn';
-        ask.textContent = 'Include the essential files (essential_files.txt) as well?';
+        ask.textContent = 'Install the essential files (essential_files.txt) or the games?';
         box.appendChild(ask);
 
         var row = document.createElement('div');
@@ -3409,15 +3412,15 @@
 
         var yes = document.createElement('button');
         yes.className = 'install-btn';
-        yes.textContent = 'Essentials + games';
-        yes.title = 'Copy essential files first, then these games';
-        yes.onclick = function() { installStart(true); };
+        yes.textContent = 'Essentials only';
+        yes.title = 'Copy just the essential files, then nothing else - run Games only afterwards';
+        yes.onclick = function() { installStart('essentials-only'); };
 
         var no = document.createElement('button');
         no.className = 'install-btn stop';
         no.textContent = 'Games only';
         no.title = 'Skip the essential files and copy just these games';
-        no.onclick = function() { installStart(false); };
+        no.onclick = function() { installStart('games-only'); };
 
         var cancel = document.createElement('button');
         cancel.className = 'mini-btn';
@@ -3439,9 +3442,11 @@
         for (var i = 0; i < buttons.length; i++) { buttons[i].remove(); }
     }
 
-    // Actually start a run. withEssentials decides whether essential_files.txt is
-    // copied first, which is the whole point of asking.
-    function installStart(withEssentials) {
+    // Actually start a run. mode is 'essentials-only' (copy essential_files.txt,
+    // then stop - the games stay queued for a second run) or 'games-only'. The
+    // split exists because the pause between the two phases needs a person to
+    // switch the Switch into full DBI mode, which a headless run cannot do.
+    function installStart(mode) {
         var cfg = installLocalConfig();
         if (!cfg) return;
         var gameList = installPendingGames || [];
@@ -3459,7 +3464,11 @@
         fetch(cfg.url + '/install', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-Install-Token': cfg.token },
-            body: JSON.stringify({ games: gameList, essentials: !!withEssentials })
+            body: JSON.stringify({
+                games: gameList,
+                essentials: mode !== 'games-only',
+                essentialsOnly: mode === 'essentials-only'
+            })
         }).then(function(r) {
             return r.json().then(function(j) { return { status: r.status, body: j }; });
         }).then(function(res) {
