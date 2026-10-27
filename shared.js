@@ -150,6 +150,176 @@ function gameCoverSourcesFor(g) {
     return sources;
 }
 
+/* ==========================================================================
+   Game detail panel — shared by games.html (library) and index.html (game
+   selection). A tap expands a panel with the critic-score pill, publisher ·
+   year, description (clamped with a Read more toggle when it really
+   overflows) and, for multi-game packs, the list of included games with
+   their own score badges. gamedata.js is optional; anything missing simply
+   doesn't render. The matching CSS lives in shared.css.
+   ========================================================================== */
+
+/** Pill markup for a score + source ('mc' | 'oc'), or '' when absent. */
+function ratingPillHtml(score, src) {
+    if (score === undefined || score === null) return '';
+    const srcName = src === 'oc' ? 'OpenCritic' : 'Metacritic';
+    const tag = src === 'oc' ? 'OC' : 'MC';
+    const cls = score >= 75 ? 'good' : (score >= 50 ? 'mid' : 'bad');
+    return '<span class="rating-pill ' + cls + '" title="' + srcName + ' score: ' + score + '/100">' +
+        score + '<span class="rating-src">' + tag + '</span></span>';
+}
+
+/** Rating pill markup for a catalog entry, or '' when the game has no score
+ *  on file. */
+function ratingHtml(g) {
+    const d = gameDataFor(g);
+    if (!d || d.m === undefined) return '';
+    return ratingPillHtml(d.m, d.ms);
+}
+
+/** One pack member as a chip: mini cover (when a title ID exists) + name,
+ *  plus the game's own critic-score badge when we have one for it. */
+function buildMemberChip(m) {
+    const chip = document.createElement('div');
+    chip.className = 'member-chip';
+    if (m.tid) {
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.alt = '';
+        img.src = coverSourcesFor(m.tid)[0];
+        img.onerror = function () { this.remove(); };
+        chip.appendChild(img);
+    }
+    const name = document.createElement('span');
+    name.className = 'member-name';
+    name.textContent = m.n;
+    name.title = m.n;
+    chip.appendChild(name);
+    const md = (typeof gameData !== 'undefined' && m.tid)
+        ? gameData[String(m.tid).toLowerCase()] : null;
+    if (md && md.m !== undefined) {
+        chip.insertAdjacentHTML('beforeend', ratingPillHtml(md.m, md.ms));
+    }
+    return chip;
+}
+
+/**
+ * The expandable detail panel: publisher · year line, description (clamped
+ * with a Read more toggle when long), and for multi-game packs the list of
+ * included games. Anything missing simply doesn't render.
+ */
+function buildDetailPanel(g) {
+    const d = gameDataFor(g);
+    const panel = document.createElement('div');
+    panel.className = 'game-detail';
+
+    const head = document.createElement('div');
+    head.className = 'game-detail-head';
+    head.innerHTML = ratingHtml(g);
+    const metaBits = [];
+    if (d && d.p) metaBits.push(d.p);
+    if (d && d.y) metaBits.push(String(d.y));
+    if (metaBits.length) {
+        const meta = document.createElement('span');
+        meta.className = 'game-detail-meta';
+        meta.textContent = metaBits.join(' \u00b7 ');
+        head.appendChild(meta);
+    }
+    if (head.childNodes.length) panel.appendChild(head);
+
+    const desc = d && d.d ? d.d : '';
+    const p = document.createElement('p');
+    p.className = 'game-detail-desc';
+    if (desc) {
+        p.textContent = desc;
+        panel.appendChild(p);
+        // Provisional: long descriptions get the clamp + toggle, but whether
+        // anything is actually hidden depends on the panel width, so
+        // setupReadMore() re-checks with real measurements after insertion.
+        if (desc.length > 240) {
+            p.classList.add('clamped');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'read-more-btn';
+            btn.textContent = 'Read more';
+            btn.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                const clamped = p.classList.toggle('clamped');
+                btn.textContent = clamped ? 'Read more' : 'Show less';
+            });
+            panel.appendChild(btn);
+        }
+    } else {
+        p.classList.add('muted');
+        p.textContent = 'No description on file for this title yet.';
+        panel.appendChild(p);
+    }
+
+    if (Array.isArray(g.titles) && g.titles.length) {
+        const label = document.createElement('div');
+        label.className = 'member-label';
+        label.textContent = 'Includes ' + g.titles.length + ' games:';
+        panel.appendChild(label);
+        const chips = document.createElement('div');
+        chips.className = 'member-chips';
+        g.titles.forEach(m => chips.appendChild(buildMemberChip(m)));
+        panel.appendChild(chips);
+    }
+    return panel;
+}
+
+/** After the panel is in the DOM, drop the Read more toggle when the
+ *  description doesn't actually overflow the clamp (short text at a wide
+ *  panel would otherwise offer a button with nothing more to show). */
+function setupReadMore(panel) {
+    const p = panel.querySelector('.game-detail-desc');
+    const btn = panel.querySelector('.read-more-btn');
+    if (!p || !btn) return;
+    if (p.scrollHeight <= p.clientHeight + 2) {
+        p.classList.remove('clamped');
+        btn.remove();
+    }
+}
+
+/** Remove any open detail panel inside `host` and clear the open highlight. */
+function closeGameDetail(host) {
+    if (!host) return;
+    const existing = host.querySelector('.game-detail');
+    if (existing) existing.remove();
+    host.querySelectorAll('.detail-open').forEach(el => el.classList.remove('detail-open'));
+    host.style.paddingBottom = '';
+}
+
+/** Toggle a floating detail panel anchored under `card` inside its list
+ *  container (grid cards or compact rows share one code path). Only one
+ *  panel is open per page; tapping the same card again closes it. The host
+ *  gains extra bottom padding while open so the panel can extend past the
+ *  last row without creating a scrollbar-jump. The host must be the panel's
+ *  containing block (position: relative). */
+function toggleGameDetailFloat(card, g) {
+    if (!card) return;
+    const wasOpen = card.classList.contains('detail-open');
+    const existing = document.querySelector('.game-detail');
+    const oldHost = existing ? existing.parentElement : null;
+    if (existing) existing.remove();
+    if (oldHost) oldHost.style.paddingBottom = '';
+    document.querySelectorAll('.detail-open').forEach(el => el.classList.remove('detail-open'));
+    if (wasOpen) return;
+    const host = card.parentElement;
+    if (!host) return;
+    card.classList.add('detail-open');
+    const panel = buildDetailPanel(g);
+    panel.classList.add('float');
+    host.appendChild(panel);
+    const cr = card.getBoundingClientRect();
+    const hr = host.getBoundingClientRect();
+    panel.style.top = (cr.bottom - hr.top + 8) + 'px';
+    host.style.paddingBottom = (panel.offsetHeight + 24) + 'px';
+    setupReadMore(panel);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 /**
  * An order stops being customer-editable once it leaves "Order Received".
  * The shop can still edit it from admin.html; this only governs the customer link.

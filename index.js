@@ -1437,6 +1437,19 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             check.innerHTML = '&#10003;';
             cover.appendChild(check);
         }
+        // Details (i) button: opens the shared detail panel without touching
+        // selection, and works even before storage is configured.
+        var info = document.createElement('button');
+        info.type = 'button';
+        info.className = 'game-cover-info';
+        info.title = 'Game details';
+        info.setAttribute('aria-label', 'Details: ' + g.name);
+        info.textContent = 'i';
+        info.onclick = function (e) {
+            e.stopPropagation();
+            toggleGameDetailFloat(this.closest('.game-card'), g);
+        };
+        cover.appendChild(info);
         return cover;
     }
 
@@ -1499,6 +1512,9 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const gridMode = gameViewMode() === 'grid';
         applyGameViewMode();
         container.innerHTML = '';
+        // A rebuild invalidates any open detail panel (its nodes just died);
+        // drop the scroll-room padding it reserved so no empty gap is left.
+        container.style.paddingBottom = '';
 
         if (!list || list.length === 0) {
             container.innerHTML = '<p style="text-align:center; color:#8a8272;">No games found.</p>';
@@ -1607,6 +1623,15 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
 
             card.appendChild(infoDiv);
             card.appendChild(sizeSpan);
+            // Details (i) button for compact rows — same shared panel.
+            const rowInfo = document.createElement('button');
+            rowInfo.type = 'button';
+            rowInfo.className = 'game-row-info';
+            rowInfo.title = 'Game details';
+            rowInfo.setAttribute('aria-label', 'Details: ' + g.name);
+            rowInfo.textContent = 'i';
+            rowInfo.onclick = (e) => { e.stopPropagation(); toggleGameDetailFloat(card, g); };
+            card.appendChild(rowInfo);
             container.appendChild(card);
         });
     }

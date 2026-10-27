@@ -364,7 +364,7 @@
 
         .game-section-wrapper { display: block; position: relative; }
         .game-section-wrapper.locked { opacity: 0.4; pointer-events: none; user-select: none; }
-        .game-list { display: grid; gap: 10px; }
+        .game-list { display: grid; gap: 10px; position: relative; }
         .game-card { background: #221c10; padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #2e2716; cursor: pointer; transition: border-color 0.15s, background-color 0.15s; min-height: 52px; will-change: border-color, background-color; }
         .game-card.selected { border-color: #ffc000; background: #2a2108; }
         .game-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
@@ -380,7 +380,7 @@
         .hidden-notice-text strong { color: #ffc000; }
         .hidden-notice-toggle { background: transparent; color: #e8dcc0; border: 1px solid #3a3018; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11.5px; font-weight: bold; font-family: inherit; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; }
         .hidden-notice-toggle:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
-        .hidden-games-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; }
+        .hidden-games-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px; position: relative; }
 
         /* ===== GAME LIST VIEW TOGGLE (cover grid vs compact list) ===== */
         .search-row { display: flex; gap: 8px; align-items: stretch; }
@@ -403,6 +403,14 @@
         .game-cover-hot { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(20, 17, 10, 0.78); color: #ff8a3d; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.45); }
         .game-cover-hot + .game-cover-lock { top: 36px; }
         .game-cover-lock { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(20,17,10,0.75); color: #b8b0a0; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+
+        /* Details (i) buttons — open the shared game detail panel (shared.js)
+           without toggling selection. Circle sits bottom-right of the cover,
+           clear of the hot/lock badges (top-left) and the selected check
+           (top-right). */
+        .game-cover-info, .game-row-info { width: 24px; height: 24px; border-radius: 50%; border: 1px solid rgba(255, 192, 0, 0.4); background: rgba(20, 17, 10, 0.78); color: #ffc000; font-size: 13px; font-weight: 700; font-family: inherit; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex-shrink: 0; }
+        .game-cover-info { position: absolute; bottom: 6px; right: 6px; }
+        .game-cover-info:hover, .game-row-info:hover { background: rgba(255, 192, 0, 0.3); }
         .game-cover-name { padding: 6px 8px 0; font-size: 11.5px; font-weight: 600; color: #f0e9d8; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px; }
         .game-cover-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px 8px; }
         .game-cover-size { color: #8a8272; font-size: 10.5px; font-weight: 600; white-space: nowrap; }

@@ -86,3 +86,32 @@ a[role="button"],
         padding: var(--btn-pad) 10px;
     }
 }
+
+/* ==========================================================================
+   Game detail panel — markup built by shared.js (buildDetailPanel), used by
+   games.html (library) and index.html (game selection). Rating pills are
+   Metacritic (MC) or OpenCritic (OC) scores; both use a /100 scale, so one
+   colour scheme covers both sources.
+   ========================================================================== */
+
+.rating-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 11.5px; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; line-height: 1.5; }
+.rating-pill .rating-src { font-size: 8.5px; font-weight: 700; opacity: 0.75; letter-spacing: 0.5px; }
+.rating-pill.good { color: #7bd88a; background: rgba(60, 180, 90, 0.14); border: 1px solid rgba(60, 180, 90, 0.45); }
+.rating-pill.mid  { color: #ffce54; background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.45); }
+.rating-pill.bad  { color: #ff7b72; background: rgba(229, 72, 77, 0.14); border: 1px solid rgba(229, 72, 77, 0.45); }
+
+.game-detail { grid-column: 1 / -1; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; cursor: default; }
+.game-detail.float { position: absolute; left: 0; right: 0; z-index: 30; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); }
+.game-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+.game-detail-meta { color: #8a8272; font-size: 12.5px; }
+.game-detail-desc { color: #cfc7b4; font-size: 13px; line-height: 1.55; margin: 0; white-space: pre-line; }
+.game-detail-desc.clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+.game-detail-desc.muted { color: #8a8272; font-style: italic; }
+.read-more-btn { color: #ffc000; background: none; border: none; font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 6px 0 0; font-family: inherit; }
+.read-more-btn:hover { text-decoration: underline; }
+.member-label { color: #8a8272; font-size: 12px; font-weight: 700; margin-top: 10px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.member-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.member-chip { display: flex; align-items: center; gap: 8px; background: #221c10; border: 1px solid #2e2716; border-radius: 6px; padding: 3px 10px 3px 3px; font-size: 12px; color: #e8dcc0; max-width: 300px; }
+.member-chip img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #2a2312; }
+.member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.member-chip .rating-pill { margin-left: auto; }
