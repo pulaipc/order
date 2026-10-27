@@ -54,10 +54,17 @@ function catalog() {
 }
 
 /** Enrichment record for a catalog entry, or null. gamedata.js is optional —
- *  the page must still work if it failed to generate. */
+ *  the page must still work if it failed to generate. Entries whose files had
+ *  no [titleId] tag fall back to the name-resolved map. */
 function gameDataFor(g) {
-    if (typeof gameData === 'undefined' || !g.titleId) return null;
-    return gameData[String(g.titleId).toLowerCase()] || null;
+    if (g.titleId && typeof gameData !== 'undefined') {
+        const d = gameData[String(g.titleId).toLowerCase()];
+        if (d) return d;
+    }
+    if (typeof gameDataByName !== 'undefined' && gameDataByName[g.name]) {
+        return gameDataByName[g.name];
+    }
+    return null;
 }
 
 /** Pill markup for a score + source ('mc' | 'oc'), or '' when absent. */
@@ -93,7 +100,13 @@ function buildCoverTile(g) {
     const letter = (g.name || '?').replace(/[^A-Za-z0-9]/g, '').charAt(0).toUpperCase();
     ph.textContent = letter || '?';
     cover.appendChild(ph);
-    const sources = coverSourcesFor(g.titleId);
+    // Cover sources, best first: a gamedata override image (homebrew ports
+    // that art databases don't know) beats the title-ID endpoints; the
+    // standard Nlib/tinfoil chain follows (using the name-resolved ID for
+    // entries whose files had no title ID); a letter tile shows if all fail.
+    const data = gameDataFor(g);
+    let sources = coverSourcesFor((data && data.tid) || g.titleId);
+    if (data && data.i) sources = [data.i].concat(sources);
     if (sources.length) {
         const img = document.createElement('img');
         img.loading = 'lazy';
@@ -181,7 +194,10 @@ function buildDetailPanel(g) {
     if (desc) {
         p.textContent = desc;
         panel.appendChild(p);
-        if (desc.length > 300) {
+        // Provisional: long descriptions get the clamp + toggle, but whether
+        // anything is actually hidden depends on the panel width, so
+        // setupReadMore() re-checks with real measurements after insertion.
+        if (desc.length > 240) {
             p.classList.add('clamped');
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -223,6 +239,19 @@ function closeDetail() {
     grid.style.paddingBottom = '';
 }
 
+/** After the panel is in the DOM, drop the Read more toggle when the
+ *  description doesn't actually overflow the clamp (short text at a wide
+ *  panel would otherwise offer a button with nothing more to show). */
+function setupReadMore(panel) {
+    const p = panel.querySelector('.game-detail-desc');
+    const btn = panel.querySelector('.read-more-btn');
+    if (!p || !btn) return;
+    if (p.scrollHeight <= p.clientHeight + 2) {
+        p.classList.remove('clamped');
+        btn.remove();
+    }
+}
+
 /** Open the detail panel for a card. Grid view: floating overlay anchored
  *  under the card (covers stay put; the extra scroll room is reserved via
  *  padding-bottom). List view: accordion row inserted under the card.
@@ -240,11 +269,11 @@ function toggleDetail(g, card) {
         panel.style.top = (card.offsetTop + card.offsetHeight + 8) + 'px';
         grid.appendChild(panel);
         grid.style.paddingBottom = (panel.offsetHeight + 24) + 'px';
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     } else {
         card.insertAdjacentElement('afterend', panel);
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
+    setupReadMore(panel);
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
 function buildGridCard(g) {

@@ -43,6 +43,25 @@ const SPARQL_URL = 'https://query.wikidata.org/sparql';
 const REVIEWERS = { Q150248: 'mc', Q21039459: 'oc' };
 const SWITCH_PLATFORM_QIDS = ['Q19610114', 'Q122761124'];
 
+// Hand-written enrichment for homebrew ports that no eShop database knows —
+// no TitleDB entry and no Nlib/tinfoil cover art under their (borrowed)
+// title IDs. Keyed by normName()'d catalog name; fields fill only what the
+// automated sources missed. i = cover image URL, tried before Nlib/tinfoil.
+const MANUAL_OVERRIDES = {
+    'grand theft auto v homebrew port': {
+        d: 'The sprawling city of Los Santos and the interwoven stories of three criminals, running on Switch through the homebrew scene\'s port of the PC game. Heists, car chases and free-roam chaos across the full single-player world of Grand Theft Auto V.',
+        p: 'Rockstar Games (homebrew port)',
+        y: 2013,
+        i: 'https://upload.wikimedia.org/wikipedia/en/a/a5/Grand_Theft_Auto_V.png'
+    },
+    'need for speed most wanted': {
+        d: 'Criterion\'s open-world racer, brought to Switch through homebrew. Roam Fairhaven City, race to become the Most Wanted and take down blacklist rivals in the 2012 classic.',
+        p: 'Criterion Games (homebrew port)',
+        y: 2012,
+        i: 'https://upload.wikimedia.org/wikipedia/en/b/b0/Nfs-most-wanted-2012-gen-packart.jpg'
+    }
+};
+
 const SWITCH_QUERY =
     'SELECT ?gLabel ?score ?rev WHERE {\n' +
     '  ?g wdt:P400 ?plat . VALUES ?plat { wd:' + SWITCH_PLATFORM_QIDS.join(' wd:') + ' }\n' +
@@ -87,6 +106,20 @@ async function loadTitledb() {
 }
 
 /** titleId -> { d, p, y }, only for IDs the catalog actually uses. */
+function titledbFields(entry) {
+    const out = {};
+    const desc = typeof entry.description === 'string' ? entry.description.trim() : '';
+    if (desc) {
+        out.d = desc.length > MAX_DESC ? desc.slice(0, MAX_DESC - 1).trimEnd() + '\u2026' : desc;
+    }
+    let pub = entry.publisher;
+    if (Array.isArray(pub)) pub = pub.filter(Boolean).join(', ');
+    if (typeof pub === 'string' && pub.trim()) out.p = pub.trim();
+    const ym = (entry.releaseDate != null) ? String(entry.releaseDate).match(/^(\d{4})/) : null;
+    if (ym) out.y = Number(ym[1]);
+    return out;
+}
+
 function buildTitledbIndex(db, wantedIds) {
     const index = {};
     for (const key of Object.keys(db)) {
@@ -94,17 +127,24 @@ function buildTitledbIndex(db, wantedIds) {
         if (!entry || typeof entry !== 'object') continue;
         const id = typeof entry.id === 'string' ? entry.id.toLowerCase() : null;
         if (!id || !wantedIds.has(id)) continue;
-        const out = {};
-        const desc = typeof entry.description === 'string' ? entry.description.trim() : '';
-        if (desc) {
-            out.d = desc.length > MAX_DESC ? desc.slice(0, MAX_DESC - 1).trimEnd() + '\u2026' : desc;
-        }
-        let pub = entry.publisher;
-        if (Array.isArray(pub)) pub = pub.filter(Boolean).join(', ');
-        if (typeof pub === 'string' && pub.trim()) out.p = pub.trim();
-        const ym = (entry.releaseDate != null) ? String(entry.releaseDate).match(/^(\d{4})/) : null;
-        if (ym) out.y = Number(ym[1]);
+        const out = titledbFields(entry);
         if (Object.keys(out).length) index[id] = out;
+    }
+    return index;
+}
+
+/** normName(game name) -> TitleDB entry, for games whose files carry no
+ *  [titleId] tag (e.g. "1-2-Switch.nsp"): their real eShop entry is still
+ *  findable by name, giving them a cover ID and description. */
+function buildTitledbByNameIndex(db) {
+    const index = {};
+    for (const key of Object.keys(db)) {
+        const entry = db[key];
+        if (!entry || typeof entry !== 'object') continue;
+        if (typeof entry.id !== 'string' || !entry.id) continue;
+        const name = normName(entry.name);
+        if (!name || index[name]) continue;
+        index[name] = entry;
     }
     return index;
 }
@@ -263,8 +303,12 @@ function findRating(name, indexes) {
 
     // 1) Descriptions / publisher / year from TitleDB.
     let titledbIndex = {};
+    let titledbByName = {};
+    let db = null;
     try {
-        titledbIndex = buildTitledbIndex(await loadTitledb(), wantedIds);
+        db = await loadTitledb();
+        titledbIndex = buildTitledbIndex(db, wantedIds);
+        titledbByName = buildTitledbByNameIndex(db);
         console.log('  TitleDB: ' + Object.keys(titledbIndex).length + ' catalog IDs matched');
     } catch (e) {
         console.warn('  [warn] TitleDB unavailable, no descriptions this run: ' + e.message);
@@ -282,15 +326,33 @@ function findRating(name, indexes) {
 
     // 3) Merge into gamedata.
     const gameData = {};
-    let withDesc = 0, withYear = 0, withRating = 0, mcCount = 0, ocCount = 0, memberRatings = 0;
+    const gameDataByName = {};
+    let withDesc = 0, withYear = 0, withRating = 0, mcCount = 0, ocCount = 0, memberRatings = 0, manualHits = 0, nameResolved = 0;
     const noRating = [];
     for (const g of catalog) {
         const tid = (g.titleId || '').toLowerCase();
-        const base = tid ? (titledbIndex[tid] || {}) : {};
         const out = {};
-        if (base.d) out.d = base.d;
-        if (base.p) out.p = base.p;
-        if (base.y) out.y = base.y;
+
+        if (tid) {
+            const base = titledbIndex[tid] || {};
+            if (base.d) out.d = base.d;
+            if (base.p) out.p = base.p;
+            if (base.y) out.y = base.y;
+        } else {
+            // No title ID on the files (e.g. "1-2-Switch.nsp")? Resolve the
+            // game by name in TitleDB instead: the real eShop entry supplies
+            // the cover ID and description. Stored name-keyed since there is
+            // no ID to key by.
+            const entry = titledbByName[normName(g.name)];
+            if (entry) {
+                const fields = titledbFields(entry);
+                if (fields.d) out.d = fields.d;
+                if (fields.p) out.p = fields.p;
+                if (fields.y) out.y = fields.y;
+                if (entry.id) out.tid = entry.id.toLowerCase();
+            }
+        }
+
         const rating = findRating(g.name, [wd.switch, wd.any]);
         if (rating) {
             out.m = rating.m;
@@ -298,12 +360,28 @@ function findRating(name, indexes) {
             if (rating.src === 'mc') mcCount++; else ocCount++;
         }
 
+        // Manual overrides for homebrew ports: fill only what the automated
+        // sources missed so real data always wins.
+        const ov = MANUAL_OVERRIDES[normName(g.name)];
+        if (ov) {
+            if (!out.d && ov.d) out.d = ov.d;
+            if (!out.p && ov.p) out.p = ov.p;
+            if (!out.y && ov.y) out.y = ov.y;
+            if (ov.i) out.i = ov.i;
+            if (ov.d || ov.p || ov.i) manualHits++;
+        }
+
         if (out.d) withDesc++;
         if (out.y) withYear++;
         if (out.m !== undefined) withRating++;
         else noRating.push(g.name);
 
-        if (tid && Object.keys(out).length) gameData[tid] = out;
+        if (tid) {
+            if (Object.keys(out).length) gameData[tid] = out;
+        } else if (Object.keys(out).length) {
+            gameDataByName[g.name] = out;
+            if (out.tid) nameResolved++;
+        }
 
         // Pack members get their own score badge on the pack panel, so match
         // each member by name too. Keyed by the member's title ID; an entry
@@ -326,15 +404,21 @@ function findRating(name, indexes) {
 
     const header =
         '// Generated by build_gamedata.js on ' + new Date().toISOString() + ' — do not edit by hand.\n' +
-        '// Keyed by catalog title ID. d = description, p = publisher, y = release year,\n' +
-        '// m = Metacritic score (Wikidata). Missing fields are omitted.\n' +
-        'const gameData = ' + JSON.stringify(gameData) + ';\n';
+        '// gameData is keyed by catalog title ID. gameDataByName covers entries whose\n' +
+        '// files carried no [titleId] tag (resolved by name; "tid" = the resolved ID).\n' +
+        '// d = description, p = publisher, y = release year, m = critic score with\n' +
+        '// ms = source ("mc" Metacritic / "oc" OpenCritic, via Wikidata),\n' +
+        '// i = manual cover image URL (homebrew ports). Missing fields are omitted.\n' +
+        'const gameData = ' + JSON.stringify(gameData) + ';\n' +
+        'const gameDataByName = ' + JSON.stringify(gameDataByName) + ';\n';
 
     fs.writeFileSync(OUT_FILE, header, 'utf8');
 
-    console.log('gamedata.js written: ' + Object.keys(gameData).length + ' entries ' +
+    console.log('gamedata.js written: ' + Object.keys(gameData).length + ' entries + ' +
+        Object.keys(gameDataByName).length + ' name-resolved ' +
         '(descriptions ' + withDesc + ', years ' + withYear + ', ratings ' + withRating +
-        ' [Metacritic ' + mcCount + ', OpenCritic ' + ocCount + '], member badges ' + memberRatings + ')');
+        ' [Metacritic ' + mcCount + ', OpenCritic ' + ocCount + '], member badges ' + memberRatings +
+        ', manual overrides ' + manualHits + ', ids recovered by name ' + nameResolved + ')');
     if (noRating.length) {
         console.log('no rating matched for ' + noRating.length + ' games, e.g.: ' +
             noRating.slice(0, 15).join(' | '));
