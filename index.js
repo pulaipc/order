@@ -1425,7 +1425,17 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             };
             cover.appendChild(img);
         }
-        cover.insertAdjacentHTML('beforeend', hotBadgeHtml(g.name));
+        // Cover chip uses its own class (absolute, above the image) — the
+        // list-style .hot-badge span would sit underneath the cover img and
+        // only peek out on cards whose cover failed to load.
+        if (state.hotGames && state.hotGames.has(g.name)) {
+            const hotN = (state.gameOrderCounts && state.gameOrderCounts[g.name]) || 0;
+            const hot = document.createElement('span');
+            hot.className = 'game-cover-hot';
+            hot.title = 'Popular — ordered in ' + hotN + ' order' + (hotN !== 1 ? 's' : '');
+            hot.innerHTML = '&#128293;';
+            cover.appendChild(hot);
+        }
         if (locked) {
             var lock = document.createElement('span');
             lock.className = 'game-cover-lock';
