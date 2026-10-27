@@ -29,7 +29,7 @@ const OUT_FILE = path.join(HERE, 'gamedata.js');
 const TITLEDB_CACHE = path.join(HERE, '.titledb-cache.json');
 const WIKIDATA_CACHE = path.join(HERE, '.wd-metacritic-cache.json');
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
-const MAX_DESC = 1200;
+const MAX_DESC = 4000;
 const UA = 'PulaiPCLibrary/1.0 (games list sync)';
 
 const TITLEDB_URL = 'https://raw.githubusercontent.com/blawar/titledb/master/US.en.json';
