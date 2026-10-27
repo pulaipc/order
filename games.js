@@ -1,12 +1,17 @@
 // games.html — public game library browser.
 //
-// A read-only view over the generated catalog (gameslist.js): search, sort,
-// stats, and the same cover-grid / compact-list toggle as the order form.
-// Nothing here touches orders or selection state; it exists so customers can
-// browse the collection without opening the order builder.
+// A read-only view over the generated catalog (gameslist.js) enriched by
+// gamedata.js (descriptions, publishers, release years and Metacritic /
+// OpenCritic scores, baked at sync time by build_gamedata.js). Search, sort,
+// cover-grid / compact-list toggle, fire badges for popular titles, and
+// tap-to-expand detail panels showing a simple description and — for
+// multi-game packs — which games are included.
 //
-// Popular badges come from the same game_order_counts RPC the order form uses,
-// so a title only shows the fire badge if real past orders back it up.
+// Deliberately no file sizes on this page: browsing the collection is about
+// the games, not disk space (the order form handles sizing when ordering).
+//
+// Popular badges come from the same game_order_counts RPC the order form
+// uses, so a title only shows the fire badge if real past orders back it up.
 
 const $ = id => document.getElementById(id);
 
@@ -46,6 +51,31 @@ function setLibViewMode(mode) {
 
 function catalog() {
     return (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
+}
+
+/** Enrichment record for a catalog entry, or null. gamedata.js is optional —
+ *  the page must still work if it failed to generate. */
+function gameDataFor(g) {
+    if (typeof gameData === 'undefined' || !g.titleId) return null;
+    return gameData[String(g.titleId).toLowerCase()] || null;
+}
+
+/** Pill markup for a score + source ('mc' | 'oc'), or '' when absent. */
+function ratingPillHtml(score, src) {
+    if (score === undefined || score === null) return '';
+    const srcName = src === 'oc' ? 'OpenCritic' : 'Metacritic';
+    const tag = src === 'oc' ? 'OC' : 'MC';
+    const cls = score >= 75 ? 'good' : (score >= 50 ? 'mid' : 'bad');
+    return '<span class="rating-pill ' + cls + '" title="' + srcName + ' score: ' + score + '/100">' +
+        score + '<span class="rating-src">' + tag + '</span></span>';
+}
+
+/** Rating pill markup for a catalog entry, or '' when the game has no score
+ *  on file. */
+function ratingHtml(g) {
+    const d = gameDataFor(g);
+    if (!d || d.m === undefined) return '';
+    return ratingPillHtml(d.m, d.ms);
 }
 
 function hotBadgeHtml(name) {
@@ -88,6 +118,135 @@ function buildCoverTile(g) {
     return cover;
 }
 
+function countBadgeHtml(g) {
+    return (g.fileCount && g.fileCount > 1)
+        ? '<span class="game-cover-badge">' + g.fileCount + ' Games</span>'
+        : '';
+}
+
+/** One pack member as a chip: mini cover (when a title ID exists) + name,
+ *  plus the game's own critic-score badge when we have one for it. */
+function buildMemberChip(m) {
+    const chip = document.createElement('div');
+    chip.className = 'member-chip';
+    if (m.tid) {
+        const img = document.createElement('img');
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.alt = '';
+        img.src = coverSourcesFor(m.tid)[0];
+        img.onerror = function () { this.remove(); };
+        chip.appendChild(img);
+    }
+    const name = document.createElement('span');
+    name.className = 'member-name';
+    name.textContent = m.n;
+    name.title = m.n;
+    chip.appendChild(name);
+    const md = (typeof gameData !== 'undefined' && m.tid)
+        ? gameData[String(m.tid).toLowerCase()] : null;
+    if (md && md.m !== undefined) {
+        chip.insertAdjacentHTML('beforeend', ratingPillHtml(md.m, md.ms));
+    }
+    return chip;
+}
+
+/**
+ * The expandable detail panel: publisher · year line, description (clamped
+ * with a Read more toggle when long), and for multi-game packs the list of
+ * included games. Anything missing simply doesn't render.
+ */
+function buildDetailPanel(g) {
+    const d = gameDataFor(g);
+    const panel = document.createElement('div');
+    panel.className = 'game-detail';
+
+    const head = document.createElement('div');
+    head.className = 'game-detail-head';
+    head.innerHTML = ratingHtml(g);
+    const metaBits = [];
+    if (d && d.p) metaBits.push(d.p);
+    if (d && d.y) metaBits.push(String(d.y));
+    if (metaBits.length) {
+        const meta = document.createElement('span');
+        meta.className = 'game-detail-meta';
+        meta.textContent = metaBits.join(' \u00b7 ');
+        head.appendChild(meta);
+    }
+    if (head.childNodes.length) panel.appendChild(head);
+
+    const desc = d && d.d ? d.d : '';
+    const p = document.createElement('p');
+    p.className = 'game-detail-desc';
+    if (desc) {
+        p.textContent = desc;
+        panel.appendChild(p);
+        if (desc.length > 300) {
+            p.classList.add('clamped');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'read-more-btn';
+            btn.textContent = 'Read more';
+            btn.addEventListener('click', function (ev) {
+                ev.stopPropagation();
+                const clamped = p.classList.toggle('clamped');
+                btn.textContent = clamped ? 'Read more' : 'Show less';
+            });
+            panel.appendChild(btn);
+        }
+    } else {
+        p.classList.add('muted');
+        p.textContent = 'No description on file for this title yet.';
+        panel.appendChild(p);
+    }
+
+    if (Array.isArray(g.titles) && g.titles.length) {
+        const label = document.createElement('div');
+        label.className = 'member-label';
+        label.textContent = 'Includes ' + g.titles.length + ' games:';
+        panel.appendChild(label);
+        const chips = document.createElement('div');
+        chips.className = 'member-chips';
+        g.titles.forEach(m => chips.appendChild(buildMemberChip(m)));
+        panel.appendChild(chips);
+    }
+    return panel;
+}
+
+/** Remove any open detail panel and clear the open highlight. */
+function closeDetail() {
+    const grid = $('gameGrid');
+    if (!grid) return;
+    const existing = grid.querySelector('.game-detail');
+    if (existing) existing.remove();
+    grid.querySelectorAll('.detail-open').forEach(el => el.classList.remove('detail-open'));
+    grid.style.paddingBottom = '';
+}
+
+/** Open the detail panel for a card. Grid view: floating overlay anchored
+ *  under the card (covers stay put; the extra scroll room is reserved via
+ *  padding-bottom). List view: accordion row inserted under the card.
+ *  Clicking the same card again closes it; only one panel is open at a time. */
+function toggleDetail(g, card) {
+    const grid = $('gameGrid');
+    if (!grid) return;
+    const wasOpen = card.classList.contains('detail-open');
+    closeDetail();
+    if (wasOpen) return;
+    card.classList.add('detail-open');
+    const panel = buildDetailPanel(g);
+    if (libViewMode() === 'grid') {
+        panel.classList.add('float');
+        panel.style.top = (card.offsetTop + card.offsetHeight + 8) + 'px';
+        grid.appendChild(panel);
+        grid.style.paddingBottom = (panel.offsetHeight + 24) + 'px';
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } else {
+        card.insertAdjacentElement('afterend', panel);
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
 function buildGridCard(g) {
     const card = document.createElement('div');
     card.className = 'game-card grid-card';
@@ -97,18 +256,11 @@ function buildGridCard(g) {
     name.textContent = g.name;
     const meta = document.createElement('div');
     meta.className = 'game-cover-meta';
-    const size = document.createElement('span');
-    size.className = 'game-cover-size';
-    size.textContent = effectiveGb(g.size) + ' GB';
-    meta.appendChild(size);
-    if (g.fileCount && g.fileCount > 1) {
-        const badge = document.createElement('span');
-        badge.className = 'game-cover-badge';
-        badge.textContent = g.fileCount + ' Games';
-        meta.appendChild(badge);
-    }
+    meta.innerHTML = ratingHtml(g) + countBadgeHtml(g) +
+        '<span class="chev" aria-hidden="true">&#9662;</span>';
     card.appendChild(name);
     card.appendChild(meta);
+    card.addEventListener('click', function () { toggleDetail(g, card); });
     return card;
 }
 
@@ -128,11 +280,12 @@ function buildListCard(g) {
         title.appendChild(badge);
     }
     info.appendChild(title);
-    const size = document.createElement('span');
-    size.className = 'game-size';
-    size.textContent = effectiveGb(g.size) + ' GB';
+    const right = document.createElement('div');
+    right.className = 'game-row-right';
+    right.innerHTML = ratingHtml(g) + '<span class="chev" aria-hidden="true">&#9662;</span>';
     card.appendChild(info);
-    card.appendChild(size);
+    card.appendChild(right);
+    card.addEventListener('click', function () { toggleDetail(g, card); });
     return card;
 }
 
@@ -141,10 +294,12 @@ function sortLibrary(list) {
     const counts = libState.counts || {};
     const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'accent', numeric: true });
     if (mode === 'za') return list.sort((a, b) => byName(b, a));
-    if (mode === 'size_asc') return list.sort((a, b) => (a.size - b.size) || byName(a, b));
-    if (mode === 'size_desc') return list.sort((a, b) => (b.size - a.size) || byName(a, b));
     if (mode === 'popular') {
         return list.sort((a, b) => ((counts[b.name] || 0) - (counts[a.name] || 0)) || byName(a, b));
+    }
+    if (mode === 'rating') {
+        const score = g => { const d = gameDataFor(g); return (d && d.m !== undefined) ? d.m : -1; };
+        return list.sort((a, b) => (score(b) - score(a)) || byName(a, b));
     }
     return list.sort(byName);
 }
@@ -171,6 +326,7 @@ function renderLibrary() {
     }
 
     container.innerHTML = '';
+    container.style.paddingBottom = '';
     if (filtered.length === 0) {
         const p = document.createElement('div');
         p.className = 'lib-empty';
@@ -191,11 +347,11 @@ function renderStats() {
     const all = catalog();
     if (all.length === 0) { el.innerHTML = ''; return; }
     const packs = all.filter(g => g.fileCount && g.fileCount > 1).length;
-    const totalGb = all.reduce((sum, g) => sum + (Number(g.size) || 0), 0);
+    const rated = all.filter(g => { const d = gameDataFor(g); return d && d.m !== undefined; }).length;
     const chips = [
         { n: String(all.length), label: 'titles' },
         { n: String(packs), label: 'multi-game packs' },
-        { n: Math.round(totalGb).toLocaleString('en-MY') + ' GB', label: 'library size' }
+        { n: String(rated), label: 'with critic scores' }
     ];
     if (typeof gamesLastSync !== 'undefined') {
         const d = new Date(gamesLastSync);

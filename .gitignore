@@ -8,3 +8,5 @@ install_local.js
 install-server.log
 install-server.log.old
 install-server.ready
+.titledb-cache.json
+.wd-metacritic-cache.json

@@ -59,7 +59,17 @@
         .game-title { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.35; color: #f0e9d8; }
         .game-count-badge { color: #ffc000; font-size: 0.85em; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
         .hot-badge { color: #ff8a3d; font-size: 0.85em; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 106, 0, 0.14); border: 1px solid rgba(255, 106, 0, 0.4); white-space: nowrap; cursor: default; }
-        .game-size { color: #ffc000; font-size: 0.9em; white-space: nowrap; font-weight: 600; flex-shrink: 0; }
+
+        /* Rating pill — critic score from Metacritic (MC) or OpenCritic (OC).
+           Both use a /100 scale, so one colour scheme covers both sources. */
+        .rating-pill { display: inline-flex; align-items: center; gap: 4px; font-weight: 800; font-size: 11.5px; padding: 2px 8px; border-radius: 10px; flex-shrink: 0; line-height: 1.5; }
+        .rating-pill .rating-src { font-size: 8.5px; font-weight: 700; opacity: 0.75; letter-spacing: 0.5px; }
+        .rating-pill.good { color: #7bd88a; background: rgba(60, 180, 90, 0.14); border: 1px solid rgba(60, 180, 90, 0.45); }
+        .rating-pill.mid  { color: #ffce54; background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.45); }
+        .rating-pill.bad  { color: #ff7b72; background: rgba(229, 72, 77, 0.14); border: 1px solid rgba(229, 72, 77, 0.45); }
+        .chev { color: #8a8272; font-size: 11px; margin-left: auto; transition: transform 0.18s; flex-shrink: 0; }
+        .detail-open .chev { transform: rotate(180deg); color: #ffc000; }
+        .game-row-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
         /* Cover grid mode */
         .game-card.grid-card { flex-direction: column; align-items: stretch; padding: 0; gap: 0; min-height: 0; overflow: hidden; }
@@ -68,9 +78,32 @@
         .game-cover-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: #6a6357; letter-spacing: 1px; }
         .game-cover-hot { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(20, 17, 10, 0.78); color: #ff8a3d; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.45); }
         .game-cover-name { padding: 6px 8px 0; font-size: 11.5px; font-weight: 600; color: #f0e9d8; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px; }
-        .game-cover-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px 8px; }
-        .game-cover-size { color: #8a8272; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+        .game-cover-meta { display: flex; align-items: center; gap: 6px; padding: 2px 8px 8px; min-height: 24px; }
         .game-cover-badge { color: #ffc000; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
+
+        /* Tap-to-expand detail panel. In list view it slots in under the row
+           (accordion). In grid view it becomes a floating overlay anchored
+           right under the opened card so the neighbouring covers never move —
+           a full-width in-flow panel would shove half the row down and leave
+           an empty gap. */
+        #gameGrid { position: relative; }
+        .game-card { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+        .game-card:hover { border-color: #6a5a28; }
+        .game-detail { grid-column: 1 / -1; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; cursor: default; }
+        .game-detail.float { position: absolute; left: 0; right: 0; z-index: 30; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); }
+        .game-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+        .game-detail-meta { color: #8a8272; font-size: 12.5px; }
+        .game-detail-desc { color: #cfc7b4; font-size: 13px; line-height: 1.55; margin: 0; white-space: pre-line; }
+        .game-detail-desc.clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+        .game-detail-desc.muted { color: #8a8272; font-style: italic; }
+        .read-more-btn { color: #ffc000; background: none; border: none; font-size: 12.5px; font-weight: 600; cursor: pointer; padding: 6px 0 0; font-family: inherit; }
+        .read-more-btn:hover { text-decoration: underline; }
+        .member-label { color: #8a8272; font-size: 12px; font-weight: 700; margin-top: 10px; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+        .member-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+        .member-chip { display: flex; align-items: center; gap: 8px; background: #221c10; border: 1px solid #2e2716; border-radius: 6px; padding: 3px 10px 3px 3px; font-size: 12px; color: #e8dcc0; max-width: 300px; }
+        .member-chip img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #2a2312; }
+        .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .member-chip .rating-pill { margin-left: auto; }
 
         .lib-empty { text-align: center; color: #8a8272; padding: 30px 10px; font-size: 14px; }
 
@@ -116,8 +149,7 @@
                 <option value="az" selected>A &rarr; Z</option>
                 <option value="za">Z &rarr; A</option>
                 <option value="popular">Most ordered</option>
-                <option value="size_asc">Size: small first</option>
-                <option value="size_desc">Size: big first</option>
+                <option value="rating">Top rated</option>
             </select>
             <div class="view-toggle" role="group" aria-label="Library view">
                 <button type="button" id="libGridBtn" class="view-toggle-btn" title="Cover grid view" aria-label="Cover grid view">&#9638;</button>
@@ -140,6 +172,7 @@
 
     <script src="shared.js"></script>
     <script src="gameslist.js"></script>
+    <script src="gamedata.js"></script>
     <script src="config.js"></script>
     <script src="games.js"></script>
 </body>
