@@ -113,6 +113,17 @@ function installBufferNote() {
     return ' (after install ~' + Math.round((INSTALL_SIZE_BUFFER - 1) * 100) + '% bigger)';
 }
 
+/** Cover art sources for a catalog title ID, best first. Nlib is the live
+ *  source; tinfoil is the backup in case it comes back. A title with no ID
+ *  (or every source failing) falls back to a letter tile in the caller. */
+function coverSourcesFor(titleId) {
+    if (!titleId) return [];
+    return [
+        'https://api.nlib.cc/nx/' + titleId + '/icon/256',
+        'https://tinfoil.media/ti/' + titleId + '/box/'
+    ];
+}
+
 /**
  * An order stops being customer-editable once it leaves "Order Received".
  * The shop can still edit it from admin.html; this only governs the customer link.

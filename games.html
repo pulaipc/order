@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="Browse the Pulai PC Nintendo Switch game library — every title available for installation with your jailbreak or games-only order.">
+    <title>Game Library — Pulai PC</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="shared.css">
+    <style>
+        * { -webkit-tap-highlight-color: transparent; }
+        html { -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #14110a;
+            color: #f0e9d8;
+            margin: 0;
+            padding: 14px 14px 40px;
+            box-sizing: border-box;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .header-bar { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3a3018; padding-bottom: 15px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+        .header-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .site-logo { display: block; width: 48px; height: 48px; border-radius: 50%; box-shadow: 0 0 0 2px #ffc000, 0 2px 8px rgba(0, 0, 0, 0.5); flex-shrink: 0; }
+        .logo-link { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; -webkit-tap-highlight-color: transparent; transition: transform 0.2s; }
+        .logo-link:active { transform: scale(0.96); }
+        h1 { color: #ffc000; margin: 0; font-size: 18px; line-height: 1.3; word-break: break-word; }
+        .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* Library intro + stats */
+        .lib-intro { color: #b8b0a0; font-size: 13.5px; line-height: 1.55; margin: 0 0 14px; }
+        .lib-stats { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .lib-stat { background: #1f190e; border: 1px solid #3a3018; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #e8dcc0; line-height: 1.4; }
+        .lib-stat strong { color: #ffc000; font-size: 14px; display: block; }
+        .lib-stat span { color: #8a8272; }
+
+        /* Search / sort / view controls */
+        .lib-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+        .lib-search-wrapper { position: relative; flex: 1 1 220px; min-width: 0; display: flex; align-items: center; }
+        .lib-search { width: 100%; padding: 12px 40px 12px 14px; font-size: 16px; border-radius: 6px; border: 1px solid #3a3018; background: #1f190e; color: #f0e9d8; box-sizing: border-box; outline: none; font-family: inherit; transition: border-color 0.2s; }
+        .lib-search:focus { border-color: #ffc000; }
+        .lib-clear-btn { position: absolute; right: 10px; background: none; border: none; color: #8a8272; font-size: 24px; cursor: pointer; display: none; padding: 4px 8px; line-height: 1; min-height: 40px; min-width: 40px; }
+        .lib-clear-btn:hover { color: #f0e9d8; }
+        .lib-sort { flex: 0 1 170px; min-width: 0; padding: 12px 10px; font-size: 14px; border-radius: 6px; border: 1px solid #3a3018; background: #1f190e; color: #f0e9d8; box-sizing: border-box; outline: none; font-family: inherit; cursor: pointer; }
+        .lib-sort:focus { border-color: #ffc000; }
+        .view-toggle { display: flex; border: 1px solid #3a3018; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #1f190e; align-self: stretch; }
+        .view-toggle-btn { background: transparent; border: none; color: #8a8272; font-size: 17px; line-height: 1; padding: 0 13px; min-height: 44px; cursor: pointer; font-family: inherit; }
+        .view-toggle-btn + .view-toggle-btn { border-left: 1px solid #3a3018; }
+        .view-toggle-btn.active { background: rgba(255, 192, 0, 0.14); color: #ffc000; }
+
+        .lib-count { font-size: 12.5px; color: #8a8272; margin-bottom: 12px; }
+
+        /* Game list — grid (covers) and compact list, same look as the order page */
+        .game-list { display: grid; gap: 10px; }
+        .game-list.grid-view { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
+        .game-card { background: #221c10; padding: 14px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border: 1px solid #2e2716; min-height: 52px; }
+        .game-info { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+        .game-title { font-weight: 600; font-size: 14px; word-break: break-word; line-height: 1.35; color: #f0e9d8; }
+        .game-count-badge { color: #ffc000; font-size: 0.85em; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
+        .hot-badge { color: #ff8a3d; font-size: 0.85em; font-weight: 700; margin-left: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(255, 106, 0, 0.14); border: 1px solid rgba(255, 106, 0, 0.4); white-space: nowrap; cursor: default; }
+        .game-size { color: #ffc000; font-size: 0.9em; white-space: nowrap; font-weight: 600; flex-shrink: 0; }
+
+        /* Cover grid mode */
+        .game-card.grid-card { flex-direction: column; align-items: stretch; padding: 0; gap: 0; min-height: 0; overflow: hidden; }
+        .game-cover { position: relative; width: 100%; aspect-ratio: 1 / 1; background: linear-gradient(135deg, #2a2312, #1a1508); overflow: hidden; }
+        .game-cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .game-cover-ph { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 800; color: #6a6357; letter-spacing: 1px; }
+        .game-cover-hot { position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%; background: rgba(20, 17, 10, 0.78); color: #ff8a3d; font-size: 13px; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,0.45); }
+        .game-cover-name { padding: 6px 8px 0; font-size: 11.5px; font-weight: 600; color: #f0e9d8; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px; }
+        .game-cover-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px 8px; }
+        .game-cover-size { color: #8a8272; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
+        .game-cover-badge { color: #ffc000; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
+
+        .lib-empty { text-align: center; color: #8a8272; padding: 30px 10px; font-size: 14px; }
+
+        .trust-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #2e2716; text-align: center; font-size: 12px; color: #8a8272; line-height: 1.7; }
+        .trust-footer .brand { color: #e8dcc0; font-weight: bold; margin-bottom: 6px; font-size: 13px; }
+        .trust-footer a { color: #25D366; text-decoration: none; }
+        .trust-footer a:hover { text-decoration: underline; }
+        .trust-footer .note { margin-top: 4px; color: #6a6357; font-size: 11px; }
+
+        @media (max-width: 600px) {
+            .game-card { padding: 12px 10px; }
+            .game-title { font-size: 13px; }
+            .lib-sort { flex: 1 1 100%; }
+            .site-logo { width: 40px; height: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-bar">
+            <div class="header-left">
+                <a href="index.html" class="logo-link" aria-label="Back to order page">
+                    <img src="logo.PNG" alt="Pulai PC Logo" class="site-logo">
+                </a>
+                <h1>Game Library</h1>
+            </div>
+            <div class="header-actions">
+                <a href="index.html" class="btn-action">Order Now</a>
+                <a href="track.html" class="btn-action">Track Order</a>
+            </div>
+        </div>
+
+        <p class="lib-intro">Every title in our Nintendo Switch library, ready to install with your jailbreak, system setup or games-only order. Tap <strong>Order Now</strong> when you're ready to pick yours.</p>
+
+        <div class="lib-stats" id="libStats"></div>
+
+        <div class="lib-controls">
+            <div class="lib-search-wrapper">
+                <input type="text" id="libSearch" class="lib-search" placeholder="Search games in library..." autocomplete="off">
+                <button id="libClearBtn" class="lib-clear-btn" title="Clear search" aria-label="Clear search">&times;</button>
+            </div>
+            <select id="libSort" class="lib-sort" aria-label="Sort games">
+                <option value="az" selected>A &rarr; Z</option>
+                <option value="za">Z &rarr; A</option>
+                <option value="popular">Most ordered</option>
+                <option value="size_asc">Size: small first</option>
+                <option value="size_desc">Size: big first</option>
+            </select>
+            <div class="view-toggle" role="group" aria-label="Library view">
+                <button type="button" id="libGridBtn" class="view-toggle-btn" title="Cover grid view" aria-label="Cover grid view">&#9638;</button>
+                <button type="button" id="libListBtn" class="view-toggle-btn" title="Compact list view" aria-label="Compact list view">&#9776;</button>
+            </div>
+        </div>
+
+        <div class="lib-count" id="libCount"></div>
+        <div id="gameGrid" class="game-list"></div>
+
+        <footer class="trust-footer">
+            <div class="brand">Pulai PC</div>
+            <div>Jailbreak &amp; Game Installation Service</div>
+            <div style="margin-top: 6px;">
+                WhatsApp: <a href="#" id="footerWaLink" target="_blank" rel="noopener noreferrer">Message us</a>
+            </div>
+            <div class="note">All orders are processed manually. Payment on pickup.</div>
+        </footer>
+    </div>
+
+    <script src="shared.js"></script>
+    <script src="gameslist.js"></script>
+    <script src="config.js"></script>
+    <script src="games.js"></script>
+</body>
+</html>

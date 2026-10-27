@@ -73,11 +73,6 @@
         const el = $('pricingGuide');
         if (el) { el.open = true; el.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     }
-    function scrollToGames() {
-        const el = $('gameSectionWrapper');
-        if (el && el.style.display !== 'none') el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        else alert('Please complete your configuration first (phone, service type, storage).');
-    }
     // Pricing and Games are form-navigation buttons; their targets live inside
     // #formView. While the order summary is showing the form is hidden, so both
     // buttons would silently do nothing. Hide them for the duration of the
@@ -1387,16 +1382,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         filterGames();
     }
 
-    // Cover art by title ID. Nlib is the live source; tinfoil is the backup in
-    // case it comes back. Anything that fails both falls back to a letter tile.
-    function coverSourcesFor(titleId) {
-        if (!titleId) return [];
-        return [
-            'https://api.nlib.cc/nx/' + titleId + '/icon/256',
-            'https://tinfoil.media/ti/' + titleId + '/box/'
-        ];
-    }
-
+    // Cover art by title ID: sources come from shared.js (coverSourcesFor).
+    // Anything that fails both falls back to a letter tile.
     function buildCoverPlaceholder(name) {
         var ph = document.createElement('div');
         ph.className = 'game-cover-ph';
