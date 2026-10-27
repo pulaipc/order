@@ -100,9 +100,10 @@ a[role="button"],
 .rating-pill.mid  { color: #ffce54; background: rgba(255, 193, 7, 0.12); border: 1px solid rgba(255, 193, 7, 0.45); }
 .rating-pill.bad  { color: #ff7b72; background: rgba(229, 72, 77, 0.14); border: 1px solid rgba(229, 72, 77, 0.45); }
 
-.game-detail { grid-column: 1 / -1; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; cursor: default; }
+.game-detail { position: relative; grid-column: 1 / -1; background: #1f190e; border: 1px solid #3a3018; border-radius: 8px; padding: 12px 14px; cursor: default; }
 .game-detail.float { position: absolute; left: 0; right: 0; z-index: 30; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55); }
-.game-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+/* padding-right keeps the head clear of the close X */
+.game-detail-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; padding-right: 34px; }
 .game-detail-meta { color: #8a8272; font-size: 12.5px; }
 .game-detail-desc { color: #cfc7b4; font-size: 13px; line-height: 1.55; margin: 0; white-space: pre-line; }
 .game-detail-desc.clamped { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
@@ -115,3 +116,10 @@ a[role="button"],
 .member-chip img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #2a2312; }
 .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .member-chip .rating-pill { margin-left: auto; }
+
+/* Close (X) on the detail panel — the obvious way to put the popup away on a
+   phone. The ::before is an invisible hit-area extension: the visual circle
+   stays small, the tap area reaches ~44px. */
+.game-detail-x { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255, 192, 0, 0.4); background: rgba(20, 17, 10, 0.78); color: #ffc000; font-size: 16px; font-weight: 700; font-family: inherit; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 1; }
+.game-detail-x::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
+.game-detail-x:hover { background: rgba(255, 192, 0, 0.3); }

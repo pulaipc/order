@@ -266,6 +266,21 @@ function buildDetailPanel(g) {
         g.titles.forEach(m => chips.appendChild(buildMemberChip(m)));
         panel.appendChild(chips);
     }
+
+    // Close (X) affordance on the panel itself: re-tapping the small info
+    // button is awkward on a phone. The panel's parent is the same host the
+    // opener used, so closing needs no page-specific wiring.
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'game-detail-x';
+    close.setAttribute('aria-label', 'Close');
+    close.title = 'Close';
+    close.textContent = '\u00d7';
+    close.addEventListener('click', function (ev) {
+        ev.stopPropagation();
+        closeGameDetail(panel.parentElement);
+    });
+    panel.appendChild(close);
     return panel;
 }
 
