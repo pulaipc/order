@@ -1655,6 +1655,20 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         scheduleGamesRerender();
     }
 
+    function sortGames(list, mode) {
+        const counts = state.gameOrderCounts || {};
+        const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'accent', numeric: true });
+        if (mode === 'za') return list.sort((a, b) => byName(b, a));
+        if (mode === 'popular') {
+            return list.sort((a, b) => ((counts[b.name] || 0) - (counts[a.name] || 0)) || byName(a, b));
+        }
+        if (mode === 'rating') {
+            const score = g => { const d = gameDataFor(g); return (d && d.m !== undefined) ? d.m : -1; };
+            return list.sort((a, b) => (score(b) - score(a)) || byName(a, b));
+        }
+        return list.sort(byName);
+    }
+
     function filterGames() {
         const input = $('searchInput');
         if (!input) return;
@@ -1662,12 +1676,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         $('clearSearchBtn').style.display = query.length > 0 ? 'block' : 'none';
         const source = typeof games !== 'undefined' ? games : [];
         const filtered = source.filter(g => g.name.toLowerCase().includes(query));
-        filtered.sort((a, b) => {
-            const aSel = state.selectedGames.has(a.name) ? 1 : 0;
-            const bSel = state.selectedGames.has(b.name) ? 1 : 0;
-            if (aSel !== bSel) return bSel - aSel;
-            return a.name.localeCompare(b.name);
-        });
+        const sortMode = $('sortGames') ? $('sortGames').value : 'az';
+        sortGames(filtered, sortMode);
         renderGames(filtered);
     }
 

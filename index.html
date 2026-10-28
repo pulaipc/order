@@ -390,6 +390,10 @@
         .view-toggle-btn + .view-toggle-btn { border-left: 1px solid #3a3018; }
         .view-toggle-btn.active { background: rgba(255, 192, 0, 0.14); color: #ffc000; }
 
+        /* Sort dropdown next to the view toggle (same look as games.html's lib-sort). */
+        .sort-select { flex: 0 1 150px; min-width: 0; padding: 12px 10px; font-size: 14px; border-radius: 6px; border: 1px solid #3a3018; background: #1f190e; color: #f0e9d8; box-sizing: border-box; outline: none; font-family: inherit; cursor: pointer; }
+        .sort-select:focus { border-color: #ffc000; }
+
         /* Cover grid mode */
         .game-list.grid-view { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; }
         .game-list.grid-view .hidden-games-notice { grid-column: 1 / -1; }
@@ -808,6 +812,12 @@
                             <button type="button" id="viewGridBtn" class="view-toggle-btn" onclick="setGameViewMode('grid')" title="Cover grid view" aria-label="Cover grid view">&#9638;</button>
                             <button type="button" id="viewListBtn" class="view-toggle-btn" onclick="setGameViewMode('list')" title="Compact list view" aria-label="Compact list view">&#9776;</button>
                         </div>
+                        <select id="sortGames" class="sort-select" aria-label="Sort games" onchange="filterGames()">
+                            <option value="az" selected>A &rarr; Z</option>
+                            <option value="za">Z &rarr; A</option>
+                            <option value="popular">Most ordered</option>
+                            <option value="rating">Top rated</option>
+                        </select>
                     </div>
                     <span class="field-hint" style="margin-left: 2px;">Type game title or keyword to filter the game list</span>
                 </div>
