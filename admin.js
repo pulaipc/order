@@ -1230,7 +1230,6 @@
         android: false,
         linux: false,
         freeStorage: 0,
-        manualGameCount: null,
         games: [],
         repairs: {},
         lastRepairModel: ''
@@ -1301,7 +1300,6 @@
         orderEdit.android = !!order.android_mode;
         orderEdit.linux = !!order.linux_mode;
         orderEdit.freeStorage = Number(order.free_storage_gb) || 0;
-        orderEdit.manualGameCount = order.manual_game_count || null;
         orderEdit.games = gameListOf(order);
         // Left in the customer's own order: the first game they picked is the
         // one they want copied first, so the editor must not reshuffle them.
@@ -1316,8 +1314,6 @@
         el('oeAndroid').checked = orderEdit.android;
         el('oeLinux').checked = orderEdit.linux;
         el('oeFreeStorage').value = orderEdit.freeStorage > 0 ? String(orderEdit.freeStorage) : '';
-        el('oeManualGameCount').value = orderEdit.manualGameCount ? String(orderEdit.manualGameCount) : '';
-        el('oeManualGameCountHint').textContent = orderEdit.manualGameCount ? 'Manual override set' : 'Auto: based on game folders';
         el('oeGameSearch').value = '';
         el('oeStatus').className = 'oe-status';
         el('oeStatus').textContent = '';
@@ -1353,7 +1349,6 @@
         el('orderReadOnlyService').style.display = '';
         el('modalEditOrderBtn').style.display = '';
         orderEdit.orderId = null;
-        orderEdit.manualGameCount = null;
     }
 
     function cancelOrderEdit() {
@@ -1497,14 +1492,9 @@
     function renderEditSelectedGames() {
         var box = el('oeSelectedGames');
         var totalGb = editGameFootprint();
-        var realCount = orderEdit.manualGameCount && orderEdit.manualGameCount > 0
-            ? orderEdit.manualGameCount
-            : gameCountTotal(orderEdit.games);
-        var countLabel = orderEdit.manualGameCount && orderEdit.manualGameCount > 0
-            ? realCount + ' (manual)'
-            : realCount;
+        var realCount = gameCountTotal(orderEdit.games);
         el('oeSelectedGamesHead').innerHTML =
-            'On this order (' + countLabel + ' &middot; ' + totalGb.toFixed(1) + ' GB' + installBufferNote() + ')';
+            'On this order (' + realCount + ' &middot; ' + totalGb.toFixed(1) + ' GB' + installBufferNote() + ')';
 
         if (realCount === 0) {
             box.innerHTML = '<div class="oe-opt-empty">No games on this order.</div>';
@@ -1612,12 +1602,7 @@
             android_mode: jb ? orderEdit.android : false,
             linux_mode: jb ? orderEdit.linux : false,
             games: names,
-            total_games: orderEdit.manualGameCount && orderEdit.manualGameCount > 0
-                ? orderEdit.manualGameCount
-                : gameCountTotal(names),
-            manual_game_count: orderEdit.manualGameCount && orderEdit.manualGameCount > 0
-                ? orderEdit.manualGameCount
-                : null,
+            total_games: gameCountTotal(names),
             total_size_gb: Math.round(editGameTotalGb() * 100) / 100,
             repairs: repairSnapshot(Object.keys(orderEdit.repairs).map(function (k) { return orderEdit.repairs[k]; }))
         };
@@ -1728,7 +1713,6 @@
             linux_mode: pseudo.linux_mode,
             games: pseudo.games,
             total_games: pseudo.total_games,
-            manual_game_count: pseudo.manual_game_count,
             total_size_gb: pseudo.total_size_gb,
             repairs: pseudo.repairs,
             price_subtotal: detail.subtotal,
