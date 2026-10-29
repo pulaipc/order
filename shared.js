@@ -357,17 +357,30 @@ function toggleGameDetailFloat(card, g) {
 
 /**
  * An order stops being customer-editable once it leaves "Order Received".
- * The shop can still edit it from admin.html; this only governs the customer link.
+ * The shop can still edit it from admin.html; this only governs the customer
+ * link.
+ *
+ * Exception: the admin panel's per-order "Customer edits" toggle
+ * (orders.customer_edit_unlocked) re-opens the edit window at any stage, so
+ * the shop never has to move an order backwards through the stages just to
+ * let a customer swap a game. Cancel is deliberately NOT relaxed by it —
+ * see isOrderCancellable().
  */
 function isOrderLocked(order) {
+    if (order && order.customer_edit_unlocked && order.status !== 'Cancelled') return false;
     const stage = (order && order.progress_stage) || 'Order Received';
     return stage !== 'Order Received';
 }
 
-/** Can the customer still cancel from their own link? */
+/**
+ * Can the customer still cancel from their own link? Stage-gated only: the
+ * "customer edits" unlock must never hand someone a cancel button on an
+ * order the shop has already confirmed.
+ */
 function isOrderCancellable(order) {
     if (!order || order.status === 'Cancelled') return false;
-    return !isOrderLocked(order);
+    const stage = (order && order.progress_stage) || 'Order Received';
+    return stage === 'Order Received';
 }
 
 /** The two services that involve a console model, an SD card and the mode add-ons. */

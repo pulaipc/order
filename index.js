@@ -576,6 +576,12 @@
             html += '<button class="summary-btn secondary" onclick="resetFormForNewOrder()">&#10024; Start New Order</button>';
             html += '</div>';
         } else {
+            if (stage !== 'Order Received') {
+                // Editing can only be happening because the shop opened the
+                // window from the admin panel; say so, or the unlocked form
+                // reads like a bug to the customer.
+                html += '<div class="unlocked-notice"><span class="locked-notice-icon">&#9998;</span><div><strong>Editing is open on this order.</strong><br>We\'ve unlocked it for you &mdash; tap Edit Order to change games, services or repairs. It locks again once we\'ve received your changes.</div></div>';
+            }
             html += privateLinkBlockHtml();
             html += '<div class="summary-actions">';
             html += '<button class="summary-btn primary" onclick="switchToEditForm()">Edit Order</button>';

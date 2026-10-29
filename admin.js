@@ -725,6 +725,7 @@
                         '<button class="order-copy-btn" data-order-id="' + orderId + '" title="Copy order number">Copy #</button>' +
                                                 '<span class="stage-pill ' + stagePillClass + '">' + (stageIcon ? stageIcon + ' ' : '') + escapeHtml(stage) + '</span>' +
                                                 (isQueued ? '<span class="stage-pill Queued">In queue</span>' : '') +
+                                                (order.customer_edit_unlocked ? '<span class="stage-pill EditsOpen" title="Customer editing is open on this order">&#9998; Edits open</span>' : '') +
                     '</div>' +
                     '<div class="order-meta">' + metaLine + '</div>' +
                     '<div class="order-summary-line">' + summaryLine + '</div>' +
@@ -1829,6 +1830,9 @@
         var lastUpdated = order.progress_updated_at || order.updated_at || order.created_at;
         document.getElementById('modalUpdatedVal').innerText = lastUpdated ? new Date(lastUpdated).toLocaleString() : 'N/A';
 
+        // Per-order "customer edits" unlock (see updateCustomerEditsControl).
+        updateCustomerEditsControl(order);
+
         document.getElementById('modalEditWaBtn').onclick = function() { editWhatsappUsername(orderId); };
         document.getElementById('modalEditRemarksBtn').onclick = function() { openRemarksModal(orderId); };
 
@@ -1859,6 +1863,66 @@
 
         document.getElementById('orderModalOverlay').style.display = 'flex';
         lockBodyScroll();
+    }
+
+    /**
+     * Reflect the per-order "customer edits" flag into the modal toggle.
+     *
+     * The flag (orders.customer_edit_unlocked) re-opens the customer's edit
+     * window at any stage — shared.js's isOrderLocked() returns false while it
+     * is set — so a confirmed order can be changed without dragging its stage
+     * back to Order Received. The shop is expected to close the toggle again
+     * once the customer is done, which is why the list carries an "Edits open"
+     * pill for as long as it is on.
+     *
+     * Cancelled orders hide the row entirely: save_order refuses them no
+     * matter what the toggle says.
+     */
+    function updateCustomerEditsControl(order) {
+        var row = document.getElementById('modalCustomerEditsRow');
+        var input = document.getElementById('modalCustomerEdits');
+        var hint = document.getElementById('modalCustomerEditsHint');
+        if (!row || !input) return;
+        if (order.status === 'Cancelled') { row.style.display = 'none'; return; }
+        row.style.display = '';
+        var unlocked = !!order.customer_edit_unlocked;
+        var stage = order.progress_stage || 'Order Received';
+        input.checked = unlocked;
+        if (hint) {
+            if (unlocked) {
+                hint.innerHTML = '<span style="color:#00e676;font-weight:600;">Open &mdash; customer can edit now</span>';
+            } else if (stage === 'Order Received') {
+                hint.textContent = 'Open by default at Order Received';
+            } else {
+                hint.textContent = 'Locked';
+            }
+        }
+    }
+
+    /**
+     * The toggle's change handler. Writes the flag with the same direct row
+     * update the stage controls use, and re-renders the list so the "Edits
+     * open" pill appears or disappears immediately.
+     */
+    async function onCustomerEditsToggle(input) {
+        var order = findOrder(currentModalOrderId);
+        if (!order) { input.checked = !input.checked; return; }
+        var want = !!input.checked;
+        input.disabled = true;
+        var nowIso = new Date().toISOString();
+        var payload = { customer_edit_unlocked: want, updated_at: nowIso };
+        var idField = order.id ? 'id' : 'order_id';
+        var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id);
+        input.disabled = false;
+        if (res.error) {
+            input.checked = !want;
+            alert('Failed to update: ' + res.error.message);
+            return;
+        }
+        order.customer_edit_unlocked = want;
+        order.updated_at = nowIso;
+        updateCustomerEditsControl(order);
+        filterAndRenderOrders();
     }
 
     function closeOrderModal() {

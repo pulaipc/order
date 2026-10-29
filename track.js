@@ -603,6 +603,9 @@
      *   Edit Order - the same page with ?edit=1, which drops the customer
      *                straight into the form. Hidden once locked, because the order
      *                page would then only show the locked notice pointing at WhatsApp.
+     *                The admin panel can re-open the window at any stage via the
+     *                per-order "Customer edits" toggle; cancel stays stage-gated
+     *                regardless.
      *   notice     - spells out that the edit window closes once confirmed, so
      *                "No action needed yet" is not read as "nothing you can do".
      *   cancel     - self-service cancellation, on the tracker as well as the
@@ -612,10 +615,12 @@
     function updateOrderAccess(order) {
         const token = order && order.public_token;
         const locked = isOrderLocked(order);
+        const cancellable = isOrderCancellable(order);
         const viewBtn = $('viewOrderBtn');
         const editBtn = $('editOrderBtn');
         const notice = $('editWindowNotice');
         const noticeLink = $('editWindowLink');
+        const noticeText = $('editWindowText');
         const cancelWrap = $('cancelOrderWrap');
 
         if (!token) {
@@ -639,11 +644,21 @@
             return;
         }
 
+        // Editable: either the default Order Received window, or one the shop
+        // opened from the admin panel on an order that has moved on. The two
+        // cases get different copy so a confirmed order is not told it still
+        // "sits at" stage one.
+        const stage = order.progress_stage || 'Order Received';
+        if (noticeText) {
+            noticeText.innerHTML = stage === 'Order Received'
+                ? 'You can still change this order while it sits at <strong>Order Received</strong> &mdash; games, repairs, anything. Once we confirm the details with you it locks, and changes go through WhatsApp instead.'
+                : 'We\'ve opened editing for this order at your request &mdash; change games, repairs, anything. The window closes again once we\'ve got your changes.';
+        }
         editBtn.href = base + '&edit=1';
         editBtn.style.display = '';
         noticeLink.href = base + '&edit=1';
         notice.style.display = '';
-        cancelWrap.style.display = '';
+        cancelWrap.style.display = cancellable ? '' : 'none';
     }
 
     /**
