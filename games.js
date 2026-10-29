@@ -78,13 +78,7 @@ function buildCoverTile(g) {
         img.loading = 'lazy';
         img.decoding = 'async';
         img.alt = g.name;
-        let srcIndex = 0;
-        img.src = sources[0];
-        img.onerror = function () {
-            srcIndex++;
-            if (srcIndex >= sources.length) { this.remove(); return; }
-            this.src = sources[srcIndex];
-        };
+        coverChain(img, sources);
         cover.appendChild(img);
     }
     if (libState.hot.has(g.name)) {

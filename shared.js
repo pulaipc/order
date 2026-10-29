@@ -150,6 +150,21 @@ function gameCoverSourcesFor(g) {
     return sources;
 }
 
+/** Wire an <img> to a list of cover URLs, best first: each failed load
+ *  advances to the next source; when the last one fails too the image
+ *  removes itself, leaving whatever placeholder the caller put underneath.
+ *  Member chips use this so a dead Nlib entry falls through to tinfoil
+ *  instead of silently losing its art. */
+function coverChain(img, sources) {
+    let srcIndex = 0;
+    img.src = sources[0];
+    img.onerror = function () {
+        srcIndex++;
+        if (srcIndex >= sources.length) { this.remove(); return; }
+        this.src = sources[srcIndex];
+    };
+}
+
 /* ==========================================================================
    Game detail panel — shared by games.html (library) and index.html (game
    selection). A tap expands a panel with the critic-score pill, publisher ·
@@ -187,8 +202,10 @@ function buildMemberChip(m) {
         img.loading = 'lazy';
         img.decoding = 'async';
         img.alt = '';
-        img.src = coverSourcesFor(m.tid)[0];
-        img.onerror = function () { this.remove(); };
+        const md = (typeof gameData !== 'undefined') ? gameData[String(m.tid).toLowerCase()] : null;
+        let sources = coverSourcesFor(m.tid);
+        if (md && md.i) sources = [md.i].concat(sources);
+        coverChain(img, sources);
         chip.appendChild(img);
     }
     const name = document.createElement('span');

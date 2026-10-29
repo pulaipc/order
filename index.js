@@ -1406,13 +1406,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             img.loading = 'lazy';
             img.decoding = 'async';
             img.alt = g.name;
-            var srcIndex = 0;
-            img.src = sources[0];
-            img.onerror = function () {
-                srcIndex++;
-                if (srcIndex >= sources.length) { this.remove(); return; }
-                this.src = sources[srcIndex];
-            };
+            coverChain(img, sources);
             cover.appendChild(img);
         }
         // Cover chip uses its own class (absolute, above the image) — the
