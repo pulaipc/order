@@ -163,7 +163,7 @@ Set-Location $scriptDir
 
 $currentDate = Get-Date -Format "yyyy-MM-dd HH:mm"
 
-git add gameslist.js gamedata.js
+git add gameslist.js gamedata.js version.json
 git commit -m "Auto-update game list: $currentDate"
 git push origin main
 
