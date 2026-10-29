@@ -2501,10 +2501,11 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 });
                 if (res.error) throw res.error;
                 if (!res.data) {
-                    // save_order returns null both for an unknown link and for an
-                    // order that has already been cancelled. We cannot tell the
-                    // two apart from here, so the message must not pick one.
-                    alert('This order can no longer be changed here, so nothing was saved.\n\nThat happens if the order was cancelled, or if the link is no longer valid.\n\nPlease message us on WhatsApp and we will help.');
+                    // save_order returns null for an unknown link, for an order
+                    // that has already been cancelled, and (since the server
+                    // gained the stage check) for an order whose edit window
+                    // closed. The message must not pick one.
+                    alert('This order can no longer be changed here, so nothing was saved.\n\nThat happens if the order was cancelled, if the edit window has closed, or if the link is no longer valid.\n\nPlease message us on WhatsApp and we will help.');
                     return;
                 }
                 // Re-render from what the database actually stored, not from what
