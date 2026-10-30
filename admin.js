@@ -260,6 +260,58 @@
         await loadRepairServices(supabaseClient);
         await loadRepairsAdmin();
         loadOrders();
+        setupRealtimeToasts();
+    }
+
+    // Track orders we edit ourselves so we don't toast on our own changes
+    var lastAdminEdit = { orderId: null, ts: 0 };
+
+    /** Show a toast notification in the bottom-right corner. */
+    function showToast(title, message, type) {
+        var container = document.getElementById('toastContainer');
+        if (!container) return;
+        var toast = document.createElement('div');
+        toast.className = 'toast ' + (type || 'info');
+        var iconMap = { success: '&#10003;', info: '&#9432;', warning: '&#9888;' };
+        toast.innerHTML =
+            '<span class="icon">' + (iconMap[type] || iconMap.info) + '</span>' +
+            '<div class="content">' +
+                '<div class="title ' + type + '">' + escapeHtml(title) + '</div>' +
+                '<div class="msg">' + escapeHtml(message) + '</div>' +
+            '</div>' +
+            '<button class="close" aria-label="Dismiss" onclick="this.parentElement.remove()">&#10005;</button>';
+        container.appendChild(toast);
+        setTimeout(function() { if (toast.parentElement) toast.remove(); }, 8000);
+    }
+
+    /** Subscribe to orders table changes and toast on customer edits / new orders. */
+    function setupRealtimeToasts() {
+        if (typeof supabaseClient === 'undefined' || !supabaseClient.channel) return;
+        var channel = supabaseClient.channel('admin-toasts');
+        channel.on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'orders' }, function(payload) {
+            var o = payload.new;
+            if (!o) return;
+            var phone = o.phone_ending ? '...' + o.phone_ending : 'unknown';
+            var svc = (o.service_type || '').replace(/_/g, ' ');
+            showToast('New order #' + phone, svc + ' · ' + (o.games && o.games.length ? o.games.length + ' game(s)' : 'no games yet'), 'success');
+        }).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, function(payload) {
+            var o = payload.new;
+            if (!o) return;
+            // Ignore our own admin edits (within 3 seconds of us saving)
+            var now = Date.now();
+            if (lastAdminEdit.orderId === (o.id || o.order_id) && now - lastAdminEdit.ts < 3000) return;
+            // Only toast if customer_edit_unlocked was true (customer could edit)
+            if (!o.customer_edit_unlocked) return;
+            // Check if something meaningful changed (games, repairs, service, etc.)
+            var old = payload.old || {};
+            var changed = false;
+            ['games', 'repairs', 'service_type', 'console_model', 'sd_source', 'sd_card_size', 'free_storage_gb', 'android_mode', 'linux_mode', 'remarks'].forEach(function(k) {
+                if (JSON.stringify(o[k]) !== JSON.stringify(old[k])) changed = true;
+            });
+            if (!changed) return;
+            var phone = o.phone_ending ? '...' + o.phone_ending : 'unknown';
+            showToast('Order #' + phone + ' updated by customer', 'Changes received while edit window was open', 'info');
+        }).subscribe();
     }
 
     function loadOrders() {
@@ -518,6 +570,7 @@
         var idField = order.id ? 'id' : 'order_id';
         var res = await supabaseClient.from('orders').update(payload).eq(idField, order.id || order.order_id);
         if (res.error) { alert('Failed to update: ' + res.error.message); return; }
+        lastAdminEdit = { orderId: order.id || order.order_id, ts: Date.now() };
 
         order.checklist_state = newTicked;
         order.progress_stage = newStage;
@@ -1192,6 +1245,7 @@
                 setAdjustStatus('Failed: ' + res.error.message, 'err');
                 return;
             }
+            lastAdminEdit = { orderId: orderId, ts: Date.now() };
             var local = findOrder(orderId);
             if (local) {
                 local.price_subtotal = subtotal;
@@ -1731,6 +1785,7 @@
                 status.textContent = 'Failed: ' + res.error.message;
                 return;
             }
+            lastAdminEdit = { orderId: order.id || order.order_id, ts: Date.now() };
             // Keep the in-memory order in step, then re-render the whole modal from
             // it so the read-only rows, games, repairs and adjustments all agree.
             Object.keys(payload).forEach(function (k) { order[k] = payload[k]; });
@@ -1919,6 +1974,7 @@
             alert('Failed to update: ' + res.error.message);
             return;
         }
+        lastAdminEdit = { orderId: order.id || order.order_id, ts: Date.now() };
         order.customer_edit_unlocked = want;
         order.updated_at = nowIso;
         updateCustomerEditsControl(order);
@@ -2352,6 +2408,7 @@
                 var idField = order.id ? 'id' : 'order_id';
                 supabaseClient.from('orders').update({ whatsapp_username: trimmed }).eq(idField, orderId).then(function(res) {
                 if (res.error) { alert('Failed: ' + res.error.message); return; }
+                lastAdminEdit = { orderId: orderId, ts: Date.now() };
                 order.whatsapp_username = trimmed;
                 var modalId = currentModalOrder ? (currentModalOrder.id || currentModalOrder.order_id) : null;
                 if (modalId && String(modalId) === String(orderId)) {
@@ -2396,6 +2453,7 @@
         supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, currentRemarksOrderId).then(function(res) {
             btn.disabled = false; btn.innerText = 'Save Remarks';
             if (res.error) { alert('Failed: ' + res.error.message); return; }
+            lastAdminEdit = { orderId: currentRemarksOrderId, ts: Date.now() };
             order.remarks = newRemarks;
             closeRemarksModal();
             filterAndRenderOrders();
