@@ -599,7 +599,7 @@ function prefixRating(n, indexes) {
     // 3) Merge into gamedata.
     const gameData = {};
     const gameDataByName = {};
-    let withDesc = 0, withYear = 0, withRating = 0, mcCount = 0, ocCount = 0, memberRatings = 0, manualHits = 0, nameResolved = 0;
+    let withDesc = 0, withYear = 0, withRating = 0, catalogRated = 0, mcCount = 0, ocCount = 0, memberRatings = 0, manualHits = 0, nameResolved = 0;
     const noRating = [];
     for (const g of catalog) {
         const tid = (g.titleId || '').toLowerCase();
@@ -677,6 +677,9 @@ function prefixRating(n, indexes) {
             if (out.tid) nameResolved++;
         }
 
+        // Track how many catalog games end up with a rating (for the stamp).
+        if (out.m !== undefined) catalogRated++;
+
         // Pack members get their own score badge on the pack panel, so match
         // each member by name too. Keyed by the member's title ID; an entry
         // that doubles as a catalog game keeps its description and just gains
@@ -696,10 +699,22 @@ function prefixRating(n, indexes) {
         }
     }
 
+    // After member badges are merged, recompute how many catalog games have ratings.
+    catalogRated = 0;
+    for (const g of catalog) {
+        const tid = (g.titleId || '').toLowerCase();
+        let hasRating = false;
+        if (tid && gameData[tid] && gameData[tid].m !== undefined) hasRating = true;
+        else if (gameDataByName[g.name] && gameDataByName[g.name].m !== undefined) hasRating = true;
+        if (hasRating) catalogRated++;
+    }
+
+    const ratedTotal = catalogRated;
+
     const buildStamp = {
         built: new Date().toISOString(),
         catalog: catalog.length,
-        rated: withRating,
+        rated: ratedTotal,
         gamesSync: catalogSync
     };
 
@@ -725,7 +740,8 @@ function prefixRating(n, indexes) {
         ' [Metacritic ' + mcCount + ', OpenCritic ' + ocCount + '], member badges ' + memberRatings +
         ', manual overrides ' + manualHits + ', ids recovered by name ' + nameResolved + ')');
     console.log('build stamp: built ' + buildStamp.built + ', catalog ' + buildStamp.catalog +
-        ', rated ' + buildStamp.rated + ', gamesSync ' + (buildStamp.gamesSync || 'none') +
+        ', rated ' + buildStamp.rated + ' (by-tid ' + withRating + ' + member ' + memberRatings + ' = catalog ' + catalogRated + ')' +
+        ', gamesSync ' + (buildStamp.gamesSync || 'none') +
         ' — also written to version.json');
     if (noRating.length) {
         console.log('no rating matched for ' + noRating.length + ' games, e.g.: ' +
