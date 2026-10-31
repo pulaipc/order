@@ -2034,19 +2034,28 @@
     function loadInstalledTicks(order) {
         var id = tickStoreId(order);
         if (id === null) return {};
+        // Try localStorage first (instant, works offline)
         try {
             var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
             var all = raw ? JSON.parse(raw) : {};
             var mine = all[String(id)];
-            return (mine && typeof mine === 'object') ? mine : {};
-        } catch (e) {
-            return {};
-        }
+            if (mine && typeof mine === 'object') return mine;
+        } catch (e) { }
+        // Fallback to database (async - caller must handle promise)
+        return loadInstalledTicksFromDb(id);
+    }
+
+    function loadInstalledTicksFromDb(orderId) {
+        if (typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return Promise.resolve({});
+        return supabaseClient.rpc('get_installed_ticks', { p_order_id: orderId })
+            .then(function(res) { return (res.data && typeof res.data === 'object') ? res.data : {}; })
+            .catch(function() { return {}; });
     }
 
     function saveInstalledTicks(order, ticks) {
         var id = tickStoreId(order);
         if (id === null) return;
+        // Save to localStorage immediately for instant UI feedback
         try {
             var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
             var all = raw ? JSON.parse(raw) : {};
@@ -2058,6 +2067,20 @@
             }
             window.localStorage.setItem(INSTALLED_TICK_KEY, JSON.stringify(all));
         } catch (e) { }
+        // Also persist to database (async, non-blocking)
+        saveInstalledTicksToDb(id, ticks);
+    }
+
+    function saveInstalledTicksToDb(orderId, ticks) {
+        if (typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return;
+        // Convert to normalized keys for DB (matching track.js installNormKey)
+        var normTicks = {};
+        Object.keys(ticks).forEach(function(name) {
+            var norm = installNormKey(name);
+            if (norm) normTicks[norm] = ticks[name];
+        });
+        supabaseClient.rpc('set_installed_ticks', { p_order_id: orderId, p_ticks: normTicks })
+            .catch(function(err) { console.warn('Failed to save installed ticks to DB:', err); });
     }
 
     function setGameTick(order, gameName, done) {
@@ -2093,6 +2116,8 @@
     function pendingGameList(order) {
         var gameList = gameListOf(order);
         var ticks = loadInstalledTicks(order);
+        // If async fallback, fall back to empty (localStorage should have it during install)
+        if (ticks && typeof ticks.then === 'function') return gameList;
         return gameList.filter(function(name) { return !ticks[name]; });
     }
 
@@ -2103,58 +2128,68 @@
         var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
-        var ticks = loadInstalledTicks(order);
 
-        var countEl = document.getElementById('modalGameCount');
-        if (countEl) countEl.textContent = '(' + gameList.length + ')';
-        var doneCount = gameList.filter(function(n) { return ticks[n]; }).length;
-        var remainingEl = document.getElementById('modalGameRemaining');
-        if (remainingEl) {
-            remainingEl.textContent = doneCount > 0
-                ? doneCount + ' ticked, ' + (gameList.length - doneCount) + ' to copy'
-                : '';
+        // loadInstalledTicks returns object (localStorage) or Promise (DB fallback)
+        var ticksOrPromise = loadInstalledTicks(order);
+
+        function doRender(ticks) {
+            var countEl = document.getElementById('modalGameCount');
+            if (countEl) countEl.textContent = '(' + gameList.length + ')';
+            var doneCount = gameList.filter(function(n) { return ticks[n]; }).length;
+            var remainingEl = document.getElementById('modalGameRemaining');
+            if (remainingEl) {
+                remainingEl.textContent = doneCount > 0
+                    ? doneCount + ' ticked, ' + (gameList.length - doneCount) + ' to copy'
+                    : '';
+            }
+            var clearBtn = document.getElementById('modalClearTicksBtn');
+            if (clearBtn) clearBtn.style.display = doneCount > 0 ? 'inline-flex' : 'none';
+
+            grid.innerHTML = '';
+            if (gameList.length === 0) {
+                grid.innerHTML = '<div style="color:#6a6357; padding:10px; font-style:italic;">No games selected.</div>';
+                return;
+            }
+            gameList.forEach(function(name, idx) {
+                var item = document.createElement('div');
+                item.className = 'modal-game-item';
+                var isDone = !!ticks[name];
+                if (isDone) item.classList.add('is-done');
+                var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
+                // Multi-game pack badge (from catalog's fileCount)
+                var cat = sourceGames.find(function(g) { return g.name === name; });
+                var badgeHtml = (cat && cat.fileCount && cat.fileCount > 1)
+                    ? '<span class="game-count-badge">' + cat.fileCount + ' Games</span>'
+                    : '';
+
+                var left = document.createElement('span');
+                left.className = 'modal-game-left';
+                left.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + badgeHtml + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
+
+                // Tick control: "already installed on the Switch".
+                var label = document.createElement('label');
+                label.className = 'modal-game-done';
+                label.title = 'Already on the Switch - skip this one';
+                var box = document.createElement('input');
+                box.type = 'checkbox';
+                box.checked = isDone;
+                box.addEventListener('change', function() { setGameTick(order, name, box.checked); });
+                var boxText = document.createElement('span');
+                boxText.textContent = 'Installed';
+                label.appendChild(box);
+                label.appendChild(boxText);
+
+                item.appendChild(left);
+                item.appendChild(label);
+                grid.appendChild(item);
+            });
         }
-        var clearBtn = document.getElementById('modalClearTicksBtn');
-        if (clearBtn) clearBtn.style.display = doneCount > 0 ? 'inline-flex' : 'none';
 
-        grid.innerHTML = '';
-        if (gameList.length === 0) {
-            grid.innerHTML = '<div style="color:#6a6357; padding:10px; font-style:italic;">No games selected.</div>';
-            return;
+        if (ticksOrPromise && typeof ticksOrPromise.then === 'function') {
+            ticksOrPromise.then(doRender);
+        } else {
+            doRender(ticksOrPromise || {});
         }
-        gameList.forEach(function(name, idx) {
-            var item = document.createElement('div');
-            item.className = 'modal-game-item';
-            var isDone = !!ticks[name];
-            if (isDone) item.classList.add('is-done');
-            var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
-            // Multi-game pack badge (from catalog's fileCount)
-            var cat = sourceGames.find(function(g) { return g.name === name; });
-            var badgeHtml = (cat && cat.fileCount && cat.fileCount > 1)
-                ? '<span class="game-count-badge">' + cat.fileCount + ' Games</span>'
-                : '';
-
-            var left = document.createElement('span');
-            left.className = 'modal-game-left';
-            left.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + badgeHtml + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
-
-            // Tick control: "already installed on the Switch".
-            var label = document.createElement('label');
-            label.className = 'modal-game-done';
-            label.title = 'Already on the Switch - skip this one';
-            var box = document.createElement('input');
-            box.type = 'checkbox';
-            box.checked = isDone;
-            box.addEventListener('change', function() { setGameTick(order, name, box.checked); });
-            var boxText = document.createElement('span');
-            boxText.textContent = 'Installed';
-            label.appendChild(box);
-            label.appendChild(boxText);
-
-            item.appendChild(left);
-            item.appendChild(label);
-            grid.appendChild(item);
-        });
     }
 
     function renderModalShipping(order) {

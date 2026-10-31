@@ -713,6 +713,24 @@
     }
 
     function renderTracker(order) {
+        // Fetch installed ticks from DB for progress display (async, non-blocking)
+        if (currentToken && typeof supabaseClient !== 'undefined' && supabaseClient.rpc) {
+            supabaseClient.rpc('get_installed_ticks', { p_order_id: Number(order.id) })
+                .then(function(res) {
+                    if (res.data && typeof res.data === 'object') {
+                        window.__installedTicks = res.data;
+                        // Re-render substages if we're on the Game Installation step
+                        const stagesList = getEffectiveSubStages(order);
+                        const currentSub = order.progress_substage || (stagesList[0] || null);
+                        if (currentSub === 'Game Installation') {
+                            updateGameInstallProgress(order, res.data);
+                        }
+                    }
+                })
+                .catch(function() { window.__installedTicks = {}; });
+        } else {
+            window.__installedTicks = {};
+        }
         // A phone lookup never carries a token, and a status-only record has no
         // games, price or repairs in it. Counting what is missing would print
         // "0 games" for an order that has games, so the counts are left out and
@@ -936,5 +954,58 @@
         if (day < 30) return `${day} day${day !== 1 ? 's' : ''} ago`;
         const mo = Math.floor(day / 30);
         return `${mo} month${mo !== 1 ? 's' : ''} ago`;
+    }
+
+    // --- Install progress helpers ---
+
+    /** Normalize a game name the same way installNormKey does in admin.js. */
+    function installNormKey(name) {
+        var s = String(name == null ? '' : name);
+        var bracket = s.indexOf('[');
+        if (bracket >= 0) s = s.substring(0, bracket);
+        s = s.replace(/['",.*?\u2018\u2019]/g, '');
+        s = s.replace(/[-_]/g, ' ');
+        while (s.indexOf('  ') >= 0) s = s.replace(/  /g, ' ');
+        return s.trim().toLowerCase();
+    }
+
+    /** Build a lookup map from normalized keys to original names in the order. */
+    function buildInstallKeyMap(order) {
+        var map = {};
+        var list = gameListOf(order);
+        list.forEach(function(name) {
+            map[installNormKey(name)] = name;
+        });
+        return map;
+    }
+
+    /** Update the Game Installation substage with install progress from DB ticks. */
+    function updateGameInstallProgress(order, ticks) {
+        if (!ticks || typeof ticks !== 'object') return;
+        var keyMap = buildInstallKeyMap(order);
+        var total = Object.keys(keyMap).length;
+        if (total === 0) return;
+
+        var installed = 0;
+        Object.keys(ticks).forEach(function(tickKey) {
+            var originalName = keyMap[tickKey];
+            if (originalName) installed++;
+        });
+
+        var percent = total > 0 ? Math.round((installed / total) * 100) : 0;
+
+        // Update the substage meta line for Game Installation
+        var metaEl = document.querySelector('.substage-meta');
+        if (metaEl && metaEl.textContent.includes('Installing')) {
+            metaEl.textContent = 'Installing ' + installed + ' of ' + total + ' games (' + percent + '%)';
+        }
+        // Also update simple view if present
+        var simpleMeta = document.querySelector('.substage-simple-content');
+        if (simpleMeta && simpleMeta.textContent.includes('Installing')) {
+            var lines = simpleMeta.innerHTML.split('<div');
+            if (lines.length > 1) {
+                simpleMeta.innerHTML = lines[0] + '<div style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">Installing ' + installed + ' of ' + total + ' games (' + percent + '%)</div>';
+            }
+        }
     }
     
