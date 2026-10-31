@@ -260,12 +260,13 @@
         await loadRepairServices(supabaseClient);
         await loadRepairsAdmin();
         loadOrders();
-        // Sync any localStorage ticks to DB on load (migrates pre-migration ticks)
-        syncAllTicksToDb();
+        // Merge every locally ticked order with its DB copy: adopts hand
+        // edits, flushes pending local ticks, heals any divergence.
+        reconcileStoredTicks();
         setupRealtimeToasts();
     }
 
-    function syncAllTicksToDb() {
+    function reconcileStoredTicks() {
         try {
             var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
             if (!raw) return;
@@ -2230,8 +2231,9 @@
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
 
-        // loadInstalledTicks returns object (localStorage) or Promise (DB fallback)
-        var ticksOrPromise = loadInstalledTicksLocal(order);
+        // This browser's copy renders instantly; the DB copy is merged in by
+        // the reconcile below (it may carry ticks added elsewhere or by hand).
+        var localTicks = loadInstalledTicksLocal(order);
 
         function doRender(ticks) {
             // Ticks may arrive keyed by DB-normalized names; fold them onto the
@@ -2292,7 +2294,7 @@
         // Render this browser's copy immediately, then reconcile with the
         // database (which may carry ticks added elsewhere or by hand) and
         // repaint the grid if the merged set differs.
-        doRender(foldTickKeys(order, ticksOrPromise || {}));
+        doRender(foldTickKeys(order, localTicks));
         reconcileOrderTicks(order, function (merged) {
             if (merged) doRender(foldTickKeys(order, merged));
         });

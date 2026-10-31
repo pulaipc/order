@@ -5,6 +5,9 @@
     let currentOrders = [];
     let currentOrder = null;
     let currentOrderId = null;
+    // The order's installed-game ticks as stored in the DB (normalized
+    // keys) — fetched once per render by fetchInstalledTicks().
+    let currentInstalledTicks = {};
     // Set only when the page was opened from a private link. A phone lookup can
     // never set it, because orders_by_phone does not return tokens.
     let currentToken = null;
@@ -713,24 +716,7 @@
     }
 
     function renderTracker(order) {
-        // Fetch installed ticks from DB for progress display (async, non-blocking)
-        if (currentToken && typeof supabaseClient !== 'undefined' && supabaseClient.rpc) {
-            supabaseClient.rpc('get_installed_ticks', { p_order_id: Number(order.id) })
-                .then(function(res) {
-                    if (res.data && typeof res.data === 'object') {
-                        window.__installedTicks = res.data;
-                        // Re-render substages if we're on the Game Installation step
-                        const stagesList = getEffectiveSubStages(order);
-                        const currentSub = order.progress_substage || (stagesList[0] || null);
-                        if (currentSub === 'Game Installation') {
-                            updateGameInstallProgress(order, res.data);
-                        }
-                    }
-                })
-                .catch(function() { window.__installedTicks = {}; });
-        } else {
-            window.__installedTicks = {};
-        }
+        fetchInstalledTicks(order);
         // A phone lookup never carries a token, and a status-only record has no
         // games, price or repairs in it. Counting what is missing would print
         // "0 games" for an order that has games, so the counts are left out and
@@ -885,9 +871,7 @@
 
                         let metaLine = '';
                         if (sub === 'Game Installation' && isCur && !isDone) {
-                            const gc = gameCountTotal(gameListOf(order));
-                            const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
-                            if (gc > 0) metaLine = `Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total`;
+                            metaLine = installProgressLine(order);
                         }
                         if ((sub === 'Repair' || sub === 'Device Repair') && isCur && !isDone && rCount > 0) {
                             metaLine = `Working on ${rCount} repair${rCount !== 1 ? 's' : ''}`;
@@ -910,10 +894,8 @@
                     const simple = document.createElement('div');
                     simple.className = 'substage-simple';
                     const desc = (APP_CONFIG.subStageDescriptions && APP_CONFIG.subStageDescriptions[stagesList[0]]) || 'Working on it...';
-                    const gc = gameCountTotal(gameListOf(order));
-                    const gs = order.total_size_gb ? Number(order.total_size_gb).toFixed(1) : '0';
                     let detail = '';
-                    if (gc > 0 && stagesList[0] === 'Game Installation') detail = `<div style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">Installing ${gc} game${gc !== 1 ? 's' : ''} · ${gs} GB total</div>`;
+                    if (stagesList[0] === 'Game Installation') detail = installProgressLine(order);
 
                     simple.innerHTML = `
                         <span class="spin-icon">&#8635;</span>
@@ -956,9 +938,9 @@
         return `${mo} month${mo !== 1 ? 's' : ''} ago`;
     }
 
-    // --- Install progress helpers ---
+    // --- Install progress (ticks fetched from the DB) ---
 
-    /** Normalize a game name the same way installNormKey does in admin.js. */
+    /** Normalize a game name the same way installNormKey does in admin.js. Keep in sync. */
     function installNormKey(name) {
         var s = String(name == null ? '' : name);
         var bracket = s.indexOf('[');
@@ -969,43 +951,62 @@
         return s.trim().toLowerCase();
     }
 
-    /** Build a lookup map from normalized keys to original names in the order. */
-    function buildInstallKeyMap(order) {
-        var map = {};
-        var list = gameListOf(order);
-        list.forEach(function(name) {
-            map[installNormKey(name)] = name;
+    /**
+     * How many of the order's picked games the current tick set marks
+     * installed. DB rows store normalized keys; exact names count too so a
+     * hand-edited ticks column always matches.
+     */
+    function countInstalled(order) {
+        const ticks = currentInstalledTicks;
+        let n = 0;
+        gameListOf(order).forEach(function (name) {
+            if (ticks[name] || ticks[installNormKey(name)]) n++;
         });
-        return map;
+        return n;
     }
 
-    /** Update the Game Installation substage with install progress from DB ticks. */
-    function updateGameInstallProgress(order, ticks) {
-        if (!ticks || typeof ticks !== 'object') return;
-        var keyMap = buildInstallKeyMap(order);
-        var total = Object.keys(keyMap).length;
-        if (total === 0) return;
-
-        var installed = 0;
-        Object.keys(ticks).forEach(function(tickKey) {
-            var originalName = keyMap[tickKey];
-            if (originalName) installed++;
-        });
-
-        var percent = total > 0 ? Math.round((installed / total) * 100) : 0;
-
-        // Update the substage meta line for Game Installation
-        var metaEl = document.querySelector('.substage-meta');
-        if (metaEl && metaEl.textContent.includes('Installing')) {
-            metaEl.textContent = 'Installing ' + installed + ' of ' + total + ' games (' + percent + '%)';
-        }
-        // Also update simple view if present
-        var simpleMeta = document.querySelector('.substage-simple-content');
-        if (simpleMeta && simpleMeta.textContent.includes('Installing')) {
-            var lines = simpleMeta.innerHTML.split('<div');
-            if (lines.length > 1) {
-                simpleMeta.innerHTML = lines[0] + '<div style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">Installing ' + installed + ' of ' + total + ' games (' + percent + '%)</div>';
-            }
-        }
+    /** "Installing 5 of 11 games (45%) · 82.2 GB total" */
+    function installProgressText(order) {
+        const list = gameListOf(order);
+        const done = countInstalled(order);
+        const total = list.length;
+        const percent = total ? Math.round((done / total) * 100) : 0;
+        let text = `Installing ${done} of ${total} games (${percent}%)`;
+        // The size total is flavor, not part of the percentage: the count that
+        // must add up (done + to-copy) is against the picked list, exactly as
+        // the admin modal counts it.
+        if (order.total_size_gb) text += ` · ${Number(order.total_size_gb).toFixed(1)} GB total`;
+        return text;
     }
+
+    /**
+     * The Game Installation detail line. The element carries
+     * #installProgressLine so the DB fetch can rewrite it in place when the
+     * ticks arrive, instead of matching rendered text.
+     */
+    function installProgressLine(order) {
+        if (!gameListOf(order).length) return '';
+        return `<div id="installProgressLine" style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">${installProgressText(order)}</div>`;
+    }
+
+    /** Rewrite the line once the tick fetch lands; no-op if it left the step. */
+    function updateGameInstallProgress(order) {
+        const el = document.getElementById('installProgressLine');
+        if (el) el.textContent = installProgressText(order);
+    }
+
+    /** One anon RPC per render keeps the customer's progress within a page load of reality. */
+    function fetchInstalledTicks(order) {
+        currentInstalledTicks = {};
+        if (!currentToken || typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return;
+        supabaseClient.rpc('get_installed_ticks', { p_order_id: Number(order.id) })
+            .then(function (res) {
+                currentInstalledTicks = (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) ? res.data : {};
+                const stagesList = getEffectiveSubStages(order);
+                const currentSub = order.progress_substage || (stagesList[0] || null);
+                if (currentSub === 'Game Installation') updateGameInstallProgress(order);
+            })
+            .catch(function () { /* the line keeps its pre-fetch rendering */ });
+    }
+
     

@@ -10,3 +10,5 @@ install-server.log.old
 install-server.ready
 .titledb-cache.json
 .wd-metacritic-cache.json
+.gamedata-old.js
+.wd-metacritic-cache.backup.json
