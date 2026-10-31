@@ -817,6 +817,7 @@
             '<div class="order-card-footer">' +
                 '<div class="order-card-footer-left">' +
                     '<button class="view-btn" data-order-id="' + orderId + '" title="Open the full order details">Full Order</button>' +
+                    '<a class="view-btn track-btn" href="' + buildOrderLink(order) + '" target="_blank" rel="noopener noreferrer" title="Open the customer order page in a new tab">View Order</a>' +
                     '<a class="view-btn track-btn" href="' + buildTrackLink(order) + '" target="_blank" rel="noopener noreferrer" title="Open the customer tracking page in a new tab">Tracking</a>' +
                 '</div>' +
                 '<div class="order-card-footer-right">' +
