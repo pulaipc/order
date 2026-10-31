@@ -2126,10 +2126,15 @@
             var isDone = !!ticks[name];
             if (isDone) item.classList.add('is-done');
             var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
+            // Multi-game pack badge (from catalog's fileCount)
+            var cat = sourceGames.find(function(g) { return g.name === name; });
+            var badgeHtml = (cat && cat.fileCount && cat.fileCount > 1)
+                ? '<span class="game-count-badge">' + cat.fileCount + ' Games</span>'
+                : '';
 
             var left = document.createElement('span');
             left.className = 'modal-game-left';
-            left.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
+            left.innerHTML = '<span class="modal-game-num">' + (idx + 1) + '</span><span class="modal-game-name">' + escapeHtml(name) + '</span>' + badgeHtml + (size ? '<span class="modal-game-size">' + size + '</span>' : '');
 
             // Tick control: "already installed on the Switch".
             var label = document.createElement('label');
