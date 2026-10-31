@@ -2098,13 +2098,15 @@
 
     function renderModalGames(order) {
         var grid = document.getElementById('modalGameGrid');
+        if (!grid) return; // modal not open, nothing to render
         var gameList = gameListOf(order);
         var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
         var ticks = loadInstalledTicks(order);
 
-        document.getElementById('modalGameCount').textContent = '(' + gameList.length + ')';
+        var countEl = document.getElementById('modalGameCount');
+        if (countEl) countEl.textContent = '(' + gameList.length + ')';
         var doneCount = gameList.filter(function(n) { return ticks[n]; }).length;
         var remainingEl = document.getElementById('modalGameRemaining');
         if (remainingEl) {
