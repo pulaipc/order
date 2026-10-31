@@ -274,7 +274,9 @@
             Object.keys(all).forEach(function(orderId) {
                 var ticks = all[orderId];
                 if (ticks && typeof ticks === 'object' && Object.keys(ticks).length > 0) {
-                    saveInstalledTicksToDb(Number(orderId), ticks);
+                    var numId = Number(orderId);
+                    if (!isFinite(numId)) return; // order_id-style keys have no DB row id
+                    saveInstalledTicksToDb(numId, ticks);
                 }
             });
         } catch (e) { }
@@ -2102,13 +2104,36 @@
 
     function setGameTick(order, gameName, done) {
         var ticks = loadInstalledTicks(order);
-        if (done) {
-            ticks[gameName] = 1;
-        } else {
-            delete ticks[gameName];
+        if (ticks && typeof ticks.then === 'function') {
+            // No localStorage copy for this order, so the DB is the source.
+            // Wait for it: ticking one game must never drop the ticks we have
+            // not seen yet.
+            ticks.then(function (dbTicks) { applyGameTick(order, dbTicks || {}, gameName, done); });
+            return;
         }
-        saveInstalledTicks(order, ticks);
+        applyGameTick(order, ticks || {}, gameName, done);
+    }
+
+    function applyGameTick(order, ticks, gameName, done) {
+        var merged = foldTickKeys(order, ticks);
+        if (done) merged[gameName] = 1;
+        else delete merged[gameName];
+        saveInstalledTicks(order, merged);
         renderModalGames(order);
+    }
+
+    /**
+     * Fold a tick set whose keys may be DB-normalized names onto the order's
+     * own game names, so ticks saved under either key style count everywhere.
+     */
+    function foldTickKeys(order, ticks) {
+        var list = gameListOf(order);
+        if (!list.length) return ticks;
+        var out = {};
+        list.forEach(function (name) {
+            if (ticks[name] || ticks[installNormKey(name)]) out[name] = 1;
+        });
+        return out;
     }
 
     function clearInstalledTicks(btn) {
@@ -2135,7 +2160,8 @@
         var ticks = loadInstalledTicks(order);
         // If async fallback, fall back to empty (localStorage should have it during install)
         if (ticks && typeof ticks.then === 'function') return gameList;
-        return gameList.filter(function(name) { return !ticks[name]; });
+        var done = foldTickKeys(order, ticks || {});
+        return gameList.filter(function(name) { return !done[name]; });
     }
 
     function renderModalGames(order) {
@@ -2150,9 +2176,12 @@
         var ticksOrPromise = loadInstalledTicks(order);
 
         function doRender(ticks) {
+            // Ticks may arrive keyed by DB-normalized names; fold them onto the
+            // order's own game names before rendering or counting anything.
+            var doneTicks = foldTickKeys(order, ticks || {});
             var countEl = document.getElementById('modalGameCount');
             if (countEl) countEl.textContent = '(' + gameList.length + ')';
-            var doneCount = gameList.filter(function(n) { return ticks[n]; }).length;
+            var doneCount = gameList.filter(function(n) { return doneTicks[n]; }).length;
             var remainingEl = document.getElementById('modalGameRemaining');
             if (remainingEl) {
                 remainingEl.textContent = doneCount > 0
@@ -2170,7 +2199,7 @@
             gameList.forEach(function(name, idx) {
                 var item = document.createElement('div');
                 item.className = 'modal-game-item';
-                var isDone = !!ticks[name];
+                var isDone = !!doneTicks[name];
                 if (isDone) item.classList.add('is-done');
                 var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
                 // Multi-game pack badge (from catalog's fileCount)
@@ -2200,11 +2229,6 @@
                 item.appendChild(label);
                 grid.appendChild(item);
             });
-
-            // Sync localStorage ticks to DB on modal open (migrates pre-migration ticks)
-            if (Object.keys(ticks).length > 0) {
-                syncTicksToDb(order, ticks);
-            }
         }
 
         if (ticksOrPromise && typeof ticksOrPromise.then === 'function') {
@@ -2212,12 +2236,6 @@
         } else {
             doRender(ticksOrPromise || {});
         }
-    }
-
-    function syncTicksToDb(order, ticks) {
-        var id = tickStoreId(order);
-        if (id === null) return;
-        saveInstalledTicksToDb(id, ticks);
     }
 
     function renderModalShipping(order) {

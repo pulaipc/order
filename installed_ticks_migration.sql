@@ -40,3 +40,12 @@ $$;
 -- 4. Grant execute to appropriate roles
 grant execute on function public.get_installed_ticks(bigint) to anon, authenticated;
 grant execute on function public.set_installed_ticks(bigint, jsonb) to authenticated;
+
+-- 5. Close the default-PUBLIC-execute hole.
+-- Postgres grants EXECUTE to PUBLIC on every new function unless revoked, so
+-- without this ANY anonymous client could rewrite any order's installed_ticks
+-- (verified: anon got a 204 from set_installed_ticks). Explicit grants above
+-- are unaffected by these revokes.
+revoke execute on function public.get_installed_ticks(bigint) from public;
+revoke execute on function public.set_installed_ticks(bigint, jsonb) from public;
+revoke execute on function public.set_installed_ticks(bigint, jsonb) from anon;
