@@ -455,7 +455,7 @@ var SD_SOURCE_OPTIONS = [
 ];
 
 /** Card capacities the customer may bring themselves, in GB. */
-var OWN_SD_SIZES = [64, 128, 256, 512, 1024, 2048];
+var OWN_SD_SIZES = [64, 128, 256, 400, 512, 1024, 2048];
 
 /** Format a GB figure the way the card options read: "512 GB", "1 TB". */
 function formatSdSize(gb) {

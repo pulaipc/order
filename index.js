@@ -930,7 +930,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (sdSource === 'own') {
             const ownSizes = [
                 { v: '64', l: '64 GB Card' }, { v: '128', l: '128 GB Card' }, { v: '256', l: '256 GB Card' },
-                { v: '512', l: '512 GB Card' }, { v: '1024', l: '1 TB Card' }, { v: '2048', l: '2 TB Card' }
+                { v: '400', l: '400 GB Card' }, { v: '512', l: '512 GB Card' }, { v: '1024', l: '1 TB Card' }, { v: '2048', l: '2 TB Card' }
             ];
             ownSizes.forEach(({ v, l }) => {
                 const o = document.createElement('option');
