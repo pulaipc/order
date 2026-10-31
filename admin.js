@@ -277,7 +277,11 @@
                 // When the order is in memory, merge with its DB ticks instead
                 // of blindly overwriting them (a manual DB edit must survive),
                 // otherwise flush this browser's copy as before.
-                if (order && gameListOf(order).length) reconcileOrderTicks(order);
+                if (order && gameListOf(order).length) reconcileOrderTicks(order, function (merged) {
+                    // Ticks adopted at load can already mark every game: finish
+                    // the work step too, same as ticking the last game would.
+                    if (merged) autoCompleteGamesStep(order, merged);
+                });
                 else {
                     var numId = Number(orderId);
                     if (!isFinite(numId)) return; // order_id-style keys have no DB row id
@@ -2246,6 +2250,24 @@
         else delete merged[gameName];
         saveInstalledTicks(order, merged);
         renderModalGames(order);
+        // Last game ticked → the "Install N games" work step is finished.
+        autoCompleteGamesStep(order, merged);
+    }
+
+    // When every picked game is ticked, tick the "Install N games" work
+    // checklist step automatically: same result as clicking that row, so the
+    // earlier steps complete and the customer's stage follows the normal
+    // derive-rule (usually Ready once the games are all on the console).
+    // Unticking a game never unticks the step - only the admin can reverse it.
+    function autoCompleteGamesStep(order, ticks) {
+        var list = gameListOf(order);
+        if (!list.length) return;
+        var done = foldTickKeys(order, ticks || loadInstalledTicksLocal(order));
+        if (!list.every(function (name) { return !!done[name]; })) return;
+        var hasGamesStep = buildChecklist(order).some(function (item) { return item.key === 'games'; });
+        if (!hasGamesStep) return;
+        if (deriveTickedSteps(order).games) return; // already done
+        toggleChecklistItem(order.id || order.order_id, 'games');
     }
 
     /**
@@ -2357,10 +2379,14 @@
 
         // Render this browser's copy immediately, then reconcile with the
         // database (which may carry ticks added elsewhere or by hand) and
-        // repaint the grid if the merged set differs.
+        // repaint the grid if the merged set differs. A DB copy that already
+        // marks every game also completes the work checklist step.
         doRender(foldTickKeys(order, localTicks));
         reconcileOrderTicks(order, function (merged) {
-            if (merged) doRender(foldTickKeys(order, merged));
+            if (merged) {
+                doRender(foldTickKeys(order, merged));
+                autoCompleteGamesStep(order, merged);
+            }
         });
     }
 
