@@ -2055,16 +2055,6 @@
         return order.id || order.order_id || null;
     }
 
-    function loadInstalledTicks(order) {
-        var id = tickStoreId(order);
-        if (id === null) return {};
-        // Try localStorage first (instant, works offline)
-        var local = loadInstalledTicksLocal(order);
-        if (Object.keys(local).length > 0) return local;
-        // Fallback to database (async - caller must handle promise)
-        return loadInstalledTicksFromDb(id);
-    }
-
     /** Synchronous read of this browser's local tick cache only. */
     function loadInstalledTicksLocal(order) {
         var id = tickStoreId(order);
@@ -2081,7 +2071,12 @@
 
     function loadInstalledTicksFromDb(orderId) {
         if (typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return Promise.resolve({});
-        return supabaseClient.rpc('get_installed_ticks', { p_order_id: orderId })
+        // Wait out any queued write first: a tick cleared a moment ago must not
+        // come back because this read overtook its delete.
+        return tickWritesSettled(orderId)
+            .then(function() {
+                return supabaseClient.rpc('get_installed_ticks', { p_order_id: orderId });
+            })
             .then(function(res) { return (res.data && typeof res.data === 'object') ? res.data : {}; })
             .catch(function() { return {}; });
     }
@@ -2092,6 +2087,32 @@
     // the write. Stale reconciles are discarded; the action's own repaint
     // already shows the correct state.
     var tickWriteSeq = 0;
+
+    // Pending set_installed_ticks chains per order id. Two things need this:
+    //
+    //  - Writes must land in click order. Each write replaces the whole set,
+    //    so if an older click's request commits after a newer one, the DB is
+    //    left holding the stale set and the next reconcile adopts it - the
+    //    "untick needs several tries" symptom.
+    //  - Reads must not overtake writes. The reconcile fired right after a
+    //    click would otherwise read the pre-write set and merge the unticked
+    //    game straight back in.
+    var pendingTickWrites = {};
+
+    /** Queue a DB tick write behind this order's earlier writes. */
+    function queueTickWrite(orderId, run) {
+        var prev = pendingTickWrites[orderId] || Promise.resolve();
+        var next = prev.then(run, run);
+        // Keep the chain alive even if one write fails; callers only need to
+        // know when the queue has drained.
+        pendingTickWrites[orderId] = next.then(function () {}, function () {});
+        return pendingTickWrites[orderId];
+    }
+
+    /** Resolves once every tick write queued so far for this order settled. */
+    function tickWritesSettled(orderId) {
+        return pendingTickWrites[orderId] || Promise.resolve();
+    }
 
     /**
      * Reconcile one order's ticks with the database.
@@ -2109,7 +2130,12 @@
             return;
         }
         var seq = tickWriteSeq;
-        supabaseClient.rpc('get_installed_ticks', { p_order_id: id })
+        // Read only after this order's queued writes have landed, so the
+        // snapshot cannot be older than the click that triggered it.
+        tickWritesSettled(id)
+            .then(function () {
+                return supabaseClient.rpc('get_installed_ticks', { p_order_id: id });
+            })
             .then(function (res) {
                 var dbTicks = (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) ? res.data : null;
                 var list = gameListOf(order);
@@ -2120,10 +2146,22 @@
                 list.forEach(function (name) {
                     if (local[name] || fromDb[name]) merged[name] = 1;
                 });
+                // Equal sets need no write and no repaint; skipping keeps a
+                // tick from triggering a pointless save/reconcile feedback
+                // loop on every modal render.
+                if (sameTickSet(local, merged)) { if (onDone) onDone(null); return; }
                 saveInstalledTicks(order, merged);
                 if (onDone) onDone(merged);
             })
             .catch(function () { if (onDone) onDone(null); });
+    }
+
+    /** True when both folded tick sets mark exactly the same games. */
+    function sameTickSet(a, b) {
+        var ka = Object.keys(a), kb = Object.keys(b);
+        if (ka.length !== kb.length) return false;
+        for (var i = 0; i < ka.length; i++) if (!b[ka[i]]) return false;
+        return true;
     }
 
     function saveInstalledTicks(order, ticks) {
@@ -2147,33 +2185,58 @@
     }
 
     function saveInstalledTicksToDb(orderId, ticks) {
-        if (typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return;
+        if (typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return Promise.resolve();
         // Convert to normalized keys for DB (matching track.js installNormKey)
         var normTicks = {};
         Object.keys(ticks).forEach(function(name) {
             var norm = installNormKey(name);
             if (norm) normTicks[norm] = ticks[name];
         });
-        supabaseClient.rpc('set_installed_ticks', { p_order_id: orderId, p_ticks: normTicks })
-            .then(function(res) {
-                if (res.error) console.warn('Failed to save installed ticks to DB:', res.error.message || res.error);
-            })
-            .catch(function(err) { console.warn('Failed to save installed ticks to DB:', err); });
+        // One write in flight per order, in click order: each write replaces
+        // the whole set, so letting requests race could let an older click
+        // commit last and resurrect an untick.
+        var write = queueTickWrite(orderId, function () {
+            return supabaseClient.rpc('set_installed_ticks', { p_order_id: orderId, p_ticks: normTicks })
+                .then(function(res) {
+                    if (res.error) console.warn('Failed to save installed ticks to DB:', res.error.message || res.error);
+                })
+                .catch(function(err) { console.warn('Failed to save installed ticks to DB:', err); });
+        });
         // This is an admin-made change; keep the realtime toast from firing
         // for our own write.
         lastAdminEdit = { orderId: orderId, ts: Date.now() };
+        return write;
     }
 
     function setGameTick(order, gameName, done) {
-        var ticks = loadInstalledTicks(order);
-        if (ticks && typeof ticks.then === 'function') {
-            // No localStorage copy for this order, so the DB is the source.
-            // Wait for it: ticking one game must never drop the ticks we have
-            // not seen yet.
-            ticks.then(function (dbTicks) { applyGameTick(order, dbTicks || {}, gameName, done); });
-            return;
+        // Clicks must be applied to the live local set, never to a DB snapshot
+        // from before the previous click. ticksReady() hydrates the local copy
+        // from the DB once (a fresh browser has none) and every later click is
+        // then a synchronous read-modify-write of that same set.
+        ticksReady(order).then(function () {
+            applyGameTick(order, loadInstalledTicksLocal(order), gameName, done);
+        });
+    }
+
+    // One-time-per-order DB adoption promise (order id -> Promise). When the
+    // browser has no local copy yet, the first click waits for the DB copy so
+    // ticking one game cannot drop ticks this browser has not seen.
+    var tickHydration = {};
+
+    function ticksReady(order) {
+        var id = tickStoreId(order);
+        if (id === null) return Promise.resolve();
+        if (Object.keys(loadInstalledTicksLocal(order)).length > 0) return Promise.resolve();
+        if (!tickHydration[id]) {
+            tickHydration[id] = loadInstalledTicksFromDb(id).then(function (dbTicks) {
+                // Adopt only if still empty: a click queued behind this read
+                // may already have written a set of its own.
+                if (Object.keys(loadInstalledTicksLocal(order)).length > 0) return;
+                var folded = foldTickKeys(order, dbTicks || {});
+                if (Object.keys(folded).length) saveInstalledTicks(order, folded);
+            });
         }
-        applyGameTick(order, ticks || {}, gameName, done);
+        return tickHydration[id];
     }
 
     function applyGameTick(order, ticks, gameName, done) {
