@@ -245,6 +245,7 @@ const games = [
       { name: "Power Rangers Battle for the Grid", size: 1.85, fileCount: 1, titleId: "0100e1e00cf1a000" },
       { name: "Prince of Persia the Lost Crown", size: 5.24, fileCount: 1, titleId: "0100210019428000" },
       { name: "Princess Peach Showtime!", size: 4.65, fileCount: 1, titleId: "01007a3009184000" },
+      { name: "Puzzle Bobble Everybubble", size: 1.38, fileCount: 1, titleId: "010079e01a1e0000" },
       { name: "Rabbids Party of Legends", size: 3, fileCount: 1, titleId: "01008970149b0000" },
       { name: "Rayman", size: 2.99, fileCount: 1, titleId: "01007c6025688000" },
       { name: "Red Dead Redemption", size: 10.19, fileCount: 1, titleId: "01007820196a6000" },
@@ -356,7 +357,8 @@ const games = [
       { name: "Zombie Army Trilogy", size: 3.98, fileCount: 1, titleId: "0100c7300eee4000" }
     ];
 
-const gamesLastSync = '2026-10-31T14:40:58.0932874+08:00';
+const gamesLastSync = '2026-10-31T21:15:58.5617417+08:00';
+
 
 
 
