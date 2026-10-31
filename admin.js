@@ -260,9 +260,6 @@
         await loadRepairServices(supabaseClient);
         await loadRepairsAdmin();
         loadOrders();
-        // Merge every locally ticked order with its DB copy: adopts hand
-        // edits, flushes pending local ticks, heals any divergence.
-        reconcileStoredTicks();
         setupRealtimeToasts();
     }
 
@@ -357,6 +354,11 @@
                 bulkSelectedIds = {};
                 updateStats();
                 filterAndRenderOrders();
+                // Ticks are reconciled only once the orders are in memory:
+                // reconciling against an empty list would take the blind
+                // one-way flush path and could overwrite a hand edit in the
+                // database before the modal ever reconciles it.
+                reconcileStoredTicks();
             })
             .catch(function(err) {
                 console.error('loadOrders failed:', err);
