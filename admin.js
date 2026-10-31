@@ -260,7 +260,24 @@
         await loadRepairServices(supabaseClient);
         await loadRepairsAdmin();
         loadOrders();
+        // Sync any localStorage ticks to DB on load (migrates pre-migration ticks)
+        syncAllTicksToDb();
         setupRealtimeToasts();
+    }
+
+    function syncAllTicksToDb() {
+        try {
+            var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
+            if (!raw) return;
+            var all = JSON.parse(raw);
+            if (!all || typeof all !== 'object') return;
+            Object.keys(all).forEach(function(orderId) {
+                var ticks = all[orderId];
+                if (ticks && typeof ticks === 'object' && Object.keys(ticks).length > 0) {
+                    saveInstalledTicksToDb(Number(orderId), ticks);
+                }
+            });
+        } catch (e) { }
     }
 
     // Track orders we edit ourselves so we don't toast on our own changes
@@ -2183,6 +2200,11 @@
                 item.appendChild(label);
                 grid.appendChild(item);
             });
+
+            // Sync localStorage ticks to DB on modal open (migrates pre-migration ticks)
+            if (Object.keys(ticks).length > 0) {
+                syncTicksToDb(order, ticks);
+            }
         }
 
         if (ticksOrPromise && typeof ticksOrPromise.then === 'function') {
@@ -2190,6 +2212,12 @@
         } else {
             doRender(ticksOrPromise || {});
         }
+    }
+
+    function syncTicksToDb(order, ticks) {
+        var id = tickStoreId(order);
+        if (id === null) return;
+        saveInstalledTicksToDb(id, ticks);
     }
 
     function renderModalShipping(order) {
