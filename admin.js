@@ -2085,6 +2085,13 @@
             .catch(function() { return {}; });
     }
 
+    // Bumped on every local tick mutation. A reconcile that started BEFORE a
+    // newer mutation must not merge its now-stale DB snapshot back in, or an
+    // untick / Clear could be resurrected by its own follow-up read racing
+    // the write. Stale reconciles are discarded; the action's own repaint
+    // already shows the correct state.
+    var tickWriteSeq = 0;
+
     /**
      * Reconcile one order's ticks with the database.
      *
@@ -2100,11 +2107,12 @@
             if (onDone) onDone(null);
             return;
         }
+        var seq = tickWriteSeq;
         supabaseClient.rpc('get_installed_ticks', { p_order_id: id })
             .then(function (res) {
                 var dbTicks = (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) ? res.data : null;
                 var list = gameListOf(order);
-                if (!dbTicks || !list.length) { if (onDone) onDone(null); return; }
+                if (!dbTicks || !list.length || seq !== tickWriteSeq) { if (onDone) onDone(null); return; }
                 var local = foldTickKeys(order, loadInstalledTicksLocal(order));
                 var fromDb = foldTickKeys(order, dbTicks);
                 var merged = {};
@@ -2120,6 +2128,7 @@
     function saveInstalledTicks(order, ticks) {
         var id = tickStoreId(order);
         if (id === null) return;
+        tickWriteSeq++;
         // Save to localStorage immediately for instant UI feedback
         try {
             var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
