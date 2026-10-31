@@ -272,11 +272,15 @@
             var all = JSON.parse(raw);
             if (!all || typeof all !== 'object') return;
             Object.keys(all).forEach(function(orderId) {
-                var ticks = all[orderId];
-                if (ticks && typeof ticks === 'object' && Object.keys(ticks).length > 0) {
+                var order = findOrder(orderId);
+                // When the order is in memory, merge with its DB ticks instead
+                // of blindly overwriting them (a manual DB edit must survive),
+                // otherwise flush this browser's copy as before.
+                if (order && gameListOf(order).length) reconcileOrderTicks(order);
+                else {
                     var numId = Number(orderId);
                     if (!isFinite(numId)) return; // order_id-style keys have no DB row id
-                    saveInstalledTicksToDb(numId, ticks);
+                    saveInstalledTicksToDb(numId, all[orderId]);
                 }
             });
         } catch (e) { }
@@ -2054,14 +2058,24 @@
         var id = tickStoreId(order);
         if (id === null) return {};
         // Try localStorage first (instant, works offline)
+        var local = loadInstalledTicksLocal(order);
+        if (Object.keys(local).length > 0) return local;
+        // Fallback to database (async - caller must handle promise)
+        return loadInstalledTicksFromDb(id);
+    }
+
+    /** Synchronous read of this browser's local tick cache only. */
+    function loadInstalledTicksLocal(order) {
+        var id = tickStoreId(order);
+        if (id === null) return {};
         try {
             var raw = window.localStorage.getItem(INSTALLED_TICK_KEY);
             var all = raw ? JSON.parse(raw) : {};
             var mine = all[String(id)];
-            if (mine && typeof mine === 'object') return mine;
-        } catch (e) { }
-        // Fallback to database (async - caller must handle promise)
-        return loadInstalledTicksFromDb(id);
+            return (mine && typeof mine === 'object') ? mine : {};
+        } catch (e) {
+            return {};
+        }
     }
 
     function loadInstalledTicksFromDb(orderId) {
@@ -2069,6 +2083,38 @@
         return supabaseClient.rpc('get_installed_ticks', { p_order_id: orderId })
             .then(function(res) { return (res.data && typeof res.data === 'object') ? res.data : {}; })
             .catch(function() { return {}; });
+    }
+
+    /**
+     * Reconcile one order's ticks with the database.
+     *
+     * The DB is globally visible (the customer tracker reads it) and editable
+     * by hand, so it is treated as a peer, not a mirror: ticks present in
+     * EITHER place are kept and the union is written back to both. A manual
+     * DB edit is therefore adopted on the next reconcile instead of being
+     * stomped by this browser's copy.
+     */
+    function reconcileOrderTicks(order, onDone) {
+        var id = tickStoreId(order);
+        if (id === null || typeof supabaseClient === 'undefined' || !supabaseClient.rpc) {
+            if (onDone) onDone(null);
+            return;
+        }
+        supabaseClient.rpc('get_installed_ticks', { p_order_id: id })
+            .then(function (res) {
+                var dbTicks = (res.data && typeof res.data === 'object' && !Array.isArray(res.data)) ? res.data : null;
+                var list = gameListOf(order);
+                if (!dbTicks || !list.length) { if (onDone) onDone(null); return; }
+                var local = foldTickKeys(order, loadInstalledTicksLocal(order));
+                var fromDb = foldTickKeys(order, dbTicks);
+                var merged = {};
+                list.forEach(function (name) {
+                    if (local[name] || fromDb[name]) merged[name] = 1;
+                });
+                saveInstalledTicks(order, merged);
+                if (onDone) onDone(merged);
+            })
+            .catch(function () { if (onDone) onDone(null); });
     }
 
     function saveInstalledTicks(order, ticks) {
@@ -2099,7 +2145,13 @@
             if (norm) normTicks[norm] = ticks[name];
         });
         supabaseClient.rpc('set_installed_ticks', { p_order_id: orderId, p_ticks: normTicks })
+            .then(function(res) {
+                if (res.error) console.warn('Failed to save installed ticks to DB:', res.error.message || res.error);
+            })
             .catch(function(err) { console.warn('Failed to save installed ticks to DB:', err); });
+        // This is an admin-made change; keep the realtime toast from firing
+        // for our own write.
+        lastAdminEdit = { orderId: orderId, ts: Date.now() };
     }
 
     function setGameTick(order, gameName, done) {
@@ -2157,10 +2209,7 @@
     // the order's games array, so it survives an edit and a reload.
     function pendingGameList(order) {
         var gameList = gameListOf(order);
-        var ticks = loadInstalledTicks(order);
-        // If async fallback, fall back to empty (localStorage should have it during install)
-        if (ticks && typeof ticks.then === 'function') return gameList;
-        var done = foldTickKeys(order, ticks || {});
+        var done = foldTickKeys(order, loadInstalledTicksLocal(order));
         return gameList.filter(function(name) { return !done[name]; });
     }
 
@@ -2173,7 +2222,7 @@
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
 
         // loadInstalledTicks returns object (localStorage) or Promise (DB fallback)
-        var ticksOrPromise = loadInstalledTicks(order);
+        var ticksOrPromise = loadInstalledTicksLocal(order);
 
         function doRender(ticks) {
             // Ticks may arrive keyed by DB-normalized names; fold them onto the
@@ -2231,11 +2280,13 @@
             });
         }
 
-        if (ticksOrPromise && typeof ticksOrPromise.then === 'function') {
-            ticksOrPromise.then(doRender);
-        } else {
-            doRender(ticksOrPromise || {});
-        }
+        // Render this browser's copy immediately, then reconcile with the
+        // database (which may carry ticks added elsewhere or by hand) and
+        // repaint the grid if the merged set differs.
+        doRender(foldTickKeys(order, ticksOrPromise || {}));
+        reconcileOrderTicks(order, function (merged) {
+            if (merged) doRender(foldTickKeys(order, merged));
+        });
     }
 
     function renderModalShipping(order) {
