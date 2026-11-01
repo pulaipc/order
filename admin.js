@@ -106,6 +106,7 @@
     var currentModalOrderId = null;
     var currentRemarksOrderId = null;
     var currentModalOrder = null;
+    var modalGameSort = 'customer'; // 'customer', 'az', 'za', 'size-desc', 'size-asc'
     var orderCountByPhone = {};
     var bulkSelectedIds = {};
     var expandedChecklists = {}; // orderId -> bool
@@ -2331,6 +2332,24 @@
         var sizeMap = {};
         sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
 
+        // Build a display list sorted per the current sort mode.
+        // The original gameList is preserved for counts and copy order.
+        var displayList = gameList.slice();
+        if (modalGameSort === 'az') {
+            displayList.sort(function(a, b) { return a.localeCompare(b); });
+        } else if (modalGameSort === 'za') {
+            displayList.sort(function(a, b) { return b.localeCompare(a); });
+        } else if (modalGameSort === 'size-desc') {
+            displayList.sort(function(a, b) { return (sizeMap[b] || 0) - (sizeMap[a] || 0); });
+        } else if (modalGameSort === 'size-asc') {
+            displayList.sort(function(a, b) { return (sizeMap[a] || 0) - (sizeMap[b] || 0); });
+        }
+        // 'customer' mode keeps the original order (customer's picked order)
+
+        // Keep the sort dropdown in sync
+        var sortSel = document.getElementById('modalGameSort');
+        if (sortSel) sortSel.value = modalGameSort;
+
         // This browser's copy renders instantly; the DB copy is merged in by
         // the reconcile below (it may carry ticks added elsewhere or by hand).
         var localTicks = loadInstalledTicksLocal(order);
@@ -2356,7 +2375,7 @@
                 grid.innerHTML = '<div style="color:#6a6357; padding:10px; font-style:italic;">No games selected.</div>';
                 return;
             }
-            gameList.forEach(function(name, idx) {
+            displayList.forEach(function(name, idx) {
                 var item = document.createElement('div');
                 item.className = 'modal-game-item';
                 var isDone = !!doneTicks[name];
@@ -2488,6 +2507,11 @@
                 });
             }
         });
+    }
+
+    function setModalGameSort(mode) {
+        modalGameSort = mode;
+        if (currentModalOrder) renderModalGames(currentModalOrder);
     }
 
     function copyGamesFromModal(btn) {

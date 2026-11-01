@@ -401,6 +401,19 @@
         }
         .modal-section-title .action-btn:hover { background: #ffc000; color: #14110a; border-color: #ffc000; }
 
+        .modal-sort-select {
+            background: #1f190e;
+            border: 1px solid #3a3018;
+            color: #f0e9d8;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            min-width: 160px;
+        }
+        .modal-sort-select:focus { border-color: #ffc000; outline: none; }
+
         /* Collapsible sections (Customer Links, Shipping, Games).
            The title row doubles as the toggle, so the whole header is clickable
            and the caret shows the state. */
@@ -1559,6 +1572,15 @@
                             <span class="section-caret">&#9654;</span>
                             <span>Games <span id="modalGameCount" style="color:#ffc000;">(0)</span></span>
                             <span class="modal-game-remaining" id="modalGameRemaining"></span>
+                        </span>
+                        <span class="title-left">
+                            <select id="modalGameSort" class="modal-sort-select" onchange="setModalGameSort(this.value)" title="Sort display order (does not change copy order)">
+                                <option value="customer">Customer order</option>
+                                <option value="az">A-Z</option>
+                                <option value="za">Z-A</option>
+                                <option value="size-desc">Size: largest first</option>
+                                <option value="size-asc">Size: smallest first</option>
+                            </select>
                             <button class="action-btn" onclick="event.stopPropagation(); copyGamesFromModal(this);">Copy Game List</button>
                         </span>
                         <span class="title-left">
