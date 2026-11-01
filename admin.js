@@ -1888,6 +1888,18 @@
         }
         document.getElementById('modalStorageVal').innerText = stVal;
 
+        // Total GB of games to install (computed at pricing time)
+        var gamesSizeEl = document.getElementById('modalGamesSizeVal');
+        var gamesSizeRow = document.getElementById('modalGamesSizeRow');
+        if (gamesSizeEl && gamesSizeRow) {
+            if (order.total_size_gb && order.service_type !== 'repair_only') {
+                gamesSizeEl.innerText = Number(order.total_size_gb).toFixed(1) + ' GB';
+                gamesSizeRow.style.display = 'flex';
+            } else {
+                gamesSizeRow.style.display = 'none';
+            }
+        }
+
         var sdSourceEl = document.getElementById('modalSdSourceVal');
         if (needsSd && order.sd_source) {
             sdSourceEl.innerText = order.sd_source === 'buy' ? 'Purchase New SD Card' : 'Bring Own SD Card';
