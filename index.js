@@ -1530,39 +1530,6 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             else hidden.push(g);
         });
 
-        if (hidden.length > 0) {
-            const noticeId = 'hiddenNotice_' + Date.now() + Math.random().toString(36).slice(2);
-            const notice = document.createElement('div');
-            notice.className = 'hidden-games-notice';
-            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
-            container.appendChild(notice);
-
-            const hiddenContainer = document.createElement('div');
-            hiddenContainer.className = 'hidden-games-container' + (gridMode ? ' grid-view' : '');
-            hiddenContainer.id = noticeId;
-            hiddenContainer.style.display = 'none';
-
-            hidden.sort((a, b) => a.size - b.size);
-            hidden.forEach(g => {
-                if (gridMode) { hiddenContainer.appendChild(buildGridHiddenCard(g)); return; }
-                const card = document.createElement('div');
-                card.className = 'game-card hidden-game';
-                const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
-                var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${hotBadgeHtml(g.name)}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
-                hiddenContainer.appendChild(card);
-            });
-            container.appendChild(hiddenContainer);
-        }
-
-        if (fitting.length === 0 && hidden.length > 0) {
-            const p = document.createElement('p');
-            p.style.cssText = 'text-align:center;color:#8a8272;margin:10px 0;';
-            if (gridMode) p.style.gridColumn = '1 / -1';
-            p.innerText = 'No more games fit in your remaining storage.';
-            container.appendChild(p);
-        }
-
         fitting.forEach(g => {
             if (gridMode) { container.appendChild(buildGridGameCard(g, state.selectedGames.has(g.name))); return; }
             const isSel = state.selectedGames.has(g.name);
@@ -1634,6 +1601,40 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             card.appendChild(rowInfo);
             container.appendChild(card);
         });
+
+        // Hidden games notice + container at the bottom
+        if (hidden.length > 0) {
+            const noticeId = 'hiddenNotice_' + Date.now() + Math.random().toString(36).slice(2);
+            const notice = document.createElement('div');
+            notice.className = 'hidden-games-notice';
+            notice.innerHTML = `<div class="hidden-notice-text"><span class="hidden-notice-icon">&#128274;</span><span><strong>${hidden.length}</strong> game${hidden.length !== 1 ? 's' : ''} hidden — won't fit in your remaining <strong>${availableSpace.toFixed(1)} GB</strong>.</span></div><button class="hidden-notice-toggle" onclick="toggleHiddenGames('${noticeId}')">Show</button>`;
+            container.appendChild(notice);
+
+            const hiddenContainer = document.createElement('div');
+            hiddenContainer.className = 'hidden-games-container' + (gridMode ? ' grid-view' : '');
+            hiddenContainer.id = noticeId;
+            hiddenContainer.style.display = 'none';
+
+            hidden.sort((a, b) => a.size - b.size);
+            hidden.forEach(g => {
+                if (gridMode) { hiddenContainer.appendChild(buildGridHiddenCard(g)); return; }
+                const card = document.createElement('div');
+                card.className = 'game-card hidden-game';
+                const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
+                var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${hotBadgeHtml(g.name)}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
+                hiddenContainer.appendChild(card);
+            });
+            container.appendChild(hiddenContainer);
+        }
+
+        if (fitting.length === 0 && hidden.length > 0) {
+            const p = document.createElement('p');
+            p.style.cssText = 'text-align:center;color:#8a8272;margin:10px 0;';
+            if (gridMode) p.style.gridColumn = '1 / -1';
+            p.innerText = 'No more games fit in your remaining storage.';
+            container.appendChild(p);
+        }
     }
 
     function toggleHiddenGames(containerId) {
