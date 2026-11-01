@@ -21,11 +21,17 @@ software to install.
 
 The target is "<device name>\<folder path>", where the device name is what
 Windows shows for the Switch under "This PC". With DBI that is normally
-"DBI MTP Responder". A target saved by copygame.sh (a "mtp:/..." KIO URL) is
-read and converted automatically, so your existing default keeps working.
+"DBI MTP Responder" (or "Switch" on Windows). A target saved by copygame.sh
+(a "mtp:/..." KIO URL) is read and converted automatically, so your existing
+default keeps working.
 
-  .\copygame.ps1                              # uses the saved default (mtp_target.txt)
+Common folder paths on the SD card:
+  5: SD Card install
+  Install (NSP, XCI, NSZ, XCZ, MSP)
+
+  .\copygame.ps1                                     # uses saved default (mtp_target.txt)
   .\copygame.ps1 "DBI MTP Responder\5: SD Card install"
+  .\copygame.ps1 "DBI MTP Responder\Install (NSP, XCI, NSZ, XCZ, MSP)"
   .\copygame.ps1 --default "DBI MTP Responder\5: SD Card install"
   .\copygame.ps1 --dry-run                    # only print what would be copied
   .\copygame.ps1 --no-pause                   # don't pause between essentials and games
@@ -935,7 +941,7 @@ if ([string]::IsNullOrEmpty($Target) -and (-not $TargetGiven) -and (Test-Path -L
 $parsed = $null
 if (-not [string]::IsNullOrEmpty($Target)) {
     $parsed = ConvertTo-WpdTarget $Target
-    if ($null -eq $parsed) { Die "target '$Target' is not a folder - use <device>\<folder>, e.g. DBI MTP Responder\5: SD Card install" }
+    if ($null -eq $parsed) { Die "target '$Target' is not a folder - use <device>\<folder>, e.g. DBI MTP Responder\5: SD Card install or DBI MTP Responder\Install (NSP, XCI, NSZ, XCZ, MSP)" }
 }
 
 if ($devices.Count -eq 0) {
@@ -963,7 +969,7 @@ if ($null -ne $parsed) {
 } elseif ($devices.Count -gt 1) {
     Write-Host 'More than one MTP device is attached:'
     foreach ($d in $devices) { Write-Host "  - $($d.FriendlyName)" }
-    Die 'rerun with a target, e.g. .\copygame.ps1 "Switch\5: SD Card install"'
+    Die 'rerun with a target, e.g. .\copygame.ps1 "Switch\5: SD Card install" or "Switch\Install (NSP, XCI, NSZ, XCZ, MSP)"'
 }
 
 $session = $null
@@ -1077,7 +1083,7 @@ if ($probeDevices -and $parsed.Path.Count -gt 0) {
         if ($DryRun) {
             Write-Host 'Note: showing what would be copied anyway.'
         } else {
-            Die 'plug the Switch in with DBI open, or rerun with a target like "Switch\5: SD Card install"'
+            Die 'plug the Switch in with DBI open, or rerun with a target like "Switch\5: SD Card install" or "Switch\Install (NSP, XCI, NSZ, XCZ, MSP)"'
         }
     }
 } elseif ($probeDevices) {
