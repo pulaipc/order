@@ -1173,7 +1173,7 @@ function Copy-FolderTree {
                 # starting the next one, so the MTP device isn't overwhelmed.
                 if ($DelaySeconds -gt 0) {
                     for ($s = $DelaySeconds; $s -gt 0; $s--) {
-                        Write-Host ("      (pausing for DBI: {0}s left...)" -f $s) -NoNewline
+                        Write-Host ("      (DBI installing previous file: {0}s left...)" -f $s) -NoNewline
                         Start-Sleep -Seconds 1
                         Write-Host ''
                     }
