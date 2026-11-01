@@ -897,12 +897,35 @@ try {
     Die "could not enumerate MTP devices: $(Get-ErrorText $_)"
 }
 
+# Known device name aliases - different names for the same physical device
+$script:DeviceAliases = @{
+    'dbi mtp responder' = @('nintendo switch', 'switch')
+    'nintendo switch'   = @('dbi mtp responder', 'switch')
+    'switch'            = @('dbi mtp responder', 'nintendo switch')
+}
+
+# Known folder path aliases - different names for the same SD card install folder
+$script:FolderAliases = @{
+    '5: sd card install' = @('install (nsp, xci, nsz, xcz, msp)')
+    'install (nsp, xci, nsz, xcz, msp)' = @('5: sd card install')
+}
+
 function Find-WpdDevice {
     param($List, [string]$Want)
     $wantKey = Get-NormalizedKey $Want
+    # 1. Exact normalized match
     foreach ($d in $List) {
         if ((Get-NormalizedKey $d.FriendlyName) -eq $wantKey) { return $d }
     }
+    # 2. Alias match
+    if ($script:DeviceAliases.ContainsKey($wantKey)) {
+        foreach ($alias in $script:DeviceAliases[$wantKey]) {
+            foreach ($d in $List) {
+                if ((Get-NormalizedKey $d.FriendlyName) -eq $alias) { return $d }
+            }
+        }
+    }
+    # 3. Partial (contains) match on raw name
     foreach ($d in $List) {
         if (-not [string]::IsNullOrEmpty($d.FriendlyName)) {
             if ($d.FriendlyName.IndexOf($Want, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) { return $d }
@@ -1039,6 +1062,14 @@ function Wait-For-MtpTarget {
                         $id = [PulaiWpd.WpdDevice]::RootObjectId
                     } else {
                         $id = Resolve-WpdPath $candidate @($Spec.Path)
+                        # Try folder aliases if primary path not found
+                        if ($null -eq $id -and $script:FolderAliases.ContainsKey((Get-NormalizedKey $Spec.Path[0]))) {
+                            foreach ($alias in $script:FolderAliases[(Get-NormalizedKey $Spec.Path[0])]) {
+                                $aliasPath = @($alias) + $Spec.Path[1..($Spec.Path.Count-1)]
+                                $id = Resolve-WpdPath $candidate $aliasPath
+                                if ($null -ne $id) { break }
+                            }
+                        }
                     }
                     if ($null -ne $id) {
                         return New-Object psobject -Property @{ Session = $candidate; DestId = $id }
@@ -1069,6 +1100,14 @@ if ($probeDevices -and $parsed.Path.Count -gt 0) {
             continue
         }
         $probe = Resolve-WpdPath $candidate @($parsed.Path)
+        # Try folder aliases if primary path not found
+        if ($null -eq $probe -and $script:FolderAliases.ContainsKey((Get-NormalizedKey $parsed.Path[0]))) {
+            foreach ($alias in $script:FolderAliases[(Get-NormalizedKey $parsed.Path[0])]) {
+                $aliasPath = @($alias) + $parsed.Path[1..($parsed.Path.Count-1)]
+                $probe = Resolve-WpdPath $candidate $aliasPath
+                if ($null -ne $probe) { break }
+            }
+        }
         if ($null -ne $probe) {
             $session = $candidate
             Write-Host "Note: target names '$($parsed.Device)', which is not attached on this PC,"
