@@ -37,6 +37,8 @@
 
     var _inlinePromptResolver = null;
     function openInlinePrompt(opts) {
+        var overlay = document.getElementById('inlinePromptOverlay');
+        var wasOpen = !!(overlay && overlay.style.display === 'flex');
         document.getElementById('inlinePromptTitle').textContent = opts.title || 'Edit';
         document.getElementById('inlinePromptLabel').textContent = opts.label || 'Value:';
         var input = document.getElementById('inlinePromptInput');
@@ -52,7 +54,7 @@
         saveBtn.parentNode.replaceChild(newSave, saveBtn);
 
         document.getElementById('inlinePromptOverlay').style.display = 'flex';
-        lockBodyScroll();
+        if (!wasOpen) lockBodyScroll();
         setTimeout(function() { input.focus(); input.select(); }, 100);
 
         _inlinePromptResolver = function(result) {
@@ -88,7 +90,8 @@
             label: opts.message || 'Are you sure?',
             value: '',
             placeholder: '(not used for confirm)',
-            onSave: function() { if (opts.onConfirm) opts.onConfirm(); }
+            // Escape resolves with null: cancel, never confirm.
+            onSave: function(result) { if (result === null) return; if (opts.onConfirm) opts.onConfirm(); }
         });
         // Hide the input for confirm-style — it's just a prompt with no text field
         var input = document.getElementById('inlinePromptInput');
@@ -1823,7 +1826,7 @@
             Object.keys(payload).forEach(function (k) { order[k] = payload[k]; });
             updateStats();
             filterAndRenderOrders();
-            openOrderModal(orderEdit.orderId);
+            openOrderModal(orderEdit.orderId, { keepSections: true });
         }).catch(function (err) {
             btn.disabled = false;
             status.className = 'oe-status err';
@@ -1853,7 +1856,7 @@
         if (games) games.classList.remove('collapsed');
     }
 
-    function openOrderModal(orderId) {
+    function openOrderModal(orderId, opts) {
         var order = findOrder(orderId);
         if (!order) return;
         // The edit-save path re-opens this modal to refresh it while it is still
@@ -1861,7 +1864,9 @@
         // counter never returns to zero and the list stays unscrollable.
         var overlay = document.getElementById('orderModalOverlay');
         var wasOpen = !!(overlay && overlay.style.display === 'flex');
-        resetModalSections();
+        // A refresh after save/remarks keeps whatever sections the user had
+        // expanded; a genuine open starts from the tidy default layout.
+        if (!(opts && opts.keepSections)) resetModalSections();
         currentModalOrder = order;
         currentModalOrderId = orderId;
         currentRemarksOrderId = orderId;
@@ -2039,6 +2044,28 @@
     function closeModalOnBackdrop(event) {
         if (event.target.id === 'orderModalOverlay') closeOrderModal();
     }
+
+    // Escape closes the topmost overlay. In the order modal the editor takes the
+    // first Escape (cancel), a second one closes the modal itself.
+    document.addEventListener('keydown', function(e) {
+        if (e.key !== 'Escape' || e.defaultPrevented) return;
+        function showing(id) {
+            var node = document.getElementById(id);
+            return !!(node && node.style.display === 'flex');
+        }
+        if (showing('inlinePromptOverlay')) {
+            e.preventDefault();
+            if (_inlinePromptResolver) _inlinePromptResolver(null); else closeInlinePrompt();
+            return;
+        }
+        if (showing('remarksModalOverlay')) { e.preventDefault(); closeRemarksModal(); return; }
+        if (showing('repairFormOverlay')) { e.preventDefault(); closeRepairForm(); return; }
+        if (!showing('orderModalOverlay')) return;
+        e.preventDefault();
+        var panel = document.getElementById('orderEditPanel');
+        if (panel && panel.style.display !== 'none') { cancelOrderEdit(); return; }
+        closeOrderModal();
+    });
 
     function renderModalRepairs(order) {
         var container = document.getElementById('modalRepairsContainer');
@@ -2713,11 +2740,13 @@
     function openRemarksModal(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
+        var overlay = document.getElementById('remarksModalOverlay');
+        var wasOpen = !!(overlay && overlay.style.display === 'flex');
         currentRemarksOrderId = orderId;
         document.getElementById('remarksEditTextarea').value = order.remarks || '';
         document.getElementById('remarksModalOverlay').style.display = 'flex';
         setTimeout(function() { document.getElementById('remarksEditTextarea').focus(); }, 100);
-        lockBodyScroll();
+        if (!wasOpen) lockBodyScroll();
     }
     function closeRemarksModal() {
         document.getElementById('remarksModalOverlay').style.display = 'none';
@@ -2729,18 +2758,23 @@
         if (!currentRemarksOrderId) return;
         var order = findOrder(currentRemarksOrderId);
         if (!order) return;
+        // closeRemarksModal() clears this, so keep our own copy to refresh the
+        // order modal afterwards.
+        var remarksOrderId = currentRemarksOrderId;
         var newRemarks = document.getElementById('remarksEditTextarea').value.trim();
         var idField = order.id ? 'id' : 'order_id';
         var btn = document.getElementById('saveRemarksBtn');
         btn.disabled = true; btn.innerText = 'Saving...';
-        supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, currentRemarksOrderId).then(function(res) {
+        supabaseClient.from('orders').update({ remarks: newRemarks }).eq(idField, remarksOrderId).then(function(res) {
             btn.disabled = false; btn.innerText = 'Save Remarks';
             if (res.error) { alert('Failed: ' + res.error.message); return; }
-            lastAdminEdit = { orderId: currentRemarksOrderId, ts: Date.now() };
+            lastAdminEdit = { orderId: remarksOrderId, ts: Date.now() };
             order.remarks = newRemarks;
+            var refreshModal = !!(currentModalOrder &&
+                String(currentModalOrder.id || currentModalOrder.order_id) === String(remarksOrderId));
             closeRemarksModal();
             filterAndRenderOrders();
-            if (currentModalOrder && String(currentModalOrder.id) === String(currentRemarksOrderId)) openOrderModal(currentRemarksOrderId);
+            if (refreshModal) openOrderModal(remarksOrderId, { keepSections: true });
         });
     }
 
@@ -2828,6 +2862,8 @@
     }
 
     function openRepairForm(id) {
+        var overlay = document.getElementById('repairFormOverlay');
+        var wasOpen = !!(overlay && overlay.style.display === 'flex');
         populateCategorySelect();
         var nameField = document.getElementById('rfName');
         var idField = document.getElementById('rfId');
@@ -2876,7 +2912,7 @@
         onPricingModelChange();
         document.getElementById('repairFormOverlay').style.display = 'flex';
         document.getElementById('repairFormOverlay').dataset.editingId = id || '';
-        lockBodyScroll();
+        if (!wasOpen) lockBodyScroll();
     }
 
     function closeRepairForm() {

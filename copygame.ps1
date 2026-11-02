@@ -904,11 +904,12 @@ $script:DeviceAliases = @{
     'switch'            = @('dbi mtp responder', 'nintendo switch')
 }
 
-# Known folder path aliases - different names for the same SD card install folder
-$script:FolderAliases = @{
-    '5: sd card install' = @('install (nsp, xci, nsz, xcz, msp)')
-    'install (nsp, xci, nsz, xcz, msp)' = @('5: sd card install')
-}
+# Known folder path aliases - different names for the same SD card install folder.
+# Keys go through Get-NormalizedKey because that is what a lookup is compared
+# against; a raw key with punctuation (the commas here) would never match.
+$script:FolderAliases = @{}
+$script:FolderAliases[(Get-NormalizedKey '5: SD Card install')] = @('Install (NSP, XCI, NSZ, XCZ, MSP)')
+$script:FolderAliases[(Get-NormalizedKey 'Install (NSP, XCI, NSZ, XCZ, MSP)')] = @('5: SD Card install')
 
 function Find-WpdDevice {
     param($List, [string]$Want)
@@ -1005,16 +1006,29 @@ function Resolve-WpdPath {
     foreach ($component in $Components) {
         $key = Get-NormalizedKey $component
         $children = $Session.ListChildren($current)
+        # Every name this component may be known by: its own, plus any alias
+        # for the same folder (SteamOS and Windows name the SD install folder
+        # differently). Aliases are tried after the exact name.
+        $wanted = @($key)
+        if ($script:FolderAliases.ContainsKey($key)) {
+            foreach ($alias in $script:FolderAliases[$key]) { $wanted += Get-NormalizedKey $alias }
+        }
         $next = $null
-        foreach ($child in $children) {
-            if ((Get-NormalizedKey $Session.GetObjectName($child)) -eq $key) { $next = $child; break }
+        foreach ($want in $wanted) {
+            foreach ($child in $children) {
+                if ((Get-NormalizedKey $Session.GetObjectName($child)) -eq $want) { $next = $child; break }
+            }
+            if ($null -ne $next) { break }
         }
         if ($null -eq $next) {
             # One level deeper: a storage can sit between the device and the folder.
-            foreach ($child in $children) {
-                if (-not $Session.IsFolder($child)) { continue }
-                foreach ($grandChild in $Session.ListChildren($child)) {
-                    if ((Get-NormalizedKey $Session.GetObjectName($grandChild)) -eq $key) { $next = $grandChild; break }
+            foreach ($want in $wanted) {
+                foreach ($child in $children) {
+                    if (-not $Session.IsFolder($child)) { continue }
+                    foreach ($grandChild in $Session.ListChildren($child)) {
+                        if ((Get-NormalizedKey $Session.GetObjectName($grandChild)) -eq $want) { $next = $grandChild; break }
+                    }
+                    if ($null -ne $next) { break }
                 }
                 if ($null -ne $next) { break }
             }
@@ -1062,14 +1076,6 @@ function Wait-For-MtpTarget {
                         $id = [PulaiWpd.WpdDevice]::RootObjectId
                     } else {
                         $id = Resolve-WpdPath $candidate @($Spec.Path)
-                        # Try folder aliases if primary path not found
-                        if ($null -eq $id -and $script:FolderAliases.ContainsKey((Get-NormalizedKey $Spec.Path[0]))) {
-                            foreach ($alias in $script:FolderAliases[(Get-NormalizedKey $Spec.Path[0])]) {
-                                $aliasPath = @($alias) + $Spec.Path[1..($Spec.Path.Count-1)]
-                                $id = Resolve-WpdPath $candidate $aliasPath
-                                if ($null -ne $id) { break }
-                            }
-                        }
                     }
                     if ($null -ne $id) {
                         return New-Object psobject -Property @{ Session = $candidate; DestId = $id }
@@ -1100,14 +1106,6 @@ if ($probeDevices -and $parsed.Path.Count -gt 0) {
             continue
         }
         $probe = Resolve-WpdPath $candidate @($parsed.Path)
-        # Try folder aliases if primary path not found
-        if ($null -eq $probe -and $script:FolderAliases.ContainsKey((Get-NormalizedKey $parsed.Path[0]))) {
-            foreach ($alias in $script:FolderAliases[(Get-NormalizedKey $parsed.Path[0])]) {
-                $aliasPath = @($alias) + $parsed.Path[1..($parsed.Path.Count-1)]
-                $probe = Resolve-WpdPath $candidate $aliasPath
-                if ($null -ne $probe) { break }
-            }
-        }
         if ($null -ne $probe) {
             $session = $candidate
             Write-Host "Note: target names '$($parsed.Device)', which is not attached on this PC,"
