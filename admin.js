@@ -1856,6 +1856,11 @@
     function openOrderModal(orderId) {
         var order = findOrder(orderId);
         if (!order) return;
+        // The edit-save path re-opens this modal to refresh it while it is still
+        // on screen. Only the first open may take the scroll lock, otherwise the
+        // counter never returns to zero and the list stays unscrollable.
+        var overlay = document.getElementById('orderModalOverlay');
+        var wasOpen = !!(overlay && overlay.style.display === 'flex');
         resetModalSections();
         currentModalOrder = order;
         currentModalOrderId = orderId;
@@ -1961,7 +1966,7 @@
         notifyBtn.disabled = !order.whatsapp_username;
 
         document.getElementById('orderModalOverlay').style.display = 'flex';
-        lockBodyScroll();
+        if (!wasOpen) lockBodyScroll();
     }
 
     /**
