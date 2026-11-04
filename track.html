@@ -167,6 +167,10 @@
         .price-break-row.total .label { color: #e8dcc0; font-weight: 700; }
         .price-break-row.total .amount { color: #ffc000; font-size: 16px; }
         .price-card.final .price-break-row.total .amount { color: #00e676; }
+        /* In progress the amount is reference, not a callout: it sits after the
+           detailed steps as a quiet section, so the gold stage card stays the
+           one thing the eye lands on. */
+        .price-card.inline { background: transparent; border: 0; border-top: 1px solid #2e2716; border-radius: 0; padding: 20px 0 0; margin-top: 22px; }
 
         .next-step-hint { background: #16202a; border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc; border-radius: 6px; padding: 12px 14px; margin-top: 14px; font-size: 13px; color: #cfe6ff; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; }
         .next-step-hint.hidden { display: none; }
@@ -382,7 +386,7 @@
             <div style="margin-top: 6px;">
                 WhatsApp: <a href="#" id="footerWaLink" target="_blank" rel="noopener noreferrer">Message us</a>
             </div>
-            <div class="note">All orders are processed manually. Payment on pickup.</div>
+            <div class="note">All orders are processed manually. Payment on collection.</div>
         </footer>
     </div>
 

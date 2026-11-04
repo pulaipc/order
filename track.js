@@ -154,6 +154,7 @@
     async function trackByToken(token) {
         setStatus('Loading your order...', '#7dd3fc', 0);
         clearAllViews();
+        setSearchCardVisible(false);
         try {
             const { data, error } = await supabaseClient.rpc('order_by_token', { p_token: token });
             if (error) throw error;
@@ -194,6 +195,7 @@
         btn.innerHTML = '<span>Loading...</span>';
         setStatus('Looking up your order...', '#7dd3fc', 0);
         clearAllViews();
+        setSearchCardVisible(true);
 
         try {
             const { data, error } = await supabaseClient.rpc('orders_by_phone', { p_phone: phone });
@@ -260,6 +262,15 @@
         $('editWindowNotice').style.display = 'none';
         $('editWindowLink').removeAttribute('href');
         $('cancelOrderWrap').style.display = 'none';
+    }
+
+    /**
+     * The phone search box is the way in without a link, so a link never needs
+     * to show it above the order it already opened.
+     */
+    function setSearchCardVisible(visible) {
+        const card = document.querySelector('.search-card');
+        if (card) card.style.display = visible ? '' : 'none';
     }
 
     function showNoActiveOrders(phone, hadAnyOrders, linkInvalid) {
@@ -1016,9 +1027,22 @@
         }
 
         const awaitingQuote = breakdown.quoteCount > 0;
-        const final = !awaitingQuote && (stage === 'Ready' || stage === 'Completed');
+        const atTop = (stage === 'Ready' || stage === 'Completed');
+        const final = atTop && !awaitingQuote;
         card.style.display = '';
         card.classList.toggle('final', final);
+        // In progress the amount is reference, not a callout: it sits after the
+        // detailed steps so money never interrupts the status story. At
+        // Ready/Completed it moves back under the stage card, because paying is
+        // now the customer's next step.
+        card.classList.toggle('inline', !atTop);
+        const stageCard = $('currentStageCard');
+        const waWrap = document.querySelector('.wa-button-wrap');
+        if (atTop && stageCard) {
+            if (card.previousElementSibling !== stageCard) stageCard.insertAdjacentElement('afterend', card);
+        } else if (waWrap) {
+            if (waWrap.previousElementSibling !== card) waWrap.insertAdjacentElement('beforebegin', card);
+        }
 
         $('priceCardLabel').textContent = final
             ? 'Final total \u2014 ready to collect'
@@ -1058,8 +1082,7 @@
                 + '<span class="amount">' + amountText + '</span>'
                 + '</div>';
         });
-        html += '<div class="price-break-row total"><span class="label">'
-            + (final ? 'Final total' : 'Estimated total')
+        html += '<div class="price-break-row total"><span class="label">Total'
             + (awaitingQuote ? ' (+' + breakdown.quoteCount + ' quote' + (breakdown.quoteCount === 1 ? '' : 's') + ')' : '')
             + '</span><span class="amount">'
             + ((breakdown.total <= 0 && awaitingQuote) ? 'TBC' : 'RM' + breakdown.total)
