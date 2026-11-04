@@ -2375,7 +2375,14 @@
         var gameList = gameListOf(order);
         var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
-        sourceGames.forEach(function(g) { sizeMap[g.name] = g.size; });
+        var fileCountMap = {};
+        sourceGames.forEach(function(g) {
+            sizeMap[g.name] = g.size;
+            fileCountMap[g.name] = Math.max(1, Number(g.fileCount) || 1);
+        });
+        // Packs/bundles count as the games inside them, matching the order card
+        // and the work-checklist label (gameCountTotal), not as one shelf row.
+        var realGameCount = gameCountTotal(gameList);
 
         // Build a display list sorted per the current sort mode.
         // The original gameList is preserved for counts and copy order.
@@ -2404,16 +2411,20 @@
             // order's own game names before rendering or counting anything.
             var doneTicks = foldTickKeys(order, ticks || {});
             var countEl = document.getElementById('modalGameCount');
-            if (countEl) countEl.textContent = '(' + gameList.length + ')';
-            var doneCount = gameList.filter(function(n) { return doneTicks[n]; }).length;
+            if (countEl) countEl.textContent = '(' + realGameCount + ')';
+            // A ticked bundle means every game inside it is installed.
+            var doneGameCount = 0;
+            gameList.forEach(function(n) {
+                if (doneTicks[n]) doneGameCount += (fileCountMap[n] || 1);
+            });
             var remainingEl = document.getElementById('modalGameRemaining');
             if (remainingEl) {
-                remainingEl.textContent = doneCount > 0
-                    ? doneCount + ' ticked, ' + (gameList.length - doneCount) + ' to copy'
+                remainingEl.textContent = doneGameCount > 0
+                    ? doneGameCount + ' ticked, ' + (realGameCount - doneGameCount) + ' to copy'
                     : '';
             }
             var clearBtn = document.getElementById('modalClearTicksBtn');
-            if (clearBtn) clearBtn.style.display = doneCount > 0 ? 'inline-flex' : 'none';
+            if (clearBtn) clearBtn.style.display = doneGameCount > 0 ? 'inline-flex' : 'none';
 
             grid.innerHTML = '';
             if (gameList.length === 0) {
