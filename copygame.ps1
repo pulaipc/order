@@ -163,6 +163,66 @@ function Get-ErrorText {
     return $ErrorRecord.Exception.Message
 }
 
+# Device-busy errors that clear on their own once DBI has finished installing
+# the file it is still working on. 0x80070079 is the common "stopped responding
+# mid-transfer"; the others are the same class of transient WPD failure.
+function Test-TransientDeviceError {
+    param($ErrorRecord)
+    $ex = $ErrorRecord.Exception
+    while ($null -ne $ex) {
+        if ($ex -is [System.Runtime.InteropServices.COMException]) {
+            $hr = $ex.HResult
+            if (($hr -eq 0x80070079) -or ($hr -eq 0x8007001F) -or
+                ($hr -eq 0x802A0005) -or ($hr -eq 0x802A0006)) {
+                return $true
+            }
+            return $false
+        }
+        $ex = $ex.InnerException
+    }
+    return $false
+}
+
+# True when bytes were already moving. Re-sending such a file would leave a
+# partial copy behind, so automatic retries are limited to failures that happen
+# before the transfer starts (folder creation, opening the file).
+function Test-TransferStarted {
+    param($ErrorRecord)
+    $ex = $ErrorRecord.Exception
+    while ($null -ne $ex) {
+        if ($ex -is [PulaiWpd.WpdTransferException]) {
+            return -not ($ex.Message -like '*refused to open a transfer*')
+        }
+        $ex = $ex.InnerException
+    }
+    return $false
+}
+
+# Run one device operation, waiting out a busy DBI and trying again. Delays grow
+# so an installing Switch gets time to finish; the first attempt is immediate,
+# so a healthy device never pays for this.
+function Invoke-DeviceRetry {
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Action,
+        [string]$What = 'device operation',
+        [switch]$OnlyBeforeData
+    )
+    $delays = @(5, 10, 20, 30, 45, 60)
+    for ($attempt = 0; ; $attempt++) {
+        try {
+            return (& $Action)
+        } catch {
+            $transient = Test-TransientDeviceError $_
+            $safe = (-not $OnlyBeforeData) -or (-not (Test-TransferStarted $_))
+            if ((-not $transient) -or (-not $safe) -or ($attempt -ge $delays.Count)) { throw }
+            $delay = $delays[$attempt]
+            $script:busyRetries++
+            Write-Host ("      ... $What hit a busy device ($(Get-ErrorText $_)); retrying in ${delay}s")
+            Start-Sleep -Seconds $delay
+        }
+    }
+}
+
 if (-not (Test-Path -LiteralPath $NspDir)) { Die "nsp folder not found at $NspDir" }
 
 $requested = @(Read-ListFile $ListFile)
@@ -1181,11 +1241,13 @@ if ($TargetGiven -and $SaveTarget -and -not [string]::IsNullOrEmpty($Target)) {
 # Files the device took in full but never confirmed: counted separately, never
 # as a failure, because DBI installs them while the handshake is still pending.
 $script:unconfirmed = 0
+# Counts the automatic re-tries after a busy-device error, for the summary.
+$script:busyRetries = 0
 
 function Copy-FolderTree {
     param($Session, [string]$ParentId, [string]$LocalPath)
     $name = [System.IO.Path]::GetFileName($LocalPath.TrimEnd('\', '/'))
-    $newId = $Session.CreateFolder($ParentId, $name)
+    $newId = Invoke-DeviceRetry -What "creating folder '$name'" -Action { $Session.CreateFolder($ParentId, $name) }
     foreach ($entry in [System.IO.Directory]::GetFileSystemEntries($LocalPath)) {
         if ([System.IO.Directory]::Exists($entry)) {
             Copy-FolderTree $Session $newId $entry | Out-Null
@@ -1194,7 +1256,9 @@ function Copy-FolderTree {
             $started = [System.Diagnostics.Stopwatch]::StartNew()
             $note = $null
             try {
-                $note = $Session.CreateFile($newId, $entry, $fileName, $null)
+                $note = Invoke-DeviceRetry -What "copying '$fileName'" -OnlyBeforeData -Action {
+                    $Session.CreateFile($newId, $entry, $fileName, $null)
+                }
             } finally {
                 $started.Stop()
             }
@@ -1230,7 +1294,9 @@ function Copy-ToTarget {
         if (Test-Path -LiteralPath $SourcePath -PathType Container) {
             Copy-FolderTree $Session $DestId $SourcePath | Out-Null
         } else {
-            $note = $Session.CreateFile($DestId, $SourcePath, [System.IO.Path]::GetFileName($SourcePath), $null)
+            $note = Invoke-DeviceRetry -What "copying '$Label'" -OnlyBeforeData -Action {
+                $Session.CreateFile($DestId, $SourcePath, [System.IO.Path]::GetFileName($SourcePath), $null)
+            }
             if ($note) {
                 $script:unconfirmed++
                 Write-Host "  ! $note"
@@ -1471,6 +1537,11 @@ if ($gameFail -gt 0) { Write-Host ('{0} game name(s) not found or failed.' -f $g
 if (($script:unconfirmed -gt 0) -and (-not $DryRun)) {
     Write-Host ('{0} file(s) were sent in full but never confirmed by the device - they usually install anyway; check the Switch before re-copying.' -f $script:unconfirmed)
 }
+if (($script:busyRetries -gt 0) -and (-not $DryRun)) {
+    Write-Host ('Retried {0} device operation(s) after DBI was busy.' -f $script:busyRetries)
+}
 
+$failed = ($essentialFail -gt 0) -or ($gameFail -gt 0)
 if ($null -ne $session) { $session.Dispose() }
+if ($failed) { exit 1 }
 exit 0
