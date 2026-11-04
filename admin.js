@@ -2317,6 +2317,19 @@
         toggleChecklistItem(order.id || order.order_id, 'games');
     }
 
+    // The first game has actually started copying, which means system setup is
+    // finished: tick the "Set up system" work step. The games step itself still
+    // completes only when every game is ticked. Orders with no setup step
+    // (games-only) are left completely alone.
+    function autoCompleteSetupStep(order) {
+        if (!order) return;
+        var checklist = buildChecklist(order);
+        var hasSetupStep = checklist.some(function (item) { return item.key === 'setup'; });
+        if (!hasSetupStep) return;
+        if (deriveTickedSteps(order).setup) return; // already ticked
+        toggleChecklistItem(order.id || order.order_id, 'setup');
+    }
+
     /**
      * Fold a tick set whose keys may be DB-normalized names onto the order's
      * own game names, so ticks saved under either key style count everywhere.
@@ -3195,6 +3208,7 @@
     var installFindNotes = [];    // what each port did during the last lookup
     var installCopyingLabel = null; // the folder the copy is on right now
     var installRunOrder = null;   // the order the current run belongs to
+    var installSetupMarked = false; // setup step already handled for this run
 
     // Where the helper may be listening. 8787 is the default; when that port is
     // taken the helper steps to the next free one, up to four ports along, so
@@ -3385,6 +3399,12 @@
                 // a game and must not be mistaken for one.
                 if (!/^(Not )?Found:/.test(m[1].trim())) {
                     installCopyingLabel = m[1];
+                    // A game is really copying now, so system setup is done:
+                    // tick that work step (orders without one are untouched).
+                    if (!installSetupMarked) {
+                        installSetupMarked = true;
+                        autoCompleteSetupStep(installRunOrder || currentModalOrder);
+                    }
                 }
                 continue;
             }
@@ -3882,6 +3902,7 @@
         installSeen = 0;
         // A new run starts with nothing being copied.
         installCopyingLabel = null;
+        installSetupMarked = false;
         installSetStatus('Starting...', 'busy');
         var stopBtn = document.getElementById('installStopBtn');
         if (stopBtn) stopBtn.style.display = '';
