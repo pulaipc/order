@@ -776,6 +776,8 @@
             ? `Placed ${new Date(order.created_at).toLocaleString('en-MY', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true })}`
             : '';
 
+        renderPriceCard(order, statusOnly);
+
         const stages = APP_CONFIG.progressStages || ['Order Received','Confirmed','In Progress','Ready','Completed'];
         let currentStage = order.progress_stage || 'Order Received';
         if (order.status === 'Cancelled') currentStage = 'Cancelled';
@@ -991,6 +993,90 @@
     function installProgressLine(order) {
         if (!gameListOf(order).length) return '';
         return `<div id="installProgressLine" style="margin-top:6px; font-size:12.5px; color:#7dd3fc; font-weight:600;">${installProgressText(order)}</div>`;
+    }
+
+    /**
+     * The "Amount to prepare" card. Private to a token link: a phone lookup is
+     * a status-only record (orders_by_phone never sends price fields), so it is
+     * hidden there regardless of what survives in the DOM. Cancelled orders
+     * have nothing to prepare.
+     */
+    function renderPriceCard(order, statusOnly) {
+        const card = $('priceCard');
+        if (!card) return;
+        const stage = order.status === 'Cancelled' ? 'Cancelled' : (order.progress_stage || 'Order Received');
+        if (statusOnly || !currentToken || stage === 'Cancelled') {
+            card.style.display = 'none';
+            return;
+        }
+        const breakdown = buildOrderPriceBreakdown(order);
+        if (!breakdown || (breakdown.total <= 0 && breakdown.quoteCount === 0)) {
+            card.style.display = 'none';
+            return;
+        }
+
+        const awaitingQuote = breakdown.quoteCount > 0;
+        const final = !awaitingQuote && (stage === 'Ready' || stage === 'Completed');
+        card.style.display = '';
+        card.classList.toggle('final', final);
+
+        $('priceCardLabel').textContent = final
+            ? 'Final total \u2014 ready to collect'
+            : 'Estimated total';
+
+        $('priceCardTotal').textContent =
+            (breakdown.total <= 0 && awaitingQuote) ? 'TBC' : 'RM' + breakdown.total;
+
+        let note;
+        if (awaitingQuote) {
+            note = (breakdown.quoteCount === 1
+                ? 'One repair is still waiting on a quote, so this can change. '
+                : breakdown.quoteCount + ' repairs are still waiting on quotes, so this can change. ')
+                + 'Pay on collection.';
+        } else if (final) {
+            note = stage === 'Completed'
+                ? 'Final amount. Thank you!'
+                : 'Final amount \u2014 please prepare this for collection.';
+        } else {
+            note = 'Estimated while we work. The final amount is confirmed when your order is ready. Pay on collection.';
+        }
+        if (breakdown.repriced) note = 'Updated to match your latest order changes. ' + note;
+        $('priceCardNote').textContent = note;
+
+        let html = '';
+        breakdown.lines.forEach(function (line) {
+            const cls = line.kind === 'discount' ? ' discount'
+                : (line.kind === 'repair' && line.amount === null) ? ' quote'
+                : line.kind === 'adjustment' ? ' adjustment' : '';
+            const amountText = line.amount === null
+                ? escapeHtml(line.note || 'TBC')
+                : (line.amount < 0 ? '&minus;RM' + Math.abs(line.amount) : 'RM' + line.amount);
+            const noteHtml = (line.amount !== null && line.note)
+                ? '<span class="note">' + escapeHtml(line.note) + '</span>' : '';
+            html += '<div class="price-break-row' + cls + '">'
+                + '<span class="label">' + escapeHtml(line.label) + noteHtml + '</span>'
+                + '<span class="amount">' + amountText + '</span>'
+                + '</div>';
+        });
+        html += '<div class="price-break-row total"><span class="label">'
+            + (final ? 'Final total' : 'Estimated total')
+            + (awaitingQuote ? ' (+' + breakdown.quoteCount + ' quote' + (breakdown.quoteCount === 1 ? '' : 's') + ')' : '')
+            + '</span><span class="amount">'
+            + ((breakdown.total <= 0 && awaitingQuote) ? 'TBC' : 'RM' + breakdown.total)
+            + '</span></div>';
+        $('priceBreakList').innerHTML = html;
+    }
+
+    /** Show/hide the breakdown without losing the collapsed-by-default rule. */
+    function togglePriceBreakdown() {
+        const list = $('priceBreakList');
+        const btn = $('priceBreakToggle');
+        if (!list || !btn) return;
+        const open = !list.classList.contains('open');
+        list.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const label = $('priceBreakToggleText');
+        if (label) label.textContent = open ? 'Hide price breakdown' : 'View price breakdown';
     }
 
     /** Rewrite the line once the tick fetch lands; no-op if it left the step. */

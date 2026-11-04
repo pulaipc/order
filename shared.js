@@ -414,6 +414,116 @@ function pricingInputsForOrder(order, freeGames) {
     };
 }
 
+/**
+ * Customer-facing breakdown of what an order costs, for the tracker's
+ * "Amount to prepare" card. No internal costs or margins: only the lines the
+ * customer is actually charged for.
+ *
+ * The lines come from the same pricing engine as the order form and the
+ * dashboard, repriced from the stored selection (pack-aware game counts, the
+ * shop's free-game waiver applied). The stored subtotal is compared against
+ * that price: if the customer edited the order after the shop priced it, the
+ * tracker shows the current price, exactly as index.html does, and flags it.
+ *
+ * Quote repairs are listed but never guessed. They read "TBC" and keep the
+ * total an estimate until the shop sets a price.
+ *
+ * @returns {null|{lines:Array<{label:string, amount:number|null, kind:string, note?:string}>,
+ *          subtotal:number, discount:number, total:number, quoteCount:number,
+ *          repriced:boolean, gameCount:number}}
+ *          null when the row carries no price at all (phone-lookup records).
+ */
+function buildOrderPriceBreakdown(order) {
+    const o = order || {};
+    const hasStoredPrice =
+        (o.price_subtotal !== null && o.price_subtotal !== undefined && o.price_subtotal !== '') ||
+        (o.estimated_price !== null && o.estimated_price !== undefined && o.estimated_price !== '');
+    if (!hasStoredPrice) return null;
+
+    const totals = getOrderTotals(o);
+    const p = computePricing(pricingInputsForOrder(o, totals.freeGames));
+    const serviceType = o.service_type || '';
+    const jbOrSetup = isJbOrSetup(serviceType);
+    const lines = [];
+
+    // ---- Service base ----
+    if (serviceType === 'jailbreak') {
+        lines.push({ label: 'Full Jailbreak' + (o.console_model ? ' (' + o.console_model + ')' : ''), amount: p.serviceBasePrice, kind: 'base' });
+    } else if (serviceType === 'system_setup') {
+        lines.push({ label: 'System Setup Service', amount: p.serviceBasePrice, kind: 'base' });
+    } else if (serviceType === 'system_update') {
+        lines.push({ label: 'System Update Service', amount: p.serviceBasePrice, kind: 'base' });
+    } else if (serviceType === 'repair_only') {
+        lines.push(p.serviceBasePrice > 0
+            ? { label: 'Diagnostic / bench fee', amount: p.serviceBasePrice, kind: 'base' }
+            : { label: 'Diagnostic fee', amount: 0, kind: 'base', note: 'Waived' });
+    }
+
+    // ---- Add-ons ----
+    if (jbOrSetup && o.sd_source === 'buy' && p.sdCardPrice > 0) {
+        lines.push({ label: 'New ' + formatSdSize(o.sd_card_size) + ' SD Card', amount: p.sdCardPrice, kind: 'addon' });
+    }
+    if (p.androidPrice > 0) lines.push({ label: 'Android Mode', amount: p.androidPrice, kind: 'addon' });
+    if (p.linuxPrice > 0) lines.push({ label: 'Linux Mode', amount: p.linuxPrice, kind: 'addon' });
+
+    // ---- Repairs: priced ones, then the wait-for-quote ones ----
+    getEnrichedRepairs(o).forEach(function (r) {
+        // The diagnostic entry is the bench fee, already shown as the base line
+        // for a repair-only order. Listing it twice would double the amount.
+        if (serviceType === 'repair_only' && r.id === 'diagnostic') return;
+        if (r.isQuote) {
+            lines.push({ label: r.name, amount: null, kind: 'repair', note: 'TBC after inspection' });
+        } else if ((Number(r.price) || 0) !== 0) {
+            lines.push({ label: r.name, amount: Number(r.price) || 0, kind: 'repair' });
+        }
+    });
+
+    // ---- Games (pack-aware: a 3-game collection counts as 3) ----
+    const gameCount = Math.round(gameCountTotal(gameListOf(o)));
+    if (serviceType !== 'repair_only' && gameCount > 0) {
+        const freeNote = totals.freeGames > 0 ? ', ' + totals.freeGames + ' free' : '';
+        const label = jbOrSetup
+            ? 'Games (' + gameCount + ' total · ' + INCLUDED_GAME_ALLOWANCE + ' included' + freeNote + ')'
+            : 'Games (' + gameCount + ' game' + (gameCount === 1 ? '' : 's') + freeNote + ')';
+        lines.push({ label: label, amount: Math.round(p.gamesPrice), kind: 'games' });
+    }
+
+    // ---- Totals ----
+    // Prefer the repriced subtotal when the stored one is stale, so the card
+    // agrees with the order page the customer already looked at.
+    const computedSubtotal = Math.max(0, Math.round(p.subtotal));
+    const repriced = computedSubtotal !== totals.subtotal;
+    const subtotal = repriced ? computedSubtotal : totals.subtotal;
+    const total = Math.max(0, subtotal - totals.discount);
+
+    if (totals.hasDiscount) {
+        lines.push({ label: 'Discount', amount: -Math.min(totals.discount, subtotal), kind: 'discount' });
+    }
+
+    // Rounding and any legacy price difference are absorbed here so the lines
+    // always add up to the amount the customer is asked to prepare.
+    const componentTotal = lines.reduce(function (sum, l) { return sum + (Number(l.amount) || 0); }, 0);
+    const adjustment = total - componentTotal;
+    if (adjustment !== 0) {
+        lines.push({
+            label: 'Price adjustment',
+            amount: adjustment,
+            kind: 'adjustment',
+            note: repriced ? 'updated after your order edit' : ''
+        });
+    }
+
+    return {
+        lines: lines,
+        subtotal: subtotal,
+        discount: Math.min(totals.discount, subtotal),
+        total: total,
+        quoteCount: Number(p.repairQuoteCount) || 0,
+        repriced: repriced,
+        gameCount: gameCount
+    };
+}
+
 /** Normalise an enriched repairs array into the shape stored in the jsonb column. */
 function repairSnapshot(repairs) {
     return (repairs || []).map(function (r) {

@@ -142,6 +142,32 @@
         .current-stage-eta { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #7dd3fc; margin-top: 8px; background: rgba(125,211,252,0.08); padding: 4px 10px; border-radius: 4px; font-weight: 600; }
         .current-stage-updated { font-size: 11.5px; color: #8a8272; margin-top: 10px; padding-top: 10px; border-top: 1px solid #3a3018; }
 
+        /* ===== AMOUNT TO PREPARE ===== */
+        .price-card { background: #1c1808; border: 1px solid #4a3d1a; border-left: 4px solid #ffc000; border-radius: 6px; padding: 16px; margin-top: 20px; }
+        .price-card.final { border-left-color: #00e676; }
+        .price-card-title { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+        .price-card-heading { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .price-card-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #8a8272; font-weight: 700; }
+        .price-card-note { font-size: 12.5px; color: #b8b0a0; line-height: 1.5; }
+        .price-card-value { font-size: 24px; font-weight: bold; color: #ffc000; line-height: 1.2; white-space: nowrap; }
+        .price-card.final .price-card-value { color: #00e676; }
+        .price-break-toggle { margin-top: 12px; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #241e12; color: #e8dcc0; border: 1px solid #3a3018; border-radius: 5px; padding: 9px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .price-break-toggle:hover { background: #2e2716; }
+        .price-break-toggle .chev { font-size: 10px; color: #8a8272; transition: transform 0.2s; }
+        .price-break-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+        .price-break-list { display: none; margin-top: 10px; border-top: 1px solid #3a3018; padding-top: 10px; }
+        .price-break-list.open { display: block; }
+        .price-break-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; font-size: 12.5px; color: #c9c1af; padding: 5px 0; }
+        .price-break-row .label { min-width: 0; }
+        .price-break-row .amount { white-space: nowrap; font-weight: 600; color: #e8dcc0; }
+        .price-break-row .note { display: block; font-size: 11px; color: #8a8272; font-weight: 400; margin-top: 1px; }
+        .price-break-row.discount .amount { color: #00e676; }
+        .price-break-row.quote .amount { color: #7dd3fc; }
+        .price-break-row.total { border-top: 1px solid #3a3018; margin-top: 6px; padding-top: 10px; font-size: 14px; }
+        .price-break-row.total .label { color: #e8dcc0; font-weight: 700; }
+        .price-break-row.total .amount { color: #ffc000; font-size: 16px; }
+        .price-card.final .price-break-row.total .amount { color: #00e676; }
+
         .next-step-hint { background: #16202a; border: 1px solid #3a5a72; border-left: 4px solid #7dd3fc; border-radius: 6px; padding: 12px 14px; margin-top: 14px; font-size: 13px; color: #cfe6ff; line-height: 1.55; display: flex; align-items: flex-start; gap: 10px; }
         .next-step-hint.hidden { display: none; }
         .next-step-icon { color: #7dd3fc; font-size: 16px; flex-shrink: 0; line-height: 1.3; font-weight: bold; }
@@ -313,6 +339,20 @@
                     <div id="nextStepText"></div>
                 </div>
                 <div class="current-stage-updated" id="currentStageUpdated"></div>
+            </div>
+
+            <div id="priceCard" class="price-card" style="display:none;">
+                <div class="price-card-title">
+                    <div class="price-card-heading">
+                        <span class="price-card-label" id="priceCardLabel">Estimated total</span>
+                        <span class="price-card-note" id="priceCardNote">Pay on collection.</span>
+                    </div>
+                    <span class="price-card-value" id="priceCardTotal">&mdash;</span>
+                </div>
+                <button class="price-break-toggle" id="priceBreakToggle" type="button" onclick="togglePriceBreakdown()" aria-expanded="false">
+                    <span id="priceBreakToggleText">View price breakdown</span><span class="chev">&#9660;</span>
+                </button>
+                <div class="price-break-list" id="priceBreakList"></div>
             </div>
 
             <div id="editWindowNotice" class="edit-window-notice" style="display:none;">
