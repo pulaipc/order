@@ -322,7 +322,8 @@
             if (!o) return;
             var phone = o.phone_ending ? '...' + o.phone_ending : 'unknown';
             var svc = (o.service_type || '').replace(/_/g, ' ');
-            showToast('New order #' + phone, svc + ' · ' + (o.games && o.games.length ? o.games.length + ' game(s)' : 'no games yet'), 'success');
+            var newGames = gameCountTotal(gameListOf(o));
+            showToast('New order #' + phone, svc + ' · ' + (newGames ? newGames + ' game' + (newGames === 1 ? '' : 's') : 'no games yet'), 'success');
         }).on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'orders' }, function(payload) {
             var o = payload.new;
             if (!o) return;
@@ -3830,14 +3831,17 @@
         if (!box) return;
         box.innerHTML = '';
 
+        var queuedGames = gameCountTotal(gameList);
         var skipped = 0;
         try {
             var all = gameListOf(currentModalOrder);
-            skipped = all.length - gameList.length;
+            skipped = gameCountTotal(all) - queuedGames;
         } catch (e) { }
 
         var head = document.createElement('div');
-        head.textContent = gameList.length + ' game' + (gameList.length !== 1 ? 's' : '') + ' queued for this order, in this order:';
+        head.textContent = queuedGames + ' game' + (queuedGames !== 1 ? 's' : '') +
+            (gameList.length !== queuedGames ? ' (' + gameList.length + ' packages)' : '') +
+            ' queued for this order, in this order:';
         box.appendChild(head);
 
         if (skipped > 0) {

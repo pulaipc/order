@@ -953,14 +953,18 @@
 
     /**
      * How many of the order's picked games the current tick set marks
-     * installed. DB rows store normalized keys; exact names count too so a
-     * hand-edited ticks column always matches.
+     * installed, counting a pack/bundle as every game inside it (the same
+     * fileCount weighting the order cards use). DB rows store normalized
+     * keys; exact names count too so a hand-edited ticks column always matches.
      */
     function countInstalled(order) {
         const ticks = currentInstalledTicks;
+        const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
+        const counts = {};
+        catalog.forEach(function (g) { counts[g.name] = Math.max(1, Number(g.fileCount) || 1); });
         let n = 0;
         gameListOf(order).forEach(function (name) {
-            if (ticks[name] || ticks[installNormKey(name)]) n++;
+            if (ticks[name] || ticks[installNormKey(name)]) n += (counts[name] || 1);
         });
         return n;
     }
@@ -969,12 +973,12 @@
     function installProgressText(order) {
         const list = gameListOf(order);
         const done = countInstalled(order);
-        const total = list.length;
+        // Pack/bundle-aware totals: a three-game collection ticked as one row
+        // still contributes three to both sides of the count.
+        const total = gameCountTotal(list);
         const percent = total ? Math.round((done / total) * 100) : 0;
         let text = `Installing ${done} of ${total} games (${percent}%)`;
-        // The size total is flavor, not part of the percentage: the count that
-        // must add up (done + to-copy) is against the picked list, exactly as
-        // the admin modal counts it.
+        // The size total is flavor, not part of the percentage.
         if (order.total_size_gb) text += ` · ${Number(order.total_size_gb).toFixed(1)} GB total`;
         return text;
     }
