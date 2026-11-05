@@ -409,6 +409,9 @@ function pricingInputsForOrder(order, freeGames) {
         repairs: getEnrichedRepairs(o),
         hasAndroid: jbOrSetup && !!o.android_mode,
         hasLinux: jbOrSetup && !!o.linux_mode,
+        // Ticked by the shop in the admin order editor; customers cannot set
+        // it (see returning_customer_migration.sql).
+        returningCustomer: o.service_type === 'system_setup' && o.returning_customer === true,
         sdSource: jbOrSetup ? (o.sd_source || '') : '',
         maxSdSize: Number(o.sd_card_size) || 0
     };
@@ -458,7 +461,7 @@ function buildOrderPriceBreakdown(order, options) {
     if (serviceType === 'jailbreak') {
         lines.push({ label: 'Full Jailbreak' + (o.console_model ? ' (' + o.console_model + ')' : ''), amount: p.serviceBasePrice, kind: 'base' });
     } else if (serviceType === 'system_setup') {
-        lines.push({ label: 'System Setup Service', amount: p.serviceBasePrice, kind: 'base' });
+        lines.push({ label: 'System Setup Service' + (p.returningCustomer ? ' (returning customer)' : ''), amount: p.serviceBasePrice, kind: 'base' });
     } else if (serviceType === 'system_update') {
         lines.push({ label: 'System Update Service', amount: p.serviceBasePrice, kind: 'base' });
     } else if (serviceType === 'repair_only') {

@@ -33,6 +33,9 @@ const APP_CONFIG = {
 
     // System Setup flat base price (RM)
     systemSetupPrice: 50,
+    // Returning customers pay less for System Setup. Editable in admin.html
+    // (service_pricing.system_setup_returning), falls back to RM30.
+    systemSetupReturningPrice: 30,
 
     // System Update flat base price (RM)
     systemUpdatePrice: 30,
@@ -221,6 +224,7 @@ async function loadServicePricing(supabaseClient) {
             if (data.jailbreak_v1_v2 != null) APP_CONFIG.jailbreakPrices.V1_V2 = Number(data.jailbreak_v1_v2);
             if (data.jailbreak_lite != null) APP_CONFIG.jailbreakPrices.LITE = Number(data.jailbreak_lite);
             if (data.system_setup != null) APP_CONFIG.systemSetupPrice = Number(data.system_setup);
+            if (data.system_setup_returning != null) APP_CONFIG.systemSetupReturningPrice = Number(data.system_setup_returning);
             if (data.system_update != null) APP_CONFIG.systemUpdatePrice = Number(data.system_update);
             if (data.repair_only_fee != null) APP_CONFIG.repairOnlyBaseFee = Number(data.repair_only_fee);
             if (data.sd_128 != null) APP_CONFIG.sdCardRetailPrices[128] = Number(data.sd_128);
@@ -424,6 +428,7 @@ const INCLUDED_GAME_ALLOWANCE = 3;
  * @param {Array}  [opts.repairs]     enriched repairs ({ price, isQuote, id })
  * @param {boolean}[opts.hasAndroid]
  * @param {boolean}[opts.hasLinux]
+ * @param {boolean}[opts.returningCustomer] returning customer (System Setup only)
  * @param {string} [opts.sdSource]    'buy' | 'own'
  * @param {number} [opts.maxSdSize]   SD size in GB
  * @returns {Object} breakdown incl. `subtotal` (pre-discount)
@@ -438,13 +443,18 @@ function computePricing(opts) {
     const repairs = Array.isArray(o.repairs) ? o.repairs : [];
 
     const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
+    const returningCustomer = !!o.returningCustomer;
 
     // ---- Service base ----
     let basePrice = 0;
     if (serviceType === 'jailbreak') {
         basePrice = (cfg.jailbreakPrices && cfg.jailbreakPrices[consoleModel]) || 190;
     } else if (serviceType === 'system_setup') {
-        basePrice = cfg.systemSetupPrice || 50;
+        // Returning customers get the repeat price. Normal customers keep the
+        // standard price, so only the System Setup base moves.
+        basePrice = returningCustomer
+            ? (cfg.systemSetupReturningPrice != null ? cfg.systemSetupReturningPrice : 30)
+            : (cfg.systemSetupPrice || 50);
     } else if (serviceType === 'system_update') {
         basePrice = cfg.systemUpdatePrice || 30;
     } else if (serviceType === 'repair_only') {
@@ -489,6 +499,7 @@ function computePricing(opts) {
             freeGamesApplied: 0,
             freeGamesUnused: Math.max(0, Number(o.freeGames) || 0),
             freeGamesNoEffect: false,
+            returningCustomer: returningCustomer,
             subtotal: Math.round(fixedTotal),
             // `price` kept as an alias of the pre-discount subtotal for callers
             // that predate the subtotal/discount split.
@@ -537,6 +548,7 @@ function computePricing(opts) {
         // Volume pricing overrides the per-game rate, so waivers may not
         // actually change the total. Callers should surface this.
         freeGamesNoEffect: (freeApplied > 0 && sizeWins),
+        returningCustomer: returningCustomer,
         subtotal: Math.round(fixedTotal + gamesPrice),
         price: Math.round(fixedTotal + gamesPrice),
         exceeded: exceeded

@@ -53,6 +53,9 @@
         // across customer re-saves so a granted discount is never lost.
         freeGamesCount: 0,
         discountRm: 0,
+        // Set by the shop in admin.html. Read-only here: it only keeps the
+        // System Setup price at the returning rate while the customer edits.
+        returningCustomer: false,
         // Popularity from real past orders (loaded via the game_order_counts
         // RPC). Counts maps title -> how many orders included it; hotGames is
         // the top slice that earns the fire badge in the selection list.
@@ -328,6 +331,7 @@
         const shopAdj = getOrderTotals(order);
         state.freeGamesCount = shopAdj.freeGames;
         state.discountRm = shopAdj.discount;
+        state.returningCustomer = order.returning_customer === true;
         const summaryEl = $('summaryView');
         const formEl = $('formView');
         const checkoutBar = $('checkoutBar');
@@ -1295,6 +1299,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         state.loadedOrderForSummary = null;
         state.freeGamesCount = 0;
         state.discountRm = 0;
+        state.returningCustomer = false;
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
         ['serviceTypeSelect', 'consoleModelSelect', 'sdSourceSelect', 'userFreeStorageInput', 'searchInput'].forEach(id => $(id).value = '');
         window.history.replaceState({}, '', window.location.pathname);
@@ -1700,6 +1705,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             repairs: Array.from(state.selectedRepairs.values()),
             hasAndroid: !!$('androidModeCheck') && $('androidModeCheck').checked,
             hasLinux: !!$('linuxModeCheck') && $('linuxModeCheck').checked,
+            returningCustomer: state.returningCustomer,
             sdSource: valOf('sdSourceSelect'),
             maxSdSize: state.maxSdSize
         });
@@ -2256,7 +2262,15 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const priceBox = $('modalPriceBreakdown');
         let html = '';
         if (serviceType === 'jailbreak') html += `<div class="price-breakdown-row"><span>Full Jailbreak (${consoleModel})</span><span>RM${details.serviceBasePrice}</span></div>`;
-        else if (serviceType === 'system_setup') html += `<div class="price-breakdown-row"><span>System Setup Service</span><span>RM${details.serviceBasePrice}</span></div>`;
+        else if (serviceType === 'system_setup') {
+            html += `<div class="price-breakdown-row"><span>System Setup Service${details.returningCustomer ? ' (returning customer)' : ''}</span><span>RM${details.serviceBasePrice}</span></div>`;
+            if (!details.returningCustomer) {
+                const repeatPrice = APP_CONFIG.systemSetupReturningPrice != null ? APP_CONFIG.systemSetupReturningPrice : 30;
+                if (repeatPrice < details.serviceBasePrice) {
+                    html += `<div class="price-breakdown-row" style="color:#8a8272;font-size:12px;"><span>Ordered with us before? System Setup is RM${repeatPrice} for returning customers. We apply it when we confirm your order.</span><span></span></div>`;
+                }
+            }
+        }
         else if (serviceType === 'system_update') html += `<div class="price-breakdown-row"><span>System Update Service</span><span>RM${details.serviceBasePrice}</span></div>`;
         else if (serviceType === 'repair_only') {
             if (details.serviceBasePrice > 0) html += `<div class="price-breakdown-row"><span>Diagnostic / bench fee</span><span>RM${details.serviceBasePrice}</span></div>`;

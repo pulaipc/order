@@ -1390,6 +1390,7 @@
         orderEdit.sdSize = Number(order.sd_card_size) || 0;
         orderEdit.android = !!order.android_mode;
         orderEdit.linux = !!order.linux_mode;
+        orderEdit.returning = order.returning_customer === true;
         orderEdit.freeStorage = Number(order.free_storage_gb) || 0;
         orderEdit.games = gameListOf(order);
         // Left in the customer's own order: the first game they picked is the
@@ -1404,6 +1405,8 @@
         rebuildEditSdSizes(orderEdit.sdSize);
         el('oeAndroid').checked = orderEdit.android;
         el('oeLinux').checked = orderEdit.linux;
+        el('oeReturning').checked = orderEdit.returning;
+        el('oeReturningHint').textContent = returningHintFor(order);
         el('oeFreeStorage').value = orderEdit.freeStorage > 0 ? String(orderEdit.freeStorage) : '';
         el('oeGameSearch').value = '';
         el('oeStatus').className = 'oe-status';
@@ -1431,6 +1434,24 @@
         el('modalEditOrderBtn').style.display = 'none';
         el('orderEditPanel').style.display = '';
         onOrderEditChange();
+    }
+
+    /**
+     * A prompt, never a decision: the last 4 phone digits are shared between
+     * customers, so an earlier Completed order on the same ending only suggests
+     * this is a returning customer. The shop ticks the box.
+     */
+    function returningHintFor(order) {
+        var phone = order.phone_ending || '';
+        if (!phone) return '';
+        var selfId = order.id || order.order_id;
+        var done = allOrders.filter(function (o) {
+            return (o.id || o.order_id) !== selfId && (o.phone_ending || '') === phone &&
+                (o.status === 'Completed' || o.progress_stage === 'Completed');
+        }).length;
+        return done
+            ? done + ' earlier completed order' + (done === 1 ? '' : 's') + ' on ...' + phone + ' (check it is the same person)'
+            : 'No earlier completed order on ...' + phone;
     }
 
     /** Put the modal back into read-only mode. */
@@ -1474,6 +1495,7 @@
         orderEdit.sdSize = el('oeSdSize').value ? Number(el('oeSdSize').value) : 0;
         orderEdit.android = el('oeAndroid').checked;
         orderEdit.linux = el('oeLinux').checked;
+        orderEdit.returning = el('oeReturning').checked;
         var fs = parseFloat(el('oeFreeStorage').value);
         orderEdit.freeStorage = (isFinite(fs) && fs > 0) ? Math.round(fs) : 0;
 
@@ -1496,6 +1518,9 @@
         el('orderEditPanel').querySelectorAll('.oe-only-jb').forEach(function (n) { n.style.display = jb ? '' : 'none'; });
         el('orderEditPanel').querySelectorAll('.oe-only-model').forEach(function (n) { n.style.display = needsModel ? '' : 'none'; });
         el('orderEditPanel').querySelectorAll('.oe-only-free').forEach(function (n) { n.style.display = wantsFree ? '' : 'none'; });
+        el('orderEditPanel').querySelectorAll('.oe-only-setup').forEach(function (n) { n.style.display = (svc === 'system_setup') ? '' : 'none'; });
+        el('oeReturningPrice').textContent = 'RM' + APP_CONFIG.systemSetupReturningPrice +
+            ' setup instead of RM' + (APP_CONFIG.systemSetupPrice || 50);
         el('oeGamesBlock').style.display = (svc === 'repair_only') ? 'none' : '';
 
         // Repair Only means no games, and computePricing charges for games on any
@@ -1692,6 +1717,9 @@
             free_storage_gb: (!jb && wantsFree && orderEdit.freeStorage > 0) ? orderEdit.freeStorage : null,
             android_mode: jb ? orderEdit.android : false,
             linux_mode: jb ? orderEdit.linux : false,
+            // Only System Setup has a returning price, so the flag is dropped
+            // with the service rather than lingering on another one.
+            returning_customer: svc === 'system_setup' && !!orderEdit.returning,
             games: names,
             total_games: gameCountTotal(names),
             total_size_gb: Math.round(editGameTotalGb() * 100) / 100,
@@ -1802,6 +1830,7 @@
             free_storage_gb: pseudo.free_storage_gb,
             android_mode: pseudo.android_mode,
             linux_mode: pseudo.linux_mode,
+            returning_customer: pseudo.returning_customer,
             games: pseudo.games,
             total_games: pseudo.total_games,
             total_size_gb: pseudo.total_size_gb,
@@ -3059,6 +3088,7 @@
                     jailbreak_v1_v2: APP_CONFIG.jailbreakPrices.V1_V2 || 190,
                     jailbreak_lite: APP_CONFIG.jailbreakPrices.LITE || 230,
                     system_setup: APP_CONFIG.systemSetupPrice || 50,
+                    system_setup_returning: APP_CONFIG.systemSetupReturningPrice,
                     system_update: APP_CONFIG.systemUpdatePrice || 30,
                     repair_only_fee: APP_CONFIG.repairOnlyBaseFee || 30,
                     sd_128: APP_CONFIG.sdCardRetailPrices[128] || 110,
@@ -3073,6 +3103,7 @@
                     jailbreak_v1_v2: data.jailbreak_v1_v2 != null ? data.jailbreak_v1_v2 : (APP_CONFIG.jailbreakPrices.V1_V2 || 190),
                     jailbreak_lite: data.jailbreak_lite != null ? data.jailbreak_lite : (APP_CONFIG.jailbreakPrices.LITE || 230),
                     system_setup: data.system_setup != null ? data.system_setup : (APP_CONFIG.systemSetupPrice || 50),
+                    system_setup_returning: data.system_setup_returning != null ? data.system_setup_returning : APP_CONFIG.systemSetupReturningPrice,
                     system_update: data.system_update != null ? data.system_update : (APP_CONFIG.systemUpdatePrice || 30),
                     repair_only_fee: data.repair_only_fee != null ? data.repair_only_fee : (APP_CONFIG.repairOnlyBaseFee || 30),
                     sd_128: data.sd_128 != null ? data.sd_128 : (APP_CONFIG.sdCardRetailPrices[128] || 110),
@@ -3090,6 +3121,7 @@
                 jailbreak_v1_v2: APP_CONFIG.jailbreakPrices.V1_V2 || 190,
                 jailbreak_lite: APP_CONFIG.jailbreakPrices.LITE || 230,
                 system_setup: APP_CONFIG.systemSetupPrice || 50,
+                system_setup_returning: APP_CONFIG.systemSetupReturningPrice,
                 system_update: APP_CONFIG.systemUpdatePrice || 30,
                 repair_only_fee: APP_CONFIG.repairOnlyBaseFee || 30,
                 sd_128: APP_CONFIG.sdCardRetailPrices[128] || 110,
@@ -3121,6 +3153,7 @@
         html += '<div class="catalog-group" style="padding: 16px; margin: 0;">';
         html += '<h3 style="margin-top: 0; color: #ffc000; font-size: 15px; border-bottom: 1px solid #3a3018; padding-bottom: 8px;">Services &amp; Bench Fee (RM)</h3>';
         html += '<div class="form-field" style="margin-bottom: 12px;"><label>System Setup Base Price</label><input type="number" id="sp_sys_setup" class="search-box" value="' + currentServicePrices.system_setup + '" min="0" step="1"></div>';
+        html += '<div class="form-field" style="margin-bottom: 12px;"><label>System Setup &mdash; Returning Customer</label><input type="number" id="sp_sys_setup_returning" class="search-box" value="' + currentServicePrices.system_setup_returning + '" min="0" step="1"></div>';
         html += '<div class="form-field" style="margin-bottom: 12px;"><label>System Update Base Price</label><input type="number" id="sp_sys_update" class="search-box" value="' + currentServicePrices.system_update + '" min="0" step="1"></div>';
         html += '<div class="form-field" style="margin-bottom: 0;"><label>Repair-Only Base / Diagnostic Fee</label><input type="number" id="sp_repair_fee" class="search-box" value="' + currentServicePrices.repair_only_fee + '" min="0" step="1"></div>';
         html += '</div>';
@@ -3154,6 +3187,7 @@
                 jailbreak_v1_v2: parseFloat(document.getElementById('sp_jb_v1_v2').value) || 190,
                 jailbreak_lite: parseFloat(document.getElementById('sp_jb_lite').value) || 230,
                 system_setup: parseFloat(document.getElementById('sp_sys_setup').value) || 50,
+                system_setup_returning: (function (v) { return isFinite(v) && v >= 0 ? v : 30; })(parseFloat(document.getElementById('sp_sys_setup_returning').value)),
                 system_update: parseFloat(document.getElementById('sp_sys_update').value) || 30,
                 repair_only_fee: parseFloat(document.getElementById('sp_repair_fee').value) || 30,
                 sd_128: parseFloat(document.getElementById('sp_sd_128').value) || 110,
@@ -3173,6 +3207,7 @@
             APP_CONFIG.jailbreakPrices.V1_V2 = payload.jailbreak_v1_v2;
             APP_CONFIG.jailbreakPrices.LITE = payload.jailbreak_lite;
             APP_CONFIG.systemSetupPrice = payload.system_setup;
+            APP_CONFIG.systemSetupReturningPrice = payload.system_setup_returning;
             APP_CONFIG.systemUpdatePrice = payload.system_update;
             APP_CONFIG.repairOnlyBaseFee = payload.repair_only_fee;
             APP_CONFIG.sdCardRetailPrices[128] = payload.sd_128;
@@ -3186,6 +3221,7 @@
                 jailbreak_v1_v2: payload.jailbreak_v1_v2,
                 jailbreak_lite: payload.jailbreak_lite,
                 system_setup: payload.system_setup,
+                system_setup_returning: payload.system_setup_returning,
                 system_update: payload.system_update,
                 repair_only_fee: payload.repair_only_fee,
                 sd_128: payload.sd_128,

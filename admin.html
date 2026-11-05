@@ -1470,6 +1470,14 @@
                         </label>
                     </div>
 
+                    <div class="oe-checks oe-only-setup">
+                        <label class="oe-check">
+                            <input type="checkbox" id="oeReturning" onchange="onOrderEditChange()">
+                            <span>Returning customer <span class="oe-price" id="oeReturningPrice"></span></span>
+                        </label>
+                        <span class="oe-hint" id="oeReturningHint"></span>
+                    </div>
+
                     <div class="oe-field" id="oeGamesBlock">
                         <label for="oeGameSearch">Games</label>
                         <div class="oe-games">
