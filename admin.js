@@ -2656,12 +2656,22 @@
                 var delta = price - oldPrice;
 
                 var patch = { repairs: repairs, updated_at: new Date().toISOString() };
-                if (delta !== 0) patch.estimated_price = Math.max(0, (Number(order.estimated_price) || 0) + delta);
+                if (delta !== 0) {
+                    // Every reader (getOrderTotals, the tracker, the order page)
+                    // takes the total from price_subtotal, so the delta has to
+                    // land there. Moving estimated_price alone left the stored
+                    // total at the old amount.
+                    var stored = getOrderTotals(order);
+                    var newSubtotal = Math.max(0, stored.subtotal + delta);
+                    patch.price_subtotal = newSubtotal;
+                    patch.estimated_price = Math.max(0, newSubtotal - stored.discount);
+                }
 
                 var idField = order.id ? 'id' : 'order_id';
                 supabaseClient.from('orders').update(patch).eq(idField, order.id || order.order_id).then(function(res) {
                     if (res.error) { alert('Failed: ' + res.error.message); return; }
                     order.repairs = repairs;
+                    if (patch.price_subtotal !== undefined) order.price_subtotal = patch.price_subtotal;
                     if (patch.estimated_price !== undefined) order.estimated_price = patch.estimated_price;
                     if (currentModalOrder) renderPriceAdjustments(currentModalOrder);
                     renderModalRepairs(order);
