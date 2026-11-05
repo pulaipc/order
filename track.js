@@ -40,7 +40,10 @@
         if (state.lockedUntil > now) return { allowed: false, remainingMs: state.lockedUntil - now };
         state.fails = pruneOldFails(state.fails);
         if (state.fails.length >= RATE_LIMIT.maxAttempts) {
+            // Start the cooldown with a clean slate, or the same failures
+            // re-lock the page each time the cooldown ends.
             state.lockedUntil = now + RATE_LIMIT.cooldownMs;
+            state.fails = [];
             saveRateState(state);
             return { allowed: false, remainingMs: RATE_LIMIT.cooldownMs };
         }
@@ -51,11 +54,15 @@
         const state = getRateState();
         state.fails = pruneOldFails(state.fails);
         state.fails.push(Date.now());
-        if (state.fails.length >= RATE_LIMIT.maxAttempts) state.lockedUntil = Date.now() + RATE_LIMIT.cooldownMs;
+        if (state.fails.length >= RATE_LIMIT.maxAttempts) {
+            state.lockedUntil = Date.now() + RATE_LIMIT.cooldownMs;
+            state.fails = [];
+        }
         saveRateState(state);
     }
     function recordSuccess() { saveRateState({ fails: [], lockedUntil: 0 }); }
 
+    let rateLimitTimer = null;
     function applyRateLimitUI() {
         const btn = $('trackBtn');
         const input = $('trackPhoneInput');
@@ -66,11 +73,14 @@
         input.disabled = true;
         const totalSec = Math.ceil(result.remainingMs / 1000);
         let remaining = totalSec;
+        // One countdown at a time: this can be called again while one runs.
+        if (rateLimitTimer) clearTimeout(rateLimitTimer);
         const tick = () => {
+            rateLimitTimer = null;
             if (remaining <= 0) { btn.disabled = false; input.disabled = false; setStatus(''); return; }
             setStatus(`Too many attempts. Please wait ${remaining}s before trying again.`, '#e57373', 0);
             remaining--;
-            setTimeout(tick, 1000);
+            rateLimitTimer = setTimeout(tick, 1000);
         };
         tick();
         return true;
@@ -168,6 +178,8 @@
             if (!data) {
                 setStatus('');
                 showNoActiveOrders('', false, true);
+                // Leave a way to look the order up by phone instead.
+                setSearchCardVisible(true);
                 return;
             }
             currentToken = data.public_token || token;
@@ -180,7 +192,8 @@
             setStatus('');
         } catch (err) {
             console.error(err);
-            setStatus('Could not load that link. Please message us on WhatsApp.', '#e57373', 6000);
+            setStatus('Could not load that link. Please try again, or look up your order by phone below.', '#e57373', 0);
+            setSearchCardVisible(true);
         }
     }
 
@@ -214,7 +227,9 @@
             const activeOrders = all.filter(isActiveOrder);
 
             if (activeOrders.length === 0) {
-                recordSuccess();
+                // An empty result counts as an attempt, so guessing phone
+                // endings is slowed the same as failed lookups.
+                recordFailure();
                 currentPhone = phone;
                 currentOrders = [];
                 currentOrder = null;
@@ -381,7 +396,7 @@
                 const orderId = String(order.id || order.order_id);
                 const gameCount = gameCountTotal(gameListOf(order));
                 const rCount = Array.isArray(order.repairs) ? order.repairs.length : 0;
-                const total = getOrderTotals(order).total ? 'RM' + getOrderTotals(order).total : '';
+                const total = (order.status !== 'Cancelled' && getOrderTotals(order).total) ? 'RM' + getOrderTotals(order).total : '';
                 detailParts = [escapeHtml(serviceLabel)];
                 if (order.service_type !== 'repair_only') detailParts.push('<strong>' + gameCount + '</strong> game' + (gameCount !== 1 ? 's' : ''));
                 if (rCount > 0) detailParts.push('<strong>' + rCount + '</strong> repair' + (rCount !== 1 ? 's' : ''));
@@ -505,7 +520,11 @@
     });
 
     async function refreshOrder() {
-        if (!currentToken) return;
+        // Phone view: re-run the status lookup for the same phone.
+        if (!currentToken) {
+            if (currentPhone) { $('trackPhoneInput').value = currentPhone; trackOrder(); }
+            return;
+        }
         const btn = $('refreshBtn');
         btn.disabled = true;
         btn.classList.add('loading');
@@ -538,12 +557,17 @@
             : window.location.origin + window.location.pathname + '?phone=' + encodeURIComponent(currentPhone || '');
         if (!url || url.endsWith('=')) { alert('No order to copy a link for.'); return; }
         navigator.clipboard.writeText(url).then(() => {
-            const originalText = btnElement.innerHTML;
+            // Keep the label from before the first click, so a second click
+            // within 2s does not save "Copied" as the label to restore.
+            if (!btnElement.dataset.label) btnElement.dataset.label = btnElement.innerHTML;
+            const originalText = btnElement.dataset.label;
+            if (btnElement._copyTimer) clearTimeout(btnElement._copyTimer);
             btnElement.innerHTML = 'Copied';
             btnElement.style.background = '#7dd3fc';
             btnElement.style.color = '#14110a';
             btnElement.style.borderColor = '#7dd3fc';
-            setTimeout(() => {
+            btnElement._copyTimer = setTimeout(() => {
+                btnElement._copyTimer = null;
                 btnElement.innerHTML = originalText;
                 btnElement.style.background = '#2e2716';
                 btnElement.style.color = '#7dd3fc';
@@ -552,15 +576,25 @@
         }).catch(err => { alert('Failed to copy link: ' + err); });
     }
 
+    // One pending dismiss at a time, so an older message's timer cannot fade a
+    // newer message.
+    let statusTimer = null, statusFadeTimer = null;
     function setStatus(text, color = '#e8dcc0', autoDismissMs = 0) {
         const el = $('statusMsg');
+        if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
+        if (statusFadeTimer) { clearTimeout(statusFadeTimer); statusFadeTimer = null; }
         el.classList.remove('fading');
         el.style.color = color;
         el.innerText = text;
         if (autoDismissMs > 0) {
-            setTimeout(() => {
+            statusTimer = setTimeout(() => {
+                statusTimer = null;
                 el.classList.add('fading');
-                setTimeout(() => { if (el.classList.contains('fading')) { el.innerText = ''; el.classList.remove('fading'); } }, 400);
+                statusFadeTimer = setTimeout(() => {
+                    statusFadeTimer = null;
+                    el.innerText = '';
+                    el.classList.remove('fading');
+                }, 400);
             }, autoDismissMs);
         }
     }
@@ -710,6 +744,10 @@
             const { data, error } = await supabaseClient.rpc('cancel_order', { p_token: token });
             if (error) throw error;
             if (!data || data.cancelled !== true) {
+                // The shop has moved the order on. Reload it so the edit and
+                // cancel controls reflect that, instead of a stuck button.
+                if (btn) { btn.disabled = false; btn.textContent = 'Cancel Order'; }
+                await refreshOrder();
                 setStatus('This order can no longer be cancelled here. Please message us on WhatsApp.', '#e57373', 6000);
                 return;
             }
@@ -780,7 +818,7 @@
             detailParts.push(escapeHtml(serviceLabel));
             detailParts.push(escapeHtml(order.status || 'Pending'));
         } else {
-            detailParts.push(serviceLabel);
+            detailParts.push(escapeHtml(serviceLabel));
             if (order.service_type !== 'repair_only') {
                 detailParts.push(`<strong>${gameCount}</strong> game${gameCount !== 1 ? 's' : ''}`);
                 detailParts.push(`<strong>${sizeGb}</strong> GB`);
@@ -869,6 +907,10 @@
             if (currentStage === 'In Progress') {
                 const stagesList = getEffectiveSubStages(order);
                 const currentSub = order.progress_substage || (stagesList[0] || null);
+                // The phone record has no repairs, so a step such as "Device
+                // Repair" can be missing from the derived list. Show the step
+                // the shop set rather than a list with no "Now".
+                if (currentSub && stagesList.indexOf(currentSub) === -1) stagesList.push(currentSub);
                 const currentSubIdx = stagesList.indexOf(currentSub);
 
                 if (APP_CONFIG.showEstimatedTime && currentSub && APP_CONFIG.subStageEstimatedTimes && APP_CONFIG.subStageEstimatedTimes[currentSub]) {
@@ -945,6 +987,7 @@
 
     function formatTimeAgo(isoString) {
         const then = new Date(isoString).getTime();
+        if (isNaN(then)) return '';
         const now = Date.now();
         const sec = Math.floor((now - then) / 1000);
         if (sec < 60) return 'just now';
@@ -1118,8 +1161,12 @@
     }
 
     /** One anon RPC per render keeps the customer's progress within a page load of reality. */
+    let installedTicksOrderId = null;
     function fetchInstalledTicks(order) {
-        currentInstalledTicks = {};
+        // Keep the last ticks while refreshing the same order, so the progress
+        // line does not flash back to "0 of N" until the RPC returns.
+        if (String(order.id) !== installedTicksOrderId) currentInstalledTicks = {};
+        installedTicksOrderId = String(order.id);
         if (!currentToken || typeof supabaseClient === 'undefined' || !supabaseClient.rpc) return;
         supabaseClient.rpc('get_installed_ticks', { p_order_id: Number(order.id) })
             .then(function (res) {

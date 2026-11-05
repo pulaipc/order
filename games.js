@@ -125,6 +125,7 @@ function toggleDetail(g, card) {
 function buildGridCard(g) {
     const card = document.createElement('div');
     card.className = 'game-card grid-card';
+    card.dataset.name = g.name;
     card.appendChild(buildCoverTile(g));
     const name = document.createElement('div');
     name.className = 'game-cover-name';
@@ -142,6 +143,7 @@ function buildGridCard(g) {
 function buildListCard(g) {
     const card = document.createElement('div');
     card.className = 'game-card';
+    card.dataset.name = g.name;
     const info = document.createElement('div');
     info.className = 'game-info';
     const title = document.createElement('span');
@@ -188,8 +190,15 @@ function renderLibrary() {
     const clearBtn = $('libClearBtn');
     if (clearBtn) clearBtn.style.display = query.length > 0 ? 'block' : 'none';
 
-    const filtered = query
-        ? all.filter(g => g.name.toLowerCase().includes(query))
+    // Match on letters and digits only, so "avatar the last airbender quest"
+    // finds "Avatar The Last Airbender - Quest for Balance". Pack members
+    // count too: searching "Arkham City" finds the trilogy pack.
+    const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const nq = norm(query);
+    const matches = g => norm(g.name).includes(nq) ||
+        (Array.isArray(g.titles) && g.titles.some(m => norm(m && typeof m === 'object' ? m.n : m).includes(nq)));
+    const filtered = nq
+        ? all.filter(matches)
         : all.slice();
     sortLibrary(filtered);
 
@@ -260,7 +269,17 @@ async function loadHotCounts() {
                 .sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
                 .slice(0, HOT_GAME_TOP)
         );
+        // Re-rendering rebuilds every card, so re-open the panel the user had
+        // open while the counts were loading.
+        const open = document.querySelector('#gameGrid .game-card.detail-open');
+        const openName = open ? open.dataset.name : null;
         renderLibrary();
+        if (openName) {
+            const card = Array.from(document.querySelectorAll('#gameGrid .game-card'))
+                .find(c => c.dataset.name === openName);
+            const g = card && catalog().find(x => x.name === openName);
+            if (g) toggleDetail(g, card);
+        }
     } catch (e) { /* cosmetic only */ }
 }
 

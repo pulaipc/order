@@ -43,10 +43,9 @@ function gameListOf(order) {
     if (typeof order.games === 'string') {
         try {
             const parsed = JSON.parse(order.games);
-            return Array.isArray(parsed) ? parsed : order.games.split(',');
-        } catch (e) {
-            return order.games.split(',');
-        }
+            if (Array.isArray(parsed)) return parsed;
+        } catch (e) { /* not JSON: a comma-separated list */ }
+        return order.games.split(',').map(s => s.trim()).filter(Boolean);
     }
     return [];
 }
@@ -509,10 +508,14 @@ function buildOrderPriceBreakdown(order, options) {
     const computedSubtotal = Math.max(0, Math.round(p.subtotal));
     const repriced = !useStoredTotal && computedSubtotal !== totals.subtotal;
     const subtotal = repriced ? computedSubtotal : totals.subtotal;
-    const total = Math.max(0, subtotal - totals.discount);
+    // totals.discount is capped against the stored subtotal; cap the raw
+    // discount against the subtotal actually used.
+    const rawDiscount = totals.discountRaw != null ? totals.discountRaw : totals.discount;
+    const discount = Math.min(rawDiscount, subtotal);
+    const total = Math.max(0, subtotal - discount);
 
     if (totals.hasDiscount) {
-        lines.push({ label: 'Discount', amount: -Math.min(totals.discount, subtotal), kind: 'discount' });
+        lines.push({ label: 'Discount', amount: -discount, kind: 'discount' });
     }
 
     // Rounding, a price edited after the order, and a stale stored subtotal are
@@ -531,7 +534,7 @@ function buildOrderPriceBreakdown(order, options) {
     return {
         lines: lines,
         subtotal: subtotal,
-        discount: Math.min(totals.discount, subtotal),
+        discount: discount,
         total: total,
         quoteCount: Number(p.repairQuoteCount) || 0,
         repriced: repriced,

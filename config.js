@@ -445,25 +445,32 @@ function computePricing(opts) {
     const isJbOrSetup = (serviceType === 'jailbreak' || serviceType === 'system_setup');
     const returningCustomer = !!o.returningCustomer;
 
+    // A configured price of 0 is a real price (e.g. a free bench fee), so
+    // fall back to the default only when the value is missing.
+    const priceOr = function (v, d) {
+        return (v === null || v === undefined || v === '' || !isFinite(Number(v))) ? d : Number(v);
+    };
+    const addonPrices = cfg.addonPrices || {};
+
     // ---- Service base ----
     let basePrice = 0;
     if (serviceType === 'jailbreak') {
-        basePrice = (cfg.jailbreakPrices && cfg.jailbreakPrices[consoleModel]) || 190;
+        basePrice = priceOr(cfg.jailbreakPrices && cfg.jailbreakPrices[consoleModel], 190);
     } else if (serviceType === 'system_setup') {
         // Returning customers get the repeat price. Normal customers keep the
         // standard price, so only the System Setup base moves.
         basePrice = returningCustomer
-            ? (cfg.systemSetupReturningPrice != null ? cfg.systemSetupReturningPrice : 30)
-            : (cfg.systemSetupPrice || 50);
+            ? priceOr(cfg.systemSetupReturningPrice, 30)
+            : priceOr(cfg.systemSetupPrice, 50);
     } else if (serviceType === 'system_update') {
-        basePrice = cfg.systemUpdatePrice || 30;
+        basePrice = priceOr(cfg.systemUpdatePrice, 30);
     } else if (serviceType === 'repair_only') {
-        basePrice = cfg.repairOnlyBaseFee || 30;
+        basePrice = priceOr(cfg.repairOnlyBaseFee, 30);
     }
 
     // ---- Add-ons (jailbreak / system setup only) ----
-    const androidPrice = (isJbOrSetup && o.hasAndroid) ? (cfg.addonPrices.android || 30) : 0;
-    const linuxPrice = (isJbOrSetup && o.hasLinux) ? (cfg.addonPrices.linux || 30) : 0;
+    const androidPrice = (isJbOrSetup && o.hasAndroid) ? priceOr(addonPrices.android, 30) : 0;
+    const linuxPrice = (isJbOrSetup && o.hasLinux) ? priceOr(addonPrices.linux, 30) : 0;
     const sdCardPrice = (isJbOrSetup && o.sdSource === 'buy')
         ? ((cfg.sdCardRetailPrices && cfg.sdCardRetailPrices[o.maxSdSize]) || 0)
         : 0;
@@ -595,6 +602,9 @@ function getOrderTotals(order) {
     return {
         subtotal: subtotal,
         discount: Math.min(discount, subtotal),
+        // Uncapped. A caller that reprices to a different subtotal caps this
+        // against that subtotal instead of the stored one.
+        discountRaw: discount,
         total: total,
         freeGames: freeGames,
         bundledFreeGames: bundledFreeGames,
