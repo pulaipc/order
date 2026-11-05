@@ -124,7 +124,14 @@
 
     window.onload = async function() {
         applyRateLimitUI();
-        await loadRepairServices(supabaseClient);
+        // The shop edits these on the admin Pricing tab, so the tracker has to
+        // read the same table as the order page. Without it, an SD card or
+        // add-on would be quoted from the hardcoded defaults and could differ
+        // from the amount the shop actually set.
+        await Promise.all([
+            loadRepairServices(supabaseClient),
+            loadServicePricing(supabaseClient)
+        ]);
 
         // Footer contact link: label only, never the number. The href carries
         // it so WhatsApp opens the chat, but nothing on the page displays it.
@@ -1020,14 +1027,16 @@
             card.style.display = 'none';
             return;
         }
-        const breakdown = buildOrderPriceBreakdown(order);
+        const atTop = (stage === 'Ready' || stage === 'Completed');
+        // Once the order is ready, the shop's stored price is the one that was
+        // confirmed; a later global price edit must not move it.
+        const breakdown = buildOrderPriceBreakdown(order, { useStoredTotal: atTop });
         if (!breakdown || (breakdown.total <= 0 && breakdown.quoteCount === 0)) {
             card.style.display = 'none';
             return;
         }
 
         const awaitingQuote = breakdown.quoteCount > 0;
-        const atTop = (stage === 'Ready' || stage === 'Completed');
         const final = atTop && !awaitingQuote;
         card.style.display = '';
         card.classList.toggle('final', final);

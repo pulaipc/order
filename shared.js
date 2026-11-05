@@ -428,12 +428,20 @@ function pricingInputsForOrder(order, freeGames) {
  * Quote repairs are listed but never guessed. They read "TBC" and keep the
  * total an estimate until the shop sets a price.
  *
+ * @param {object} order
+ * @param {{useStoredTotal?:boolean}} [options] `useStoredTotal` keeps the
+ *        order's stored subtotal as the total (used once an order is ready,
+ *        when the confirmed price must not move because a global price was
+ *        edited later). Lines that no longer add up are reconciled below.
+ *
  * @returns {null|{lines:Array<{label:string, amount:number|null, kind:string, note?:string}>,
  *          subtotal:number, discount:number, total:number, quoteCount:number,
  *          repriced:boolean, gameCount:number}}
  *          null when the row carries no price at all (phone-lookup records).
  */
-function buildOrderPriceBreakdown(order) {
+function buildOrderPriceBreakdown(order, options) {
+    const opts = options || {};
+    const useStoredTotal = !!opts.useStoredTotal;
     const o = order || {};
     const hasStoredPrice =
         (o.price_subtotal !== null && o.price_subtotal !== undefined && o.price_subtotal !== '') ||
@@ -489,10 +497,11 @@ function buildOrderPriceBreakdown(order) {
     }
 
     // ---- Totals ----
-    // Prefer the repriced subtotal when the stored one is stale, so the card
-    // agrees with the order page the customer already looked at.
+    // Before the order is ready, a customer edit can leave the stored subtotal
+    // stale, so the current selection price wins there, exactly as the order
+    // page does. Once the order is ready, the confirmed stored price stands.
     const computedSubtotal = Math.max(0, Math.round(p.subtotal));
-    const repriced = computedSubtotal !== totals.subtotal;
+    const repriced = !useStoredTotal && computedSubtotal !== totals.subtotal;
     const subtotal = repriced ? computedSubtotal : totals.subtotal;
     const total = Math.max(0, subtotal - totals.discount);
 
@@ -500,8 +509,8 @@ function buildOrderPriceBreakdown(order) {
         lines.push({ label: 'Discount', amount: -Math.min(totals.discount, subtotal), kind: 'discount' });
     }
 
-    // Rounding and any legacy price difference are absorbed here so the lines
-    // always add up to the amount the customer is asked to prepare.
+    // Rounding, a price edited after the order, and a stale stored subtotal are
+    // absorbed here so the lines always add up to the amount to prepare.
     const componentTotal = lines.reduce(function (sum, l) { return sum + (Number(l.amount) || 0); }, 0);
     const adjustment = total - componentTotal;
     if (adjustment !== 0) {
@@ -509,7 +518,7 @@ function buildOrderPriceBreakdown(order) {
             label: 'Price adjustment',
             amount: adjustment,
             kind: 'adjustment',
-            note: repriced ? 'updated after your order edit' : ''
+            note: useStoredTotal ? 'confirmed price' : (repriced ? 'updated after your order edit' : '')
         });
     }
 
