@@ -171,6 +171,11 @@ function sortLibrary(list) {
     const counts = libState.counts || {};
     const byName = (a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'accent', numeric: true });
     if (mode === 'za') return list.sort((a, b) => byName(b, a));
+    if (mode === 'newest') {
+        // added is "YYYY-MM-DD", so string order is date order. Entries
+        // without a date sink to the bottom.
+        return list.sort((a, b) => (b.added || '').localeCompare(a.added || '') || byName(a, b));
+    }
     if (mode === 'popular') {
         return list.sort((a, b) => ((counts[b.name] || 0) - (counts[a.name] || 0)) || byName(a, b));
     }
@@ -301,7 +306,13 @@ async function loadHotCounts() {
         });
     }
     const sort = $('libSort');
-    if (sort) sort.addEventListener('change', renderLibrary);
+    if (sort) {
+        // The catalog only carries dates after a game list sync with the
+        // newer push_gamelist.ps1. Until then the sort would do nothing.
+        const newest = sort.querySelector('option[value="newest"]');
+        if (newest && !catalog().some(g => g.added)) newest.remove();
+        sort.addEventListener('change', renderLibrary);
+    }
     const gb = $('libGridBtn');
     if (gb) gb.addEventListener('click', function () { setLibViewMode('grid'); });
     const lb = $('libListBtn');

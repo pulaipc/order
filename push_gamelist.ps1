@@ -125,7 +125,11 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         $titlesField = ', titles: [' + ($memberJs -join ', ') + ']'
     }
 
-    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + $coverField + $titlesField + ' }'
+    # Date the folder was added to the nsp library (folder creation time), for
+    # the "Newest added" sort on games.html.
+    $addedField = ', added: "' + $dir.CreationTime.ToString('yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture) + '"'
+
+    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + $coverField + $addedField + $titlesField + ' }'
 }
 
 $currentDateIso = Get-Date -Format "o"
