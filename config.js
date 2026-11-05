@@ -471,6 +471,9 @@ function computePricing(opts) {
     // ---- Repairs ----
     let repairTotal = 0, repairQuoteCount = 0;
     repairs.forEach(function (r) {
+        // On Repair Only the 'diagnostic' entry IS the bench fee charged as the
+        // base below. Adding its price as well charged the fee twice.
+        if (serviceType === 'repair_only' && r && r.id === 'diagnostic') return;
         if (r && r.isQuote) repairQuoteCount++;
         else repairTotal += Number(r && r.price) || 0;
     });

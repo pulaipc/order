@@ -56,6 +56,11 @@
         // Set by the shop in admin.html. Read-only here: it only keeps the
         // System Setup price at the returning rate while the customer edits.
         returningCustomer: false,
+        // Model the selected repairs were last priced for. See refreshRepairPrices.
+        repairPriceModel: null,
+        // True while applyLoadedOrder runs, so a saved order is shown as stored
+        // instead of having games trimmed before the customer touches anything.
+        applyingOrder: false,
         // Popularity from real past orders (loaded via the game_order_counts
         // RPC). Counts maps title -> how many orders included it; hotGames is
         // the top slice that earns the fire badge in the selection list.
@@ -274,14 +279,20 @@
     function refreshRepairPrices() {
         const model = valOf('consoleModelSelect') || 'OLED';
         const services = window.REPAIR_SERVICES || [];
-        // Update stored prices
-        state.selectedRepairs.forEach((r, id) => {
-            const svc = services.find(s => s.id === id);
-            if (!svc) return;
-            const p = computeRepairPrice(svc, model);
-            r.price = p.amount;
-            r.isQuote = p.isQuote;
-        });
+        // Reprice the selection only when the model really changed. This runs on
+        // every updateSdLimit(), including while a saved order is loaded, and
+        // repricing then would replace a price the shop set by hand with the
+        // catalogue one, which the next save_order would store.
+        if (model !== state.repairPriceModel) {
+            state.repairPriceModel = model;
+            state.selectedRepairs.forEach((r, id) => {
+                const svc = services.find(s => s.id === id);
+                if (!svc) return;
+                const p = computeRepairPrice(svc, model);
+                r.price = p.amount;
+                r.isQuote = p.isQuote;
+            });
+        }
         // Update UI prices
         document.querySelectorAll('.repair-item').forEach(item => {
             const nameEl = item.querySelector('.repair-item-name');
@@ -1017,6 +1028,12 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             $('linuxModeCheck').checked = false;
             $('jailbreakNoticeCard').style.display = 'none';
             $('gameSectionWrapper').style.display = 'none';
+            // Games are hidden here, but computePricing charges for any games
+            // passed to it and the save would store them. Drop them.
+            if (state.selectedGames.size > 0) {
+                state.selectedGames.clear();
+                if (!state.applyingOrder) setStatusMessage('Games removed: Repair Only does not include game installation.', '#ffb74d', 5000);
+            }
             state.isStorageConfigured = true;
             state.usableStorageLimit = 0;
             $('storageWarningBanner').style.display = 'none';
@@ -1113,7 +1130,31 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         filterGames();
     }
 
-    function updateSdLimit() {
+    /**
+     * Drop games that no longer fit. Keeps games in the order picked and skips
+     * only the ones that overflow, so a large game does not take every later
+     * small one with it. Does nothing while a saved order is being loaded.
+     */
+    function trimGamesToLimit(label) {
+        if (state.applyingOrder) return;
+        const limit = state.usableStorageLimit;
+        const gSize = selectedGamesFootprint();
+        if (!(limit > 0) || gSize <= limit) return;
+        alert(`${label} (${limit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB after install). Excess games will be automatically removed.`);
+        let acc = 0;
+        const toRemove = [];
+        state.selectedGames.forEach((sz, name) => {
+            const gb = effectiveGb(sz);
+            if (acc + gb > limit) toRemove.push(name);
+            else acc += gb;
+        });
+        toRemove.forEach(n => state.selectedGames.delete(n));
+    }
+
+    // previewOnly: called while the customer is still typing in the free-space
+    // box. Update the figures, but do not remove games for a half-typed number.
+    function updateSdLimit(previewOnly) {
+        previewOnly = previewOnly === true;
         const serviceType = valOf('serviceTypeSelect');
         const consoleModel = valOf('consoleModelSelect');
         const sdSource = valOf('sdSourceSelect');
@@ -1143,8 +1184,10 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 $('storageWarningBanner').style.display = 'none';
                 $('gameSectionWrapper').classList.add('locked');
 
-                // (B): wipe game selection so the order is cleanly update-only
-                if (state.selectedGames.size > 0) {
+                // (B): wipe game selection so the order is cleanly update-only.
+                // Not while typing (the box is briefly empty when retyping a
+                // number) and not while a saved order is being loaded.
+                if (state.selectedGames.size > 0 && !previewOnly && !state.applyingOrder) {
                     state.selectedGames.clear();
                 }
 
@@ -1152,15 +1195,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             }
 
             // Trim excess games when free space shrinks below selected total
-            if (hasFreeSpace && state.usableStorageLimit > 0) {
-                const gSize = selectedGamesFootprint();
-                if (gSize > state.usableStorageLimit) {
-                    alert(`Your storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB after install). Excess games will be automatically removed.`);
-                    let acc = 0;
-                    const toRemove = [];
-                    state.selectedGames.forEach((sz, name) => { acc += effectiveGb(sz); if (acc > state.usableStorageLimit) toRemove.push(name); });
-                    toRemove.forEach(n => state.selectedGames.delete(n));
-                }
+            if (hasFreeSpace && state.usableStorageLimit > 0 && !previewOnly) {
+                trimGamesToLimit('Your storage limit');
             }
 
             // Submit allowed regardless (order can be update-only)
@@ -1274,13 +1310,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             }
         }
 
-        const gSize = selectedGamesFootprint();
-        if (state.isStorageConfigured && state.usableStorageLimit > 0 && gSize > state.usableStorageLimit) {
-            alert(`Your new storage limit (${state.usableStorageLimit} GB) is smaller than your selected games (${gSize.toFixed(1)} GB after install). Excess games will be automatically removed.`);
-            let acc = 0;
-            const toRemove = [];
-            state.selectedGames.forEach((sz, name) => { acc += effectiveGb(sz); if (acc > state.usableStorageLimit) toRemove.push(name); });
-            toRemove.forEach(n => state.selectedGames.delete(n));
+        if (state.isStorageConfigured && state.usableStorageLimit > 0 && !previewOnly) {
+            trimGamesToLimit('Your new storage limit');
         }
 
         if (gameWrapper.style.display !== 'none') scheduleGamesRerender();
@@ -1300,6 +1331,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         state.freeGamesCount = 0;
         state.discountRm = 0;
         state.returningCustomer = false;
+        state.repairPriceModel = null;
         ['androidModeCheck', 'linuxModeCheck'].forEach(id => $(id).checked = false);
         ['serviceTypeSelect', 'consoleModelSelect', 'sdSourceSelect', 'userFreeStorageInput', 'searchInput'].forEach(id => $(id).value = '');
         window.history.replaceState({}, '', window.location.pathname);
@@ -1961,12 +1993,11 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         state.selectedRepairs.clear();
         const source = typeof games !== 'undefined' ? games : [];
 
-        if (order.games && Array.isArray(order.games)) {
-            order.games.forEach(name => {
-                const found = source.find(g => g.name === name);
-                state.selectedGames.set(name, found ? found.size : 0);
-            });
-        }
+        // gameListOf also reads the older JSON-string and comma-separated rows.
+        gameListOf(order).forEach(name => {
+            const found = source.find(g => g.name === name);
+            state.selectedGames.set(name, found ? found.size : 0);
+        });
 
         // Load repairs (snapshot objects)
         if (order.repairs && Array.isArray(order.repairs)) {
@@ -2009,8 +2040,15 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (order.console_model) $('consoleModelSelect').value = order.console_model;
         $('androidModeCheck').checked = !!order.android_mode;
         $('linuxModeCheck').checked = !!order.linux_mode;
-        toggleServiceFields();
-        updateSdLimit();
+        // The repairs above carry the stored prices for this model.
+        state.repairPriceModel = valOf('consoleModelSelect') || 'OLED';
+        state.applyingOrder = true;
+        try {
+            toggleServiceFields();
+            updateSdLimit();
+        } finally {
+            state.applyingOrder = false;
+        }
         filterGames();
         if (state.selectedGames.size > 0 && order.service_type !== 'repair_only') revealGameSection();
         // Expand repair section if repairs exist
@@ -2289,6 +2327,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         // Repair rows
         if (state.selectedRepairs.size > 0) {
             state.selectedRepairs.forEach(r => {
+                // Already shown as the bench fee line above, and not charged twice.
+                if (isRepairOnly && r.id === 'diagnostic') return;
                 if (r.isQuote) {
                     html += `<div class="price-breakdown-row repair-row quote-row"><span>🔧 ${escapeHtml(r.name)}</span><span>TBC after inspection</span></div>`;
                 } else {
@@ -2301,10 +2341,10 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         if (!isRepairOnly) {
             if (isJbOrSetup) {
                 const c = Math.max(0, count - 3);
-                const freePart = state.freeGamesCount > 0 ? `, ${state.freeGamesCount} free` : '';
+                const freePart = details.freeGamesApplied > 0 ? `, ${details.freeGamesApplied} free` : '';
                 html += `<div class="price-breakdown-row"><span>Games (${c} addon${c !== 1 ? 's' : ''}${freePart} · 3 included)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             } else {
-                const freePart = state.freeGamesCount > 0 ? ` (${state.freeGamesCount} free)` : '';
+                const freePart = details.freeGamesApplied > 0 ? ` (${details.freeGamesApplied} free)` : '';
                 html += `<div class="price-breakdown-row"><span>Games Installation${freePart} (${count} games)</span><span>RM${Math.round(details.gamesPrice)}</span></div>`;
             }
         }

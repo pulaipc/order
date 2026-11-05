@@ -698,7 +698,7 @@
                         <span class="field-hint">Total capacity of memory card used</span>
                     </div>
                     <div id="freeStorageContainer" class="free-storage-container">
-                        <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit()">
+                        <input type="number" id="userFreeStorageInput" class="free-storage-input" placeholder="Free Storage Space (GB)" min="1" max="2048" step="1" inputmode="numeric" oninput="updateSdLimit(true)" onchange="updateSdLimit()">
                         <button type="button" class="guide-btn" onclick="toggleStorageGuide()">How to check free storage?</button>
                         <span class="field-hint" id="freeStorageHint">Remaining GB available on your Switch SD card</span>                    </div>
                 </div>

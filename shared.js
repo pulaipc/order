@@ -492,7 +492,10 @@ function buildOrderPriceBreakdown(order, options) {
     // ---- Games (pack-aware: a 3-game collection counts as 3) ----
     const gameCount = Math.round(gameCountTotal(gameListOf(o)));
     if (serviceType !== 'repair_only' && gameCount > 0) {
-        const freeNote = totals.freeGames > 0 ? ', ' + totals.freeGames + ' free' : '';
+        // Games actually waived, not the count granted: the grant can exceed
+        // what is left once the customer removes games.
+        const freeApplied = p.freeGamesApplied || 0;
+        const freeNote = freeApplied > 0 ? ', ' + freeApplied + ' free' : '';
         const label = jbOrSetup
             ? 'Games (' + gameCount + ' total · ' + INCLUDED_GAME_ALLOWANCE + ' included' + freeNote + ')'
             : 'Games (' + gameCount + ' game' + (gameCount === 1 ? '' : 's') + freeNote + ')';
