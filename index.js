@@ -506,25 +506,73 @@
 
         const shopTotals = getOrderTotals(order);
 
+        // The same breakdown the tracking page draws its "amount to prepare"
+        // card from, so the line items here always add up to the total above
+        // and both pages tell the customer the same story. Once the order is
+        // ready the shop's stored price is the confirmed one, so a later
+        // global price edit must not move it.
+        const atTop = (stage === 'Ready' || stage === 'Completed');
+        const breakdown = buildOrderPriceBreakdown(order, { useStoredTotal: atTop });
+
+        let repriced;
+        let quoteCount;
+        let totalText;
+        if (breakdown) {
+            repriced = breakdown.repriced;
+            quoteCount = breakdown.quoteCount;
+            totalText = (breakdown.total <= 0 && quoteCount > 0)
+                ? 'TBC'
+                : 'RM' + breakdown.total;
+        } else {
+            // No stored price at all to break down. Fall back to repricing the
+            // selection directly, the way this view always used to.
+            const selPricing = computePricing(pricingInputsForOrder(order, shopTotals.freeGames));
+            const selSubtotal = Math.max(0, Math.round(selPricing.subtotal));
+            repriced = selSubtotal !== shopTotals.subtotal;
+            quoteCount = repairSum.quoteCount;
+            totalText = 'RM' + (repriced ? selSubtotal : shopTotals.total);
+        }
+        const awaitingQuote = quoteCount > 0;
+
         // save_order never writes a price - that is deliberate, so a customer
         // cannot change what they are charged. The side effect is that after the
         // customer edits their order the stored total describes the OLD
-        // selection, not the one now on the order. So reprice what is actually
-        // stored, through the same engine the cart and the dashboard use, and
-        // show that as the total whenever the two disagree.
-        //
-        // Reprice with the SAME free-game waiver the shop granted. Comparing a
-        // waived stored subtotal against an unwaived one would make every shop
-        // waiver look like a customer edit, and the customer would be quoted the
-        // full price on an order they had already been given free games on.
-        const selPricing = computePricing(pricingInputsForOrder(order, shopTotals.freeGames));
-        const selSubtotal = Math.max(0, Math.round(selPricing.subtotal));
-        const repriced = selSubtotal !== shopTotals.subtotal;
-
+        // selection, not the one now on the order. The breakdown reprices what
+        // is actually stored, through the same engine the cart and the dashboard
+        // use, and flags it, so the total shown is the current selection's.
         html += '<div class="summary-total' + (repriced ? ' repriced' : '') + '">';
-        html += '<span class="summary-total-label">Total estimated' + (repairSum.quoteCount > 0 ? ' (+ ' + repairSum.quoteCount + ' quote)' : '') + '</span>';
-        html += '<span class="summary-total-value">RM' + (repriced ? selSubtotal : shopTotals.total) + '</span>';
+        html += '<span class="summary-total-label">Total estimated' + (awaitingQuote ? ' (+ ' + quoteCount + ' quote' + (quoteCount === 1 ? '' : 's') + ')' : '') + '</span>';
+        html += '<span class="summary-total-value">' + totalText + '</span>';
         html += '</div>';
+
+        // Collapsible line items, mirroring the tracking page's breakdown so the
+        // customer can see how the total is built without leaving this view.
+        if (breakdown) {
+            html += '<div class="summary-price-break">';
+            html += '<button class="price-break-toggle" type="button" onclick="toggleSummaryPriceBreakdown(this)" aria-expanded="false">';
+            html += '<span class="price-break-toggle-text">View price breakdown</span><span class="chev">▼</span>';
+            html += '</button>';
+            html += '<div class="price-break-list">';
+            breakdown.lines.forEach(function (line) {
+                const cls = line.kind === 'discount' ? ' discount'
+                    : (line.kind === 'repair' && line.amount === null) ? ' quote'
+                    : line.kind === 'adjustment' ? ' adjustment' : '';
+                const amountText = line.amount === null
+                    ? escapeHtml(line.note || 'TBC')
+                    : (line.amount < 0 ? '&minus;RM' + Math.abs(line.amount) : 'RM' + line.amount);
+                const noteHtml = (line.amount !== null && line.note)
+                    ? '<span class="note">' + escapeHtml(line.note) + '</span>' : '';
+                html += '<div class="price-break-row' + cls + '">'
+                    + '<span class="label">' + escapeHtml(line.label) + noteHtml + '</span>'
+                    + '<span class="amount">' + amountText + '</span>'
+                    + '</div>';
+            });
+            html += '<div class="price-break-row total"><span class="label">Total'
+                + (awaitingQuote ? ' (+' + quoteCount + ' quote' + (quoteCount === 1 ? '' : 's') + ')' : '')
+                + '</span><span class="amount">' + totalText + '</span></div>';
+            html += '</div>';
+            html += '</div>';
+        }
 
         if (repriced) {
             html += '<div class="summary-price-note">'
@@ -532,24 +580,6 @@
                 + 'The total above is what your current selection comes to. '
                 + 'We have your update and will confirm the final price with you before drop-off.'
                 + '</div>';
-        } else if (shopTotals.hasDiscount || shopTotals.freeGamesTotal > 0) {
-            // Only meaningful while the subtotal still matches the selection: once
-            // the selection has moved on, a discount granted against the old
-            // subtotal would be a number that adds up to nothing.
-            html += '<div class="summary-adjustments">';
-            if (shopTotals.freeGamesTotal > 0) {
-                // Bundled games count too: 3 in the package + 7 granted reads as
-                // 10 free games, which is what the customer actually receives.
-                const bundledNote = shopTotals.bundledFreeGames > 0
-                    ? ' <span style="opacity:.7;">(' + shopTotals.bundledFreeGames + ' in package)</span>'
-                    : '';
-                html += '<div class="summary-adjustment-row"><span>Free games included' + bundledNote + '</span><span>' + shopTotals.freeGamesTotal + '</span></div>';
-            }
-            if (shopTotals.hasDiscount) {
-                html += '<div class="summary-adjustment-row"><span>Subtotal</span><span>RM' + shopTotals.subtotal + '</span></div>';
-                html += '<div class="summary-adjustment-row discount"><span>Discount</span><span>&minus;RM' + shopTotals.discount + '</span></div>';
-            }
-            html += '</div>';
         }
 
         if (updated) {
@@ -614,6 +644,17 @@
         if (!list) return;
         const expanded = list.classList.toggle('expanded');
         el.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    }
+
+    /** Show/hide the price breakdown without losing the collapsed-by-default rule. */
+    function toggleSummaryPriceBreakdown(btn) {
+        const list = btn.nextElementSibling;
+        if (!list) return;
+        const open = !list.classList.contains('open');
+        list.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        const label = btn.querySelector('.price-break-toggle-text');
+        if (label) label.textContent = open ? 'Hide price breakdown' : 'View price breakdown';
     }
 
     function switchToEditForm() {

@@ -70,11 +70,23 @@
         .summary-total.repriced { border-color: #2a4530; background: #14210f; }
         .summary-total.repriced .summary-total-label { color: #a8c4b0; }
         .summary-total.repriced .summary-total-value { color: #7ee39b; }
-        .summary-adjustments { background: #17120a; border: 1px solid #2a4530; border-radius: 6px; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; }
-        .summary-adjustment-row { display: flex; justify-content: space-between; gap: 10px; font-size: 12.5px; color: #b8b0a0; line-height: 1.45; }
-        .summary-adjustment-row span:first-child { min-width: 0; word-break: break-word; }
-        .summary-adjustment-row span:last-child { white-space: nowrap; flex-shrink: 0; font-weight: 600; }
-        .summary-adjustment-row.discount span:last-child { color: #00e676; }
+        /* ===== PRICE BREAKDOWN (mirrors the tracking page's amount card) ===== */
+        .summary-price-break { display: flex; flex-direction: column; }
+        .price-break-toggle { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: #241e12; color: #e8dcc0; border: 1px solid #3a3018; border-radius: 5px; padding: 9px 12px; font-family: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+        .price-break-toggle:hover { background: #2e2716; }
+        .price-break-toggle .chev { font-size: 10px; color: #8a8272; transition: transform 0.2s; }
+        .price-break-toggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+        .price-break-list { display: none; margin-top: 10px; border-top: 1px solid #3a3018; padding-top: 10px; }
+        .price-break-list.open { display: block; }
+        .price-break-row { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; font-size: 12.5px; color: #c9c1af; padding: 5px 0; }
+        .price-break-row .label { min-width: 0; }
+        .price-break-row .amount { white-space: nowrap; font-weight: 600; color: #e8dcc0; }
+        .price-break-row .note { display: block; font-size: 11px; color: #8a8272; font-weight: 400; margin-top: 1px; }
+        .price-break-row.discount .amount { color: #00e676; }
+        .price-break-row.quote .amount { color: #7dd3fc; }
+        .price-break-row.total { border-top: 1px solid #3a3018; margin-top: 6px; padding-top: 10px; font-size: 14px; }
+        .price-break-row.total .label { color: #e8dcc0; font-weight: 700; }
+        .price-break-row.total .amount { color: #ffc000; font-size: 16px; }
 
         .summary-games-toggle { background: #191309; border: 1px solid #2e2716; border-radius: 6px; padding: 12px 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13.5px; color: #f0e9d8; font-weight: 600; user-select: none; }
         .summary-games-toggle:hover { border-color: #3a3018; }
