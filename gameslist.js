@@ -362,7 +362,8 @@ const games = [
       { name: "Zombie Army Trilogy", size: 3.98, igb: 5.07, fileCount: 1, titleId: "0100c7300eee4000", added: "2025-05-17" }
     ];
 
-const gamesLastSync = '2026-11-06T17:01:50.6236996+08:00';
+const gamesLastSync = '2026-11-06T17:37:35.9504416+08:00';
+
 
 
 
