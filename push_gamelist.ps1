@@ -49,6 +49,10 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     # in first-seen order so games.html can list what a multi-game pack
     # includes. Keyed the same way as $gameKeys (base + updates collapse).
     $members = [ordered]@{}
+    # Bytes per member key: base + updates, plus DLC whose title ID belongs to
+    # that game. A single game picked from a pack is copied (and sized) as
+    # exactly these files by copygame.ps1.
+    $memberBytes = @{}
     foreach ($f in $gameFiles) {
         $fullName = $f.FullName
         $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
@@ -57,11 +61,17 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         # "dlc" (e.g. "DLC", "dlc", "58 DLC", "dlc pack", etc.) is excluded.
         $relPath = $fullName.Substring($dir.FullName.Length)
         $dlcFolder = $relPath -split '[\\/]' | Where-Object { $_ -match 'dlc' }
-        if ($dlcFolder) { continue }
-
-        # Skip DLC packs by filename — catches [DLC], [All DLC], [Standalone DLC],
-        # [DLC Pack], [DLC Bundle], etc. (case-insensitive, anywhere inside [])
-        if ($fileName -match '\[.*?\bdlc\b.*?\]') { continue }
+        $isDlc = [bool]$dlcFolder -or ($fileName -match '\[.*?\bdlc\b.*?\]')
+        if ($isDlc) {
+            # DLC IDs are the base ID + 0x1000 + n: count the bytes towards the
+            # game it belongs to, but never as a game of its own.
+            if ($fileName -match '\[([0-9A-Fa-f]{16})\]') {
+                $v = [Convert]::ToUInt64($matches[1], 16)
+                $baseKey = ('{0:x16}' -f (($v - ($v % 4096)) - 4096)).Substring(0, 13)
+                $memberBytes[$baseKey] = [long]$memberBytes[$baseKey] + $f.Length
+            }
+            continue
+        }
 
         # Extract title ID from [] - 16 hex chars like [010083801AA14000]
         $titleId = $null
@@ -86,7 +96,10 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
             $key = $key.Trim().ToLower()
         }
 
-        if ($key.Length -gt 0) { $gameKeys[$key] = $true }
+        if ($key.Length -gt 0) {
+            $gameKeys[$key] = $true
+            $memberBytes[$key] = [long]$memberBytes[$key] + $f.Length
+        }
 
         # Member display name: filename minus [] tags, minus the "(0.01 GB)"
         # size parens some files carry, minus quotes so the JS string stays
@@ -102,7 +115,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
             $memberName = ($memberName.Trim() -replace '\s+', ' ')
             $memberTid = $null
             if ($titleId) { $memberTid = ($titleId.Substring(0, 13) + '000').ToLower() }
-            if ($memberName.Length -gt 0) { $members[$key] = @{ n = $memberName; tid = $memberTid } }
+            if ($memberName.Length -gt 0) { $members[$key] = @{ n = $memberName; tid = $memberTid; key = $key } }
         }
     }
     $fileCount = if ($gameKeys.Count -gt 0) { $gameKeys.Count } else { 1 }
@@ -120,7 +133,10 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     if ($fileCount -gt 1 -and $members.Count -gt 0) {
         $memberJs = @($members.Values | ForEach-Object {
             $tidPart = if ($_['tid']) { ', tid: "' + $_['tid'] + '"' } else { '' }
-            '{ n: "' + $_['n'] + '"' + $tidPart + ' }'
+            # gb: this game's own size, for picking one game out of the pack.
+            $memberGb = [math]::Round([long]$memberBytes[$_['key']] / 1GB, 2)
+            $gbPart = ', gb: ' + $memberGb.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+            '{ n: "' + $_['n'] + '"' + $tidPart + $gbPart + ' }'
         })
         $titlesField = ', titles: [' + ($memberJs -join ', ') + ']'
     }

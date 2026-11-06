@@ -1343,8 +1343,9 @@
     function editGameSizes() {
         if (_editGameSizes) return _editGameSizes;
         _editGameSizes = {};
-        ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).forEach(function (g) {
-            _editGameSizes[g.name] = Number(g.size) || 0;
+        var idx = catalogIndex();
+        Object.keys(idx).forEach(function (name) {
+            _editGameSizes[name] = Number(idx[name].size) || 0;
         });
         return _editGameSizes;
     }
@@ -1577,7 +1578,13 @@
         var chosen = {};
         orderEdit.games.forEach(function (n) { chosen[n] = true; });
 
-        var matches = ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).filter(function (g) {
+        // Whole folders first, then single games picked out of a pack.
+        var idx = catalogIndex();
+        var names = Object.keys(idx);
+        var entries = names.filter(function (n) { return !idx[n].pack; })
+            .concat(names.filter(function (n) { return !!idx[n].pack; }))
+            .map(function (n) { return idx[n]; });
+        var matches = entries.filter(function (g) {
             return !chosen[g.name] && (!q || g.name.toLowerCase().indexOf(q) !== -1);
         });
         // The library is 339 deep, which makes the box unusable on a phone, so cap
@@ -1617,11 +1624,11 @@
             return;
         }
         var sizes = editGameSizes();
-        var counts = {};
-        ((typeof games !== 'undefined' && Array.isArray(games)) ? games : []).forEach(function (g) { counts[g.name] = g.fileCount || 1; });
         var html = '';
         orderEdit.games.forEach(function (name) {
-            var count = counts[name] && counts[name] > 1 ? counts[name] + ' Games' : '';
+            var entry = catalogEntryFor(name);
+            var fc = entry ? (Number(entry.fileCount) || 1) : 1;
+            var count = fc > 1 ? fc + ' Games' : '';
             var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
             html += '<div class="oe-opt">' +
                     '<span class="oe-opt-name">' + escapeHtml(name) + badgeHtml + '</span>' +
@@ -2403,12 +2410,13 @@
         var grid = document.getElementById('modalGameGrid');
         if (!grid) return; // modal not open, nothing to render
         var gameList = gameListOf(order);
-        var sourceGames = typeof games !== 'undefined' ? games : [];
         var sizeMap = {};
         var fileCountMap = {};
-        sourceGames.forEach(function(g) {
-            sizeMap[g.name] = g.size;
-            fileCountMap[g.name] = Math.max(1, Number(g.fileCount) || 1);
+        gameList.forEach(function(n) {
+            var g = catalogEntryFor(n);
+            if (!g) return;
+            sizeMap[n] = g.size;
+            fileCountMap[n] = Math.max(1, Number(g.fileCount) || 1);
         });
         // Packs/bundles count as the games inside them, matching the order card
         // and the work-checklist label (gameCountTotal), not as one shelf row.
@@ -2468,7 +2476,7 @@
                 if (isDone) item.classList.add('is-done');
                 var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
                 // Multi-game pack badge (from catalog's fileCount)
-                var cat = sourceGames.find(function(g) { return g.name === name; });
+                var cat = catalogEntryFor(name);
                 var badgeHtml = (cat && cat.fileCount && cat.fileCount > 1)
                     ? '<span class="game-count-badge">' + cat.fileCount + ' Games</span>'
                     : '';

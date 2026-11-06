@@ -1022,12 +1022,10 @@
      */
     function countInstalled(order) {
         const ticks = currentInstalledTicks;
-        const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
-        const counts = {};
-        catalog.forEach(function (g) { counts[g.name] = Math.max(1, Number(g.fileCount) || 1); });
         let n = 0;
         gameListOf(order).forEach(function (name) {
-            if (ticks[name] || ticks[installNormKey(name)]) n += (counts[name] || 1);
+            const g = catalogEntryFor(name);
+            if (ticks[name] || ticks[installNormKey(name)]) n += Math.max(1, (g && Number(g.fileCount)) || 1);
         });
         return n;
     }

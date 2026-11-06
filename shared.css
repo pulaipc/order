@@ -116,6 +116,10 @@ a[role="button"],
 .member-chip img { width: 32px; height: 32px; border-radius: 4px; object-fit: cover; flex-shrink: 0; background: #2a2312; }
 .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .member-chip .rating-pill { margin-left: auto; }
+.member-chip.picked { border-color: #ffc000; background: rgba(255, 192, 0, 0.1); }
+.member-pick { flex-shrink: 0; margin-left: 4px; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(255, 192, 0, 0.45); background: rgba(255, 192, 0, 0.12); color: #ffc000; font-size: 11px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+.member-pick:hover { background: rgba(255, 192, 0, 0.22); }
+.member-pick.picked { background: #ffc000; color: #1a1408; }
 
 /* Close (X) on the detail panel — the obvious way to put the popup away on a
    phone. The ::before is an invisible hit-area extension: the visual circle

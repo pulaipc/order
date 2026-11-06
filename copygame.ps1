@@ -128,7 +128,10 @@ function Read-ListFile {
     param([string]$Path)
     $items = New-Object System.Collections.Generic.List[string]
     if (-not (Test-Path -LiteralPath $Path)) { return $items }
-    foreach ($line in (Get-Content -LiteralPath $Path)) {
+    # UTF8: the helper writes these files that way, and game names can carry
+    # accents ("Pokémon FireRed Version"). Windows PowerShell would otherwise
+    # read a BOM-less file in the ANSI code page and never match the folder.
+    foreach ($line in (Get-Content -LiteralPath $Path -Encoding UTF8)) {
         $trimmed = $line.Trim()
         if ($trimmed.Length -eq 0) { continue }
         if ($trimmed.StartsWith('#')) { continue }
@@ -1244,6 +1247,30 @@ $script:unconfirmed = 0
 # Counts the automatic re-tries after a busy-device error, for the summary.
 $script:busyRetries = 0
 
+function Copy-OneFile {
+    param($Session, [string]$ParentId, [string]$Entry)
+    $fileName = [System.IO.Path]::GetFileName($Entry)
+    $started = [System.Diagnostics.Stopwatch]::StartNew()
+    $note = $null
+    try {
+        $note = Invoke-DeviceRetry -What "copying '$fileName'" -OnlyBeforeData -Action {
+            $Session.CreateFile($ParentId, $Entry, $fileName, $null)
+        }
+    } finally {
+        $started.Stop()
+    }
+    $size = [double](Get-Item -LiteralPath $Entry -Force).Length
+    $line = '      file {0} ({1})' -f $fileName, (Format-Size $size)
+    if ($started.Elapsed.TotalSeconds -gt 0) {
+        $line = '{0} -> {1:f1}s, {2:f1} MB/s' -f $line, $started.Elapsed.TotalSeconds, ($size / 1048576 / $started.Elapsed.TotalSeconds)
+    }
+    Write-Host $line
+    if ($note) {
+        $script:unconfirmed++
+        Write-Host ('      ! {0}' -f $note)
+    }
+}
+
 function Copy-FolderTree {
     param($Session, [string]$ParentId, [string]$LocalPath)
     $name = [System.IO.Path]::GetFileName($LocalPath.TrimEnd('\', '/'))
@@ -1252,33 +1279,86 @@ function Copy-FolderTree {
         if ([System.IO.Directory]::Exists($entry)) {
             Copy-FolderTree $Session $newId $entry | Out-Null
         } else {
-            $fileName = [System.IO.Path]::GetFileName($entry)
-            $started = [System.Diagnostics.Stopwatch]::StartNew()
-            $note = $null
-            try {
-                $note = Invoke-DeviceRetry -What "copying '$fileName'" -OnlyBeforeData -Action {
-                    $Session.CreateFile($newId, $entry, $fileName, $null)
-                }
-            } finally {
-                $started.Stop()
-            }
-            $size = [double](Get-Item -LiteralPath $entry -Force).Length
-            $line = '      file {0} ({1})' -f $fileName, (Format-Size $size)
-            if ($started.Elapsed.TotalSeconds -gt 0) {
-                $line = '{0} -> {1:f1}s, {2:f1} MB/s' -f $line, $started.Elapsed.TotalSeconds, ($size / 1048576 / $started.Elapsed.TotalSeconds)
-            }
-            Write-Host $line
-            if ($note) {
-                $script:unconfirmed++
-                Write-Host ('      ! {0}' -f $note)
-            }
+            Copy-OneFile $Session $newId $entry
         }
     }
     return $newId
 }
 
+# ---- one game picked out of a multi-game pack ---------------------------------
+# The order stores it as "<member> (from <pack>)" (shared.js packPickName). The
+# member's files are grouped exactly like push_gamelist.ps1 does: title ID minus
+# its last 3 chars (base + updates), and DLC (base ID + 0x1000 + n) folded onto
+# the game it belongs to. Keep the two scripts in step.
+$GameFileExts = @('.nsp', '.nsx', '.xci', '.xcz', '.nsz')
+
+function Get-PackPick {
+    param([string]$Name)
+    if ($Name -match '^(.+) \(from (.+)\)$') {
+        return @{ Member = $matches[1].Trim(); Pack = $matches[2].Trim() }
+    }
+    return $null
+}
+
+# Files of one pack member (by its display name), or an empty list.
+function Get-PackMemberFiles {
+    param([string]$PackDir, [string]$MemberName)
+    $wanted = Get-NormalizedKey $MemberName
+    $files = @(Get-ChildItem -LiteralPath $PackDir -Recurse -File -Force -ErrorAction SilentlyContinue |
+               Where-Object { $GameFileExts -contains $_.Extension.ToLowerInvariant() } |
+               Sort-Object FullName)
+    $byKey = @{}
+    $dlcByKey = @{}
+    $nameOfKey = @{}
+    foreach ($f in $files) {
+        $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+        $relPath = $f.FullName.Substring($PackDir.Length)
+        $dlcFolder = $relPath -split '[\\/]' | Where-Object { $_ -match 'dlc' }
+        $isDlc = [bool]$dlcFolder -or ($fileName -match '\[.*?\bdlc\b.*?\]')
+        $tid = $null
+        if ($fileName -match '\[([0-9A-Fa-f]{16})\]') { $tid = $matches[1] }
+        if ($isDlc) {
+            if ($tid) {
+                $v = [Convert]::ToUInt64($tid, 16)
+                $baseKey = ('{0:x16}' -f (($v - ($v % 4096)) - 4096)).Substring(0, 13)
+                if (-not $dlcByKey.ContainsKey($baseKey)) { $dlcByKey[$baseKey] = New-Object System.Collections.Generic.List[string] }
+                $dlcByKey[$baseKey].Add($f.FullName)
+            }
+            continue
+        }
+        # Single picks are only offered for members with a title ID.
+        if (-not $tid) { continue }
+        $key = $tid.Substring(0, 13).ToLowerInvariant()
+        if (-not $byKey.ContainsKey($key)) { $byKey[$key] = New-Object System.Collections.Generic.List[string] }
+        $byKey[$key].Add($f.FullName)
+        # The catalog names a member after whichever of its files was scanned
+        # first, so any of its files may carry the name the order has.
+        $n = $fileName -replace '\s*\[[^\]]*\]', ''
+        $n = $n -replace '\s*\(\d+(?:\.\d+)?\s*GB\)', ''
+        $n = $n -replace '[\s.\-]+$', ''
+        if (-not $nameOfKey.ContainsKey($key)) { $nameOfKey[$key] = @{} }
+        $nameOfKey[$key][(Get-NormalizedKey ($n.Trim() -replace '\s+', ' '))] = $true
+    }
+    $result = New-Object System.Collections.Generic.List[string]
+    foreach ($key in $nameOfKey.Keys) {
+        if (-not $nameOfKey[$key].ContainsKey($wanted)) { continue }
+        foreach ($p in $byKey[$key]) { $result.Add($p) }
+        if ($dlcByKey.ContainsKey($key)) { foreach ($p in $dlcByKey[$key]) { $result.Add($p) } }
+        break
+    }
+    return ,$result
+}
+
+# Copy a picked pack game: its files go into one folder named after the game.
+function Copy-FileSet {
+    param($Session, [string]$ParentId, [string]$FolderName, [string[]]$Files)
+    $newId = Invoke-DeviceRetry -What "creating folder '$FolderName'" -Action { $Session.CreateFolder($ParentId, $FolderName) }
+    foreach ($entry in $Files) { Copy-OneFile $Session $newId $entry }
+    return $newId
+}
+
 function Copy-ToTarget {
-    param($Session, [string]$DestId, [string]$SourcePath, [string]$Label)
+    param($Session, [string]$DestId, [string]$SourcePath, [string]$Label, [string[]]$Files = $null, [string]$FolderName = '')
     if ($DryRun) {
         Write-Host "  [dry] would copy $Label"
         return $true
@@ -1291,7 +1371,9 @@ function Copy-ToTarget {
         # Hold the machine awake only while bytes are actually moving, so a
         # long file cannot be cut off by the idle sleep timer.
         try { [PulaiWpd.PowerKeepAwake]::PreventSleep() } catch { }
-        if (Test-Path -LiteralPath $SourcePath -PathType Container) {
+        if ($null -ne $Files -and $Files.Count -gt 0) {
+            Copy-FileSet $Session $DestId $FolderName $Files | Out-Null
+        } elseif (Test-Path -LiteralPath $SourcePath -PathType Container) {
             Copy-FolderTree $Session $DestId $SourcePath | Out-Null
         } else {
             $note = Invoke-DeviceRetry -What "copying '$Label'" -OnlyBeforeData -Action {
@@ -1442,9 +1524,43 @@ if ($EssentialsOnly) {
     $foundDirs = New-Object System.Collections.Generic.List[string]
     $foundLabels = New-Object System.Collections.Generic.List[string]
     $foundSizes = New-Object System.Collections.Generic.List[long]
+    # Per item: $null for a whole folder, or the file list of a game picked
+    # out of a pack (plus the folder name it gets on the card).
+    $foundFiles = New-Object System.Collections.Generic.List[object]
+    $foundFolderNames = New-Object System.Collections.Generic.List[string]
 
     foreach ($game in $requested) {
         if ([string]::IsNullOrWhiteSpace($game)) { continue }
+
+        # "<member> (from <pack>)": copy only that game's files out of the pack.
+        $pick = Get-PackPick $game
+        if ($null -ne $pick) {
+            $packKey = Get-NormalizedKey $pick.Pack
+            $packDir = $null
+            foreach ($folder in (Get-ChildItem -LiteralPath $NspDir -Directory -Force -ErrorAction SilentlyContinue)) {
+                if ((Get-NormalizedKey $folder.Name) -eq $packKey) { $packDir = $folder; break }
+            }
+            if ($null -ne $packDir) {
+                $memberFiles = Get-PackMemberFiles $packDir.FullName $pick.Member
+                if ($memberFiles.Count -gt 0) {
+                    $size = [long]0
+                    foreach ($p in $memberFiles) { $size += (Get-Item -LiteralPath $p -Force).Length }
+                    # The label is the order's own name, so the admin page ticks it.
+                    $foundDirs.Add($packDir.FullName)
+                    $foundLabels.Add($game)
+                    $foundSizes.Add($size)
+                    $foundFiles.Add([string[]]$memberFiles.ToArray())
+                    $foundFolderNames.Add(($pick.Member -replace '[\\/:*?"<>|]', '').Trim())
+                    continue
+                }
+                Write-Host "  Not Found: $game (no files for '$($pick.Member)' in $($packDir.Name))"
+            } else {
+                Write-Host "  Not Found: $game (pack folder '$($pick.Pack)' is missing)"
+            }
+            $gameFail++
+            continue
+        }
+
         $gameKey = Get-NormalizedKey $game
         $found = $null
         $nearMiss = $null
@@ -1471,6 +1587,8 @@ if ($EssentialsOnly) {
         $size = [long](Get-ChildItem -LiteralPath $found.FullName -Recurse -File -Force -ErrorAction SilentlyContinue |
                        Measure-Object -Property Length -Sum).Sum
         $foundSizes.Add($size)
+        $foundFiles.Add($null)
+        $foundFolderNames.Add('')
     }
 
     $totalItems = $foundDirs.Count
@@ -1490,7 +1608,7 @@ if ($EssentialsOnly) {
             $index++
             Write-Host ('  [{0}/{1}] {2} ({3})' -f $index, $totalItems, $label, (Format-Size $size))
             $itemWatch = [System.Diagnostics.Stopwatch]::StartNew()
-            $itemOk = Copy-ToTarget $session $destId $foundDirs[$index - 1] $label
+            $itemOk = Copy-ToTarget $session $destId $foundDirs[$index - 1] $label $foundFiles[$index - 1] $foundFolderNames[$index - 1]
             $itemWatch.Stop()
             if ($itemOk) { $gameOk++ } else { $gameFail++ }
 

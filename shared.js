@@ -77,22 +77,66 @@ function sortGameList(gameList) {
     return gameList;
 }
 
+/**
+ * One game picked out of a multi-game pack is stored on the order as
+ * "Member (from Pack)". The pack name tells copygame.ps1 which folder holds
+ * its files and keeps it apart from a standalone game of the same name.
+ */
+function packPickName(pack, member) {
+    return member.n + ' (from ' + pack.name + ')';
+}
+
+/** Pack members a customer can pick one at a time: only once the catalog
+ *  carries their own size (gb) and title ID (the copy script finds the
+ *  member's files by it). */
+function pickableMembers(pack) {
+    if (!pack || !Array.isArray(pack.titles) || pack.titles.length < 2) return [];
+    return pack.titles.filter(function (m) { return typeof m.gb === 'number' && m.tid; });
+}
+
+let _catalogIndex = null;
+let _catalogIndexSrc = null;
+/** name -> catalog entry, plus a { name, size, fileCount: 1, pack, member }
+ *  entry for every pickable pack member. */
+function catalogIndex() {
+    const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
+    if (_catalogIndex && _catalogIndexSrc === catalog) return _catalogIndex;
+    const idx = {};
+    catalog.forEach(function (g) { idx[g.name] = g; });
+    catalog.forEach(function (g) {
+        pickableMembers(g).forEach(function (m) {
+            const name = packPickName(g, m);
+            if (idx[name]) return;
+            idx[name] = { name: name, size: m.gb, fileCount: 1, titleId: m.tid, pack: g, member: m };
+        });
+    });
+    _catalogIndex = idx;
+    _catalogIndexSrc = catalog;
+    return idx;
+}
+
+/** Catalog entry for a stored game name (a folder or a picked pack member), or null. */
+function catalogEntryFor(name) {
+    return catalogIndex()[name] || null;
+}
+
 /** GB total of a game-name list, using the catalog sizes. Unknown names count 0. */
 function gameSizeTotal(names) {
-    const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
-    const sizes = {};
-    catalog.forEach(function (g) { sizes[g.name] = Number(g.size) || 0; });
-    return (names || []).reduce(function (sum, n) { return sum + (sizes[n] || 0); }, 0);
+    return (names || []).reduce(function (sum, n) {
+        const g = catalogEntryFor(n);
+        return sum + (g ? (Number(g.size) || 0) : 0);
+    }, 0);
 }
 
 /** Real game count of a game-name list, using the catalog fileCount field.
  *  A folder that contains multiple NSP/XCI files (a collection/multi-pack)
- *  counts as more than one game. Unknown names fall back to 1. */
+ *  counts as more than one game; a game picked from a pack counts as 1.
+ *  Unknown names fall back to 1. */
 function gameCountTotal(names) {
-    const catalog = (typeof games !== 'undefined' && Array.isArray(games)) ? games : [];
-    const counts = {};
-    catalog.forEach(function (g) { counts[g.name] = Number(g.fileCount) || 1; });
-    return (names || []).reduce(function (sum, n) { return sum + (counts[n] || 1); }, 0);
+    return (names || []).reduce(function (sum, n) {
+        const g = catalogEntryFor(n);
+        return sum + ((g && Number(g.fileCount)) || 1);
+    }, 0);
 }
 
 /**
@@ -196,7 +240,7 @@ function ratingHtml(g) {
 
 /** One pack member as a chip: mini cover (when a title ID exists) + name,
  *  plus the game's own critic-score badge when we have one for it. */
-function buildMemberChip(m) {
+function buildMemberChip(m, pick) {
     const chip = document.createElement('div');
     chip.className = 'member-chip';
     if (m.tid) {
@@ -220,6 +264,23 @@ function buildMemberChip(m) {
     if (md && md.m !== undefined) {
         chip.insertAdjacentHTML('beforeend', ratingPillHtml(md.m, md.ms));
     }
+    // Order form only: a toggle to pick this one game instead of the pack.
+    if (pick) {
+        const picked = pick.isPicked(m);
+        const gb = effectiveGb(m.gb);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'member-pick' + (picked ? ' picked' : '');
+        // A tiny member (a 30 MB ROM) would otherwise read "+ 0 GB".
+        btn.textContent = picked ? '\u2713 Picked' : '+ ' + (gb > 0 ? gb + ' GB' : '<0.1 GB');
+        btn.title = picked ? 'Remove this game from your order' : 'Add only this game to your order';
+        btn.addEventListener('click', function (ev) {
+            ev.stopPropagation();
+            pick.onToggle(m);
+        });
+        chip.appendChild(btn);
+        if (picked) chip.classList.add('picked');
+    }
     return chip;
 }
 
@@ -228,7 +289,7 @@ function buildMemberChip(m) {
  * with a Read more toggle when long), and for multi-game packs the list of
  * included games. Anything missing simply doesn't render.
  */
-function buildDetailPanel(g) {
+function buildDetailPanel(g, opts) {
     const d = gameDataFor(g);
     const panel = document.createElement('div');
     panel.className = 'game-detail';
@@ -278,11 +339,16 @@ function buildDetailPanel(g) {
     if (Array.isArray(g.titles) && g.titles.length) {
         const label = document.createElement('div');
         label.className = 'member-label';
-        label.textContent = 'Includes ' + g.titles.length + ' games:';
+        // opts.pick (order form): members with their own size can be picked
+        // one at a time instead of ordering the whole pack.
+        const pick = opts && opts.pick;
+        const pickable = pick ? pickableMembers(g) : [];
+        label.textContent = 'Includes ' + g.titles.length + ' games' +
+            (pickable.length ? ' (or pick just one):' : ':');
         panel.appendChild(label);
         const chips = document.createElement('div');
         chips.className = 'member-chips';
-        g.titles.forEach(m => chips.appendChild(buildMemberChip(m)));
+        g.titles.forEach(m => chips.appendChild(buildMemberChip(m, pickable.indexOf(m) !== -1 ? pick : null)));
         panel.appendChild(chips);
     }
 
@@ -331,7 +397,7 @@ function closeGameDetail(host) {
  *  gains extra bottom padding while open so the panel can extend past the
  *  last row without creating a scrollbar-jump. The host must be the panel's
  *  containing block (position: relative). */
-function toggleGameDetailFloat(card, g) {
+function toggleGameDetailFloat(card, g, opts) {
     if (!card) return;
     const wasOpen = card.classList.contains('detail-open');
     const existing = document.querySelector('.game-detail');
@@ -343,7 +409,7 @@ function toggleGameDetailFloat(card, g) {
     const host = card.parentElement;
     if (!host) return;
     card.classList.add('detail-open');
-    const panel = buildDetailPanel(g);
+    const panel = buildDetailPanel(g, opts);
     panel.classList.add('float');
     host.appendChild(panel);
     const cr = card.getBoundingClientRect();
