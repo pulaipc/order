@@ -252,7 +252,7 @@ const games = [
       { name: "Puzzle Bobble Everybubble", size: 1.38, fileCount: 1, titleId: "010079e01a1e0000", added: "2026-10-31" },
       { name: "Puzzle Bubble Bobble 1-9", size: 1.4, fileCount: 1, titleId: "010079e01a1e0000", added: "2026-11-01" },
       { name: "Rabbids Party of Legends", size: 3, fileCount: 1, titleId: "01008970149b0000", added: "2026-07-21" },
-      { name: "Rayman", size: 2.99, fileCount: 1, titleId: "01007c6025688000", added: "2026-02-28" },
+      { name: "Rayman", size: 3.54, fileCount: 1, titleId: "01007c6025688000", added: "2026-02-28" },
       { name: "Red Dead Redemption", size: 10.19, fileCount: 1, titleId: "01007820196a6000", added: "2025-05-17" },
       { name: "Red Faction Guerrilla Re-Mars-tered", size: 13.82, fileCount: 1, titleId: "010075000c608000", added: "2026-02-04" },
       { name: "Red Wings 1-3", size: 2.12, fileCount: 3, titleId: "01002dc0156a8000", added: "2025-05-17", titles: [{ n: "Red Wings Aces of the Sky", tid: "0100d8a00e880000", gb: 1.02 }, { n: "Red Wings Coloring Planes", tid: "0100628016a8e000", gb: 0.1 }, { n: "Red Wings American Aces", tid: "01002dc0156a8000", gb: 1 }] },
@@ -362,7 +362,8 @@ const games = [
       { name: "Zombie Army Trilogy", size: 3.98, fileCount: 1, titleId: "0100c7300eee4000", added: "2025-05-17" }
     ];
 
-const gamesLastSync = '2026-11-06T12:54:03.7191369+08:00';
+const gamesLastSync = '2026-11-06T15:34:44.8351524+08:00';
+
 
 
 
