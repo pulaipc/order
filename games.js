@@ -176,6 +176,17 @@ function sortLibrary(list) {
         // without a date sink to the bottom.
         return list.sort((a, b) => (b.added || '').localeCompare(a.added || '') || byName(a, b));
     }
+    if (mode === 'release-new' || mode === 'release-old') {
+        // gamedata.js only has the release year (y). Games without one sink
+        // to the bottom either way; same-year games stay A to Z.
+        const dir = mode === 'release-new' ? -1 : 1;
+        const year = g => { const d = gameDataFor(g); return (d && d.y) ? d.y : null; };
+        return list.sort((a, b) => {
+            const ya = year(a), yb = year(b);
+            if (ya === null || yb === null) return (ya === null) - (yb === null) || byName(a, b);
+            return (ya - yb) * dir || byName(a, b);
+        });
+    }
     if (mode === 'popular') {
         return list.sort((a, b) => ((counts[b.name] || 0) - (counts[a.name] || 0)) || byName(a, b));
     }
