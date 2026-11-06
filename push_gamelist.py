@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Build gameslist.js from ../nsp on Linux/SteamOS.
 
-This is intentionally local-only by default. Pass --push only when you want
-this script to commit and push the generated catalog to origin/main.
+Like push_gamelist.ps1, this publishes generated catalogs to origin/main by
+default. Pass --local-only to generate files without committing or pushing.
 """
 
 from __future__ import annotations
@@ -202,22 +202,26 @@ def generate(push: bool) -> int:
     else:
         print("[WARNING] Node.js not found; skipped build_gamedata.js.")
 
-    print("[3/3] Local sync complete. No commit or push was made.")
-    if push:
-        print("Publishing generated files to origin/main (--push was explicitly supplied).")
+    if not push:
+        print("[3/3] Local sync complete. No commit or push was made (--local-only).")
+    else:
+        print("[3/3] Syncing generated files to GitHub...")
         subprocess.run(["git", "add", "gameslist.js", "gamedata.js", "version.json"], cwd=HERE, check=True)
         message = "Auto-update game list: " + dt.datetime.now().strftime("%Y-%m-%d %H:%M")
         subprocess.run(["git", "commit", "-m", message], cwd=HERE, check=True)
         subprocess.run(["git", "push", "origin", "main"], cwd=HERE, check=True)
+        print("[COMPLETED] Live website config updated successfully!")
     return 0
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--push", action="store_true", help="commit and push generated files (opt-in)")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("--local-only", action="store_true", help="generate files without committing or pushing")
+    mode.add_argument("--push", action="store_true", help="explicitly request the default publish behavior")
     args = parser.parse_args()
     try:
-        return generate(args.push)
+        return generate(not args.local_only)
     except (OSError, subprocess.CalledProcessError) as exc:
         print(f"Error: {exc}", file=sys.stderr)
         return 1

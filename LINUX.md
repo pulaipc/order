@@ -63,7 +63,7 @@ by a games-only run when DBI needs to be switched between phases.
 
 Run `bash push_gamelist.sh` (or use **Sync Game List** in the admin helper) to
 scan `../nsp`, regenerate `gameslist.js` including installed-size `igb` fields,
-and rebuild `gamedata.js` when Node.js is available. Linux sync is local-only:
-it does not commit or push. Review the changes, then publish only when you
-explicitly choose to push them. `bash push_gamelist.sh --push` is the opt-in
-publish mode for an intentional local run.
+rebuild `gamedata.js` when Node.js is available, then commit and push the
+generated files to `origin/main`, matching `push_gamelist.ps1` on Windows.
+To scan and generate locally without publishing, run
+`bash push_gamelist.sh --local-only`.

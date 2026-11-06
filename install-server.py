@@ -251,10 +251,11 @@ def start_sync() -> dict:
     bash = shutil.which("bash")
     if not bash:
         return {"ok": False, "error": "bash not found; install bash on SteamOS"}
-    # The sync script is local-only unless --push is explicitly supplied.
+    # Match push_gamelist.ps1: the sync publishes by default. The standalone
+    # script still offers --local-only for an intentional non-publishing run.
     return spawn_job(
         [bash, str(SYNC_SCRIPT)],
-        "game-list sync (local only)",
+        "game-list sync",
         busy_error="Helper is busy; wait for the active job to finish before syncing.",
     )
 
@@ -429,7 +430,7 @@ def main() -> int:
     log("  Pulai SteamOS/Linux install helper")
     log(f"  Listening on http://127.0.0.1:{PORT}/")
     log(f"  Copy script: {COPY_SCRIPT}")
-    log(f"  Game-list sync: {SYNC_SCRIPT} (local-only; no push)")
+    log(f"  Game-list sync: {SYNC_SCRIPT} (commits and pushes generated catalog)")
     log(f"  Wrote: {LOCAL_CONFIG}")
     log(f"  Log: {SCRIPT_DIR / 'install-server.log'}")
     log("  Ctrl+C to stop.")

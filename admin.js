@@ -3544,8 +3544,8 @@
     }
 
     // ===== SYNC GAME LIST =====
-    // Runs the platform's local game-list generator via the helper. SteamOS
-    // sync is local-only; publishing is a separate, explicit git push action.
+    // Runs the platform's game-list generator via the helper. Both platform
+    // sync scripts commit and push the generated catalog by default.
     function syncGameList() {
         var btn = event ? event.target : null;
         if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
@@ -3790,8 +3790,8 @@
     }
 
     function fetchLastSync() {
-        // Prefer the local helper's timestamp: on Linux a catalog sync is
-        // intentionally local-only, so the deployed gameslist.js is older.
+        // Prefer the local helper's timestamp in case the public catalog has
+        // not refreshed yet after the sync pushed its generated files.
         installResolveConfig().then(function(cfg) {
             if (!cfg) return false;
             return fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
