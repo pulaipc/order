@@ -3260,12 +3260,12 @@
     }
 
 
-    // A browser cannot run copygame.ps1 or write to the Switch, so this talks to
-    // install-server.ps1 running on the same PC (127.0.0.1 only, shared token in
-    // the git-ignored install_local.js). The helper writes games_to_copy.txt and
-    // runs the same script the manual flow uses, so nothing about the copying is
-    // duplicated here. Essentials and games are two separate runs, since the
-    // between-phases pause needs someone at the Switch.
+    // A browser cannot run a local script or write to the Switch, so this talks
+    // to install-server.ps1 on Windows or install-server.py on SteamOS/Linux
+    // (127.0.0.1 only, token in the git-ignored install_local.js). The helper
+    // writes games_to_copy.txt and runs the platform's manual copy script.
+    // Essentials and games are separate runs because the mode change needs a
+    // person at the Switch.
 
     var installTimer = null;
     var installSeen = 0;
@@ -3511,6 +3511,9 @@
     function installHelperFailureText() {
         var notes = installFindNotes || [];
         var refused = notes.some(function(n) { return n.indexOf('refused') >= 0; });
+        var linux = /linux|steamos/i.test((navigator && navigator.userAgent) || '');
+        var helperCommand = linux ? 'bash install-server.sh' : 'powershell -ExecutionPolicy Bypass -File install-server-hidden.ps1';
+        var helperName = linux ? 'install-server.py' : 'install-server.ps1';
         var lines = ['The page asked 127.0.0.1 for the install helper and got nowhere.'];
         if (notes.length) {
             lines.push('');
@@ -3521,11 +3524,14 @@
         if (refused) {
             lines.push('A helper is running, but it does not recognise this page.');
             lines.push('That is what an older copy of the helper does, so restart it:');
-            lines.push('    powershell -ExecutionPolicy Bypass -File install-server-hidden.ps1');
+            lines.push('    ' + helperCommand);
         } else {
             lines.push('Most likely one of these:');
             lines.push('  * the helper is not running - start it on this PC:');
-            lines.push('      powershell -ExecutionPolicy Bypass -File install-server-hidden.ps1');
+            lines.push('      ' + helperCommand);
+            if (linux) {
+                lines.push('    Run that from the Pulai web folder in Desktop Mode. Python 3 and KDE kioclient are required.');
+            }
             lines.push('  * something is stopping the page from reaching 127.0.0.1 - an ad');
             lines.push('    blocker or privacy extension, or a firewall. Allow this site to');
             lines.push('    reach your local network.');
@@ -3533,13 +3539,13 @@
             lines.push('    address.');
         }
         lines.push('');
-        lines.push('Until then, use "Copy Game List" and copy the file over yourself.');
+        lines.push('Helper: ' + helperName + '. Until it is running, use "Copy Game List" and copy the file over yourself.');
         return lines.join('\n');
     }
 
     // ===== SYNC GAME LIST =====
-    // Runs push_gamelist.ps1 via the local helper to scan the nsp folder,
-    // update gameslist.js, and push changes to GitHub.
+    // Runs the platform's local game-list generator via the helper. SteamOS
+    // sync is local-only; publishing is a separate, explicit git push action.
     function syncGameList() {
         var btn = event ? event.target : null;
         if (btn) { btn.disabled = true; btn.textContent = 'Syncing...'; }
@@ -3603,7 +3609,7 @@
                                 syncGameListPoll(cfg);
                             }).catch(function(err2) {
                                 installSetStatus('Helper not reachable', 'fail');
-                                installAppendLog(['! ' + err2.message, '! Is install-server.ps1 still running?']);
+                                installAppendLog(['! ' + err2.message, '! Is the local install helper still running?']);
                                 if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
                             });
                         return;
@@ -3617,7 +3623,7 @@
                 syncGameListPoll(cfg);
             }).catch(function(err) {
                 installSetStatus('Helper not reachable', 'fail');
-                installAppendLog(['! ' + err.message, '! Is install-server.ps1 still running?']);
+                installAppendLog(['! ' + err.message, '! Is the local install helper still running?']);
                 if (btn) { btn.disabled = false; btn.textContent = 'Sync Game List'; }
             });
         });
@@ -3784,50 +3790,25 @@
     }
 
     function fetchLastSync() {
-        // Try to read from gameslist.js first (deployed version)
-        try {
-            fetch('gameslist.js?t=' + Date.now())
+        // Prefer the local helper's timestamp: on Linux a catalog sync is
+        // intentionally local-only, so the deployed gameslist.js is older.
+        installResolveConfig().then(function(cfg) {
+            if (!cfg) return false;
+            return fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
+                .then(function(r) { return r.json(); })
+                .then(function(s) {
+                    if (!s || !s.lastSync) return false;
+                    updateLastSyncDisplay(s.lastSync);
+                    return true;
+                });
+        }).catch(function() { return false; }).then(function(foundLocal) {
+            if (foundLocal) return;
+            return fetch('gameslist.js?t=' + Date.now())
                 .then(function(r) { if (!r.ok) throw new Error('no'); return r.text(); })
                 .then(function(txt) {
                     var m = txt.match(/gamesLastSync\s*=\s*['"]([^'"]+)['"]/);
-                    if (m && m[1]) {
-                        updateLastSyncDisplay(m[1]);
-                        return;
-                    }
-                })
-                .catch(function() {
-                    // Fall back to helper /status if gameslist.js doesn't have it yet
-                    installResolveConfig().then(function(cfg) {
-                        if (!cfg) return;
-                        fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
-                            .then(function(r) { return r.json(); })
-                            .then(function(s) {
-                                if (s && s.lastSync) {
-                                    var lastSyncDate = new Date(s.lastSync);
-                                    var formatted = lastSyncDate.toLocaleString();
-                                    updateLastSyncDisplay(formatted);
-                                }
-                            })
-                            .catch(function() { });
-                    });
-                });
-            return;
-        } catch (e) {
-            // ignore
-        }
-
-        installResolveConfig().then(function(cfg) {
-            if (!cfg) return;
-            fetch(cfg.url + '/status', { headers: { 'X-Install-Token': cfg.token } })
-                .then(function(r) { return r.json(); })
-                .then(function(s) {
-                    if (s && s.lastSync) {
-                        var lastSyncDate = new Date(s.lastSync);
-                        var formatted = lastSyncDate.toLocaleString();
-                        updateLastSyncDisplay(formatted);
-                    }
-                })
-                .catch(function() { });
+                    if (m && m[1]) updateLastSyncDisplay(m[1]);
+                }).catch(function() { });
         });
     }
 
@@ -3997,7 +3978,7 @@
             installPoll();
         }).catch(function(err) {
             installSetStatus('Helper not reachable', 'fail');
-            installAppendLog(['! ' + err.message, '! Is install-server.ps1 still running?']);
+            installAppendLog(['! ' + err.message, '! Is the local install helper still running?']);
             if (stopBtn) stopBtn.style.display = 'none';
         });
     }
@@ -4055,4 +4036,3 @@
             .then(function() { installSetStatus('Stopping...', 'fail'); })
             .catch(function() { });
     }
-    

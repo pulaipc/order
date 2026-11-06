@@ -5,10 +5,9 @@
 # Copies two batches to the Switch MTP SD Card, always essentials first:
 #   1. essential_files.txt - one exact file name per line, e.g. update/patched
 #      NSPs that have to be installed before the games.
-#   2. games_to_copy.txt - one game name per line; the folder whose title
-#      matches exactly is copied whole (case, quotes, dots and the "[NSP]"
-#      suffix are ignored; a partial name never wins, and a missing exact
-#      match is reported instead of copying a similar game).
+#   2. games_to_copy.txt - one game name per line; a matching folder is copied
+#      whole, or "<member> (from <pack>)" copies just that member's files from
+#      a multi-game folder (including its DLC). A partial name never wins.
 #      Blank lines and lines starting with '#' are ignored in both files.
 #
 # Per-item and per-phase wall-clock timings are printed (not for --dry-run).
@@ -16,21 +15,22 @@
 # The target is the path/URL Dolphin shows when you open the Switch and browse
 # into the SD Card. Two forms are accepted:
 #
-#   ./copygame.sh "mtp:/DBI MTP Responder/5: SD Card install/"
+#   bash copygame.sh "mtp:/DBI MTP Responder/5: SD Card install/"
 #       KIO URL (from Dolphin's location bar). Copied with kioclient5.
 #
-#   ./copygame.sh "/real/filesystem/path/to/SD Card"
+#   bash copygame.sh "/real/filesystem/path/to/SD Card"
 #       Real path (only exists if kio-fuse exposes MTP, e.g. kio-fuse-<uid>).
 #       Copied with cp -r.
 #
 # Other options:
-#   ./copygame.sh                          # uses the saved default (mtp_target.txt)
-#   ./copygame.sh "mtp:/.../SD Card install/"   # copy here once (temp, saved default untouched)
-#   ./copygame.sh --default "/tmp/staging"      # copy here AND save as the new default
-#   ./copygame.sh --dry-run                # only print what would be copied
-#   ./copygame.sh --no-pause               # don't pause between essentials and games
-#   ./copygame.sh --essentials             # copy essentials, don't ask
-#   ./copygame.sh --skip-essentials        # skip essentials, don't ask
+#   bash copygame.sh                          # uses the saved default (mtp_target.txt)
+#   bash copygame.sh "mtp:/.../SD Card install/"   # copy here once (temporary target)
+#   bash copygame.sh --default "/tmp/staging"      # copy here AND save as the new default
+#   bash copygame.sh --dry-run                # only print what would be copied
+#   bash copygame.sh --no-pause               # don't pause between essentials and games
+#   bash copygame.sh --essentials             # copy essentials, don't ask
+#   bash copygame.sh --skip-essentials        # skip essentials, don't ask
+#   bash copygame.sh --essentials-only        # copy essentials and stop
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -43,6 +43,7 @@ DRY_RUN=0
 NO_PAUSE=0
 SAVE_TARGET=0
 ESSENTIALS_MODE=-1
+ESSENTIALS_ONLY=0
 TARGET=""
 TARGET_GIVEN=0
 TARGET_FILE="$SCRIPT_DIR/mtp_target.txt"
@@ -55,6 +56,7 @@ for arg in "$@"; do
         --default)  SAVE_TARGET=1 ;;
         --essentials) ESSENTIALS_MODE=1 ;;
         --skip-essentials) ESSENTIALS_MODE=0 ;;
+        --essentials-only) ESSENTIALS_MODE=1; ESSENTIALS_ONLY=1 ;;
         --tmp)      : ;;   # accepted alias for a plain temporary target
         -*) printf 'Unknown option: %s\n' "$arg" >&2; exit 2 ;;
         *)  TARGET="$arg"; TARGET_GIVEN=1 ;;
@@ -105,7 +107,7 @@ norm_key() {
 read_list() {
     local file="$1"
     [ -s "$file" ] || return 0
-    sed 's/^[[:space:]]*#.*//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file"
+    sed '1s/^\xef\xbb\xbf//; s/^[[:space:]]*#.*//; /^[[:space:]]*$/d; s/^[[:space:]]*//; s/[[:space:]]*$//' "$file"
 }
 
 if [ -s "$LIST_FILE" ]; then
@@ -115,6 +117,8 @@ else
     requested=()
 fi
 mapfile -t essentials < <(read_list "$ESSENTIALS_FILE")
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/pulai-copygame.XXXXXX")"
+trap 'rm -rf -- "$WORK_DIR"' EXIT
 
 # A KIO URL (mtp:/...), as shown in Dolphin's location bar.
 if [[ "$TARGET" == mtp:* ]]; then
@@ -122,7 +126,7 @@ if [[ "$TARGET" == mtp:* ]]; then
     echo "Copying into (KIO URL): $TARGET"
 elif [ -z "$TARGET" ] && [ -s "$TARGET_FILE" ]; then
     # No target given but one was saved before.
-    TARGET="$(head -n 1 "$TARGET_FILE")"
+    TARGET="$(head -n 1 "$TARGET_FILE" | tr -d '\r')"
     echo "Using saved target: $TARGET"
 elif [ -z "$TARGET" ]; then
     # No target: try to find a real kio-fuse path, else explain.
@@ -158,8 +162,9 @@ copy_to_target() {
         return 0
     fi
     if [[ "$TARGET" == mtp:* ]]; then
-        command -v kioclient5 >/dev/null || die "target '$TARGET' is an mtp:/ URL but kioclient5 is not installed"
-        if kioclient5 cp "$src" "$TARGET/"; then
+        KIOCLIENT="$(command -v kioclient || command -v kioclient5 || true)"
+        [ -n "$KIOCLIENT" ] || die "target '$TARGET' is an mtp:/ URL but kioclient is not installed (install KDE KIO tools)"
+        if "$KIOCLIENT" cp "$src" "$TARGET/"; then
             return 0
         fi
     elif cp -r "$src" "$TARGET/"; then
@@ -167,6 +172,111 @@ copy_to_target() {
     fi
     printf '  !! failed to copy %s to %s\n' "$label" "$TARGET"
     return 1
+}
+
+# Copy a pack member to its own flat folder, like Copy-FileSet in copygame.ps1.
+copy_file_set() {
+    local folder_name="$1"; shift
+    local file dest
+    if [ "$DRY_RUN" -eq 1 ]; then
+        printf '  [dry] would copy %s (%d file(s))\n' "$folder_name" "$#"
+        return 0
+    fi
+    if [[ "$TARGET" == mtp:* ]]; then
+        local kio
+        kio="$(command -v kioclient || command -v kioclient5 || true)"
+        [ -n "$kio" ] || die "target '$TARGET' is an mtp:/ URL but kioclient is not installed (install KDE KIO tools)"
+        local encoded_name
+        encoded_name="$(python3 -c 'import sys; from urllib.parse import quote; print(quote(sys.argv[1], safe=""))' "$folder_name")" || die 'python3 is required to encode a picked-game folder name'
+        dest="${TARGET%/}/$encoded_name"
+        if ! "$kio" mkdir "$dest"; then
+            printf '  !! failed to create %s on %s\n' "$folder_name" "$TARGET" >&2
+            return 1
+        fi
+        for file in "$@"; do
+            if ! "$kio" cp "$file" "$dest/"; then
+                printf '  !! failed to copy %s into %s\n' "$(basename "$file")" "$folder_name" >&2
+                return 1
+            fi
+        done
+    else
+        dest="$TARGET/$folder_name"
+        mkdir -p -- "$dest" || return 1
+        for file in "$@"; do cp -- "$file" "$dest/" || return 1; done
+    fi
+    return 0
+}
+
+GAME_FILE_EXTS=' nsp nsx xci xcz nsz '
+is_game_file() {
+    local ext="${1##*.}"
+    ext="${ext,,}"
+    [[ "$GAME_FILE_EXTS" == *" $ext "* ]]
+}
+
+is_dlc_file() {
+    local root="$1" file="$2" rel seg base
+    rel="${file#"$root"/}"
+    IFS='/' read -r -a _parts <<< "$rel"
+    for seg in "${_parts[@]:0:${#_parts[@]}-1}"; do
+        [[ "${seg,,}" == *dlc* ]] && return 0
+    done
+    base="$(basename "$file")"
+    [[ "$base" =~ \[[^]]*[dD][lL][cC][^]]*\] ]]
+}
+
+title_key() {
+    local tid="${1,,}"
+    printf '%s' "${tid:0:13}"
+}
+
+dlc_title_key() {
+    local tid="$1" value hex
+    value=$((16#$tid))
+    value=$(( value - value % 4096 - 4096 ))
+    printf -v hex '%016x' "$value"
+    printf '%s' "${hex:0:13}"
+}
+
+# Return the files for a member display-name from one pack. Each member is
+# identified by its 16-hex title ID, with base/update collapsed and DLC folded
+# onto the owning game's key. Paths are NUL-safe for accents and punctuation.
+get_pack_member_files() {
+    local pack_dir="$1" member_name="$2" wanted file base tid key
+    local -A wanted_keys=()
+    local -a all_files=()
+    wanted="$(norm_key "$member_name")"
+    mapfile -d '' -t all_files < <(find "$pack_dir" -type f -print0 2>/dev/null)
+    for file in "${all_files[@]}"; do
+        is_game_file "$file" || continue
+        is_dlc_file "$pack_dir" "$file" && continue
+        base="$(basename "$file")"
+        if [[ "$base" =~ \[([0-9A-Fa-f]{16})\] ]]; then
+            tid="${BASH_REMATCH[1]}"
+            key="$(title_key "$tid")"
+        else
+            continue
+        fi
+        base="${base%.*}"
+        base="$(printf '%s' "$base" | sed -E 's/[[:space:]]*\[[^]]*\]//g; s/[[:space:]]*\([0-9]+([.][0-9]+)?[[:space:]]*GB\)//Ig; s/[[:space:].-]+$//')"
+        if [ "$(norm_key "$base")" = "$wanted" ]; then wanted_keys["$key"]=1; fi
+    done
+    [ "${#wanted_keys[@]}" -gt 0 ] || return 1
+    local -a result=()
+    for file in "${all_files[@]}"; do
+        is_game_file "$file" || continue
+        base="$(basename "$file")"
+        if ! [[ "$base" =~ \[([0-9A-Fa-f]{16})\] ]]; then continue; fi
+        tid="${BASH_REMATCH[1]}"
+        if is_dlc_file "$pack_dir" "$file"; then
+            key="$(dlc_title_key "$tid")"
+        else
+            key="$(title_key "$tid")"
+        fi
+        if [ -n "${wanted_keys[$key]+x}" ]; then result+=("$file"); fi
+    done
+    [ "${#result[@]}" -gt 0 ] || return 1
+    printf '%s\0' "${result[@]}"
 }
 
 # ---- ask about essentials before copying anything --------------------------------
@@ -263,14 +373,50 @@ fi
 game_ok=0
 game_fail=0
 games_secs=0
-if [ "${#requested[@]}" -gt 0 ]; then
+if [ "$ESSENTIALS_ONLY" -eq 1 ]; then
+    echo 'Essentials-only run: the games were not touched.'
+    echo 'Run again with Games only once the Switch is back in full DBI mode.'
+elif [ "${#requested[@]}" -gt 0 ]; then
     echo "--- Games ---"
     # First pass: resolve every match, remember its size for byte-accurate progress.
     found_dirs=()
     found_labels=()
     found_sizes=()
+    found_filelists=()
+    found_foldernames=()
     for game in "${requested[@]}"; do
         [ -z "$game" ] && continue
+        if [[ "$game" =~ ^(.+)\ \(from\ (.+)\)$ ]]; then
+            member_name="${BASH_REMATCH[1]}"
+            pack_name="${BASH_REMATCH[2]}"
+            pack_key="$(norm_key "$pack_name")"
+            pack_dir=""
+            while IFS= read -r -d '' folder; do
+                [ "$(norm_key "$(basename "$folder")")" = "$pack_key" ] && { pack_dir="$folder"; break; }
+            done < <(find "$NSP_DIR" -mindepth 1 -maxdepth 1 -type d -print0 2>/dev/null)
+            if [ -n "$pack_dir" ]; then
+                mapfile -d '' -t member_files < <(get_pack_member_files "$pack_dir" "$member_name" || true)
+                if [ "${#member_files[@]}" -gt 0 ]; then
+                    member_key="$(printf '%s' "$member_name" | sed -E 's/[\\/:*?"<>|]//g; s/[[:space:]]+$//')"
+                    [ -n "$member_key" ] || member_key='Picked game'
+                    filelist="$WORK_DIR/member-$(( ${#found_dirs[@]} + 1 )).list"
+                    printf '%s\0' "${member_files[@]}" > "$filelist"
+                    size=0
+                    for file in "${member_files[@]}"; do size=$((size + $(stat -c %s -- "$file"))); done
+                    found_dirs+=("$pack_dir")
+                    found_labels+=("$game")
+                    found_sizes+=("$size")
+                    found_filelists+=("$filelist")
+                    found_foldernames+=("$member_key")
+                    continue
+                fi
+                printf '  Not Found: %s (no files for %s in %s)\n' "$game" "$member_name" "$(basename "$pack_dir")"
+            else
+                printf '  Not Found: %s (pack folder %s is missing)\n' "$game" "$pack_name"
+            fi
+            game_fail=$((game_fail + 1))
+            continue
+        fi
         game_k="$(norm_key "$game")"
         found=""
         near_miss=""
@@ -300,6 +446,8 @@ if [ "${#requested[@]}" -gt 0 ]; then
         found_dirs+=("$NSP_DIR/$found")
         found_labels+=("$found")
         found_sizes+=("$(du -sb "$NSP_DIR/$found" 2>/dev/null | awk '{print $1}')")
+        found_filelists+=("")
+        found_foldernames+=("")
     done
 
     total_items=${#found_dirs[@]}
@@ -322,7 +470,15 @@ if [ "${#requested[@]}" -gt 0 ]; then
             printf '  [%d/%d] %s (%s)\n' "$idx" "$total_items" "$label" "$(fmt "$size")"
             item_start=$(date +%s)
             item_ok=0
-            if copy_to_target "$dir" "$label"; then
+            if [ -n "${found_filelists[$((idx - 1))]}" ]; then
+                mapfile -d '' -t member_files < "${found_filelists[$((idx - 1))]}"
+                if copy_file_set "${found_foldernames[$((idx - 1))]}" "${member_files[@]}"; then
+                    game_ok=$((game_ok + 1))
+                    item_ok=1
+                else
+                    game_fail=$((game_fail + 1))
+                fi
+            elif copy_to_target "$dir" "$label"; then
                 game_ok=$((game_ok + 1))
                 item_ok=1
             else
@@ -364,4 +520,5 @@ else
 fi
 [ "$essential_fail" -gt 0 ] && printf '%d essential name(s) not found or failed.\n' "$essential_fail"
 [ "$game_fail" -gt 0 ] && printf '%d game name(s) not found or failed.\n' "$game_fail"
+if [ "$essential_fail" -gt 0 ] || [ "$game_fail" -gt 0 ]; then exit 1; fi
 exit 0

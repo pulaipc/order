@@ -138,7 +138,10 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         # size parens some files carry, minus quotes so the JS string stays
         # clean. Base title ID (first 13 chars + 000) powers the member's
         # cover art on the library page.
-        if (-not $members.Contains($key)) {
+        $memberPriority = if ($titleId -and $titleId.Substring(13) -eq '000') { 0 } else { 1 }
+        $replaceMember = -not $members.Contains($key)
+        if (-not $replaceMember -and $memberPriority -lt $members[$key].priority) { $replaceMember = $true }
+        if ($replaceMember) {
             $memberName = $fileName -replace '\s*\[[^\]]*\]', ''
             $memberName = $memberName -replace '\s*\(\d+(?:\.\d+)?\s*GB\)', ''
             $memberName = $memberName -replace "'", ""
@@ -148,7 +151,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
             $memberName = ($memberName.Trim() -replace '\s+', ' ')
             $memberTid = $null
             if ($titleId) { $memberTid = ($titleId.Substring(0, 13) + '000').ToLower() }
-            if ($memberName.Length -gt 0) { $members[$key] = @{ n = $memberName; tid = $memberTid; key = $key } }
+            if ($memberName.Length -gt 0) { $members[$key] = @{ n = $memberName; tid = $memberTid; key = $key; priority = $memberPriority } }
         }
     }
     $fileCount = if ($gameKeys.Count -gt 0) { $gameKeys.Count } else { 1 }
