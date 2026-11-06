@@ -1486,10 +1486,14 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             toggleGameDetailFloat(this.closest('.game-card'), g, packPickOpts(g));
         };
         cover.appendChild(info);
+        // "N picked" lives on the artwork: the meta row under it is too narrow
+        // once a game count badge is there, and it was being clipped.
+        const picked = pickedBadge(g);
+        if (picked) { picked.className = 'game-cover-picked'; cover.appendChild(picked); }
         return cover;
     }
 
-    function buildGridMeta(g) {
+    function buildGridMeta(g, card) {
         const wrap = document.createElement('div');
         const name = document.createElement('div');
         name.className = 'game-cover-name';
@@ -1501,13 +1505,20 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         size.textContent = `${effectiveGb(g.size)} GB`;
         meta.appendChild(size);
         if (g.fileCount && g.fileCount > 1) {
-            const badge = document.createElement('span');
-            badge.className = 'game-cover-badge';
+            // A button, so tapping "2 Games" opens the pack and shows that
+            // one game can be picked from it (it would otherwise just select
+            // the whole pack).
+            const badge = document.createElement('button');
+            badge.type = 'button';
+            badge.className = 'game-cover-badge game-cover-badge-btn';
             badge.textContent = g.fileCount + ' Games';
+            badge.title = 'See the ' + g.fileCount + ' games in this pack';
+            badge.onclick = function (e) {
+                e.stopPropagation();
+                toggleGameDetailFloat(card, g, packPickOpts(g));
+            };
             meta.appendChild(badge);
         }
-        const picked = pickedBadge(g);
-        if (picked) meta.appendChild(picked);
         wrap.appendChild(name);
         wrap.appendChild(meta);
         return wrap;
@@ -1531,7 +1542,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         };
 
         card.appendChild(buildGameCover(g, false));
-        card.appendChild(buildGridMeta(g));
+        card.appendChild(buildGridMeta(g, card));
         return card;
     }
 
@@ -1539,7 +1550,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const card = document.createElement('div');
         card.className = 'game-card grid-card hidden-game';
         card.appendChild(buildGameCover(g, true));
-        card.appendChild(buildGridMeta(g));
+        card.appendChild(buildGridMeta(g, card));
         return card;
     }
 
@@ -1616,9 +1627,15 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             titleSpan.textContent = g.name;
             titleSpan.insertAdjacentHTML('beforeend', hotBadgeHtml(g.name));
             if (count) {
-                var badge = document.createElement('span');
-                badge.className = 'game-count-badge';
+                var badge = document.createElement('button');
+                badge.type = 'button';
+                badge.className = 'game-count-badge game-count-badge-btn';
                 badge.textContent = count;
+                badge.title = 'See the ' + g.fileCount + ' games in this pack';
+                badge.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleGameDetailFloat(card, g, packPickOpts(g));
+                };
                 titleSpan.appendChild(badge);
             }
             const picked = pickedBadge(g);
@@ -1871,7 +1888,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const hasFree = (serviceType === 'jailbreak' || serviceType === 'system_setup');
 
         if (hasFree) {
-            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game(s)</strong>. Your package includes <strong>3 games at no extra cost</strong> — you can select <strong>${3 - count} more</strong>.`, nudge: '' };
+            if (count < 3) return { hasWarning: true, targetCount: 3, remaining: 3 - count, msg: `<strong>Free Games Available:</strong> You selected <strong>${count} game${count !== 1 ? 's' : ''}</strong>. Your package includes <strong>3 games at no extra cost</strong> - you can select <strong>${3 - count} more</strong>.`, nudge: '' };
             if (count === 3) return empty;
             if (count > 13 && count < 23) { const rem = 23 - count; return { hasWarning: true, targetCount: 23, remaining: rem, msg: `Add <strong>${rem} more games</strong> to unlock the RM2.50/game rate.`, nudge: { remaining: rem, rate: 'RM2.50' } }; }
             if (count === 23) return empty;
@@ -1899,6 +1916,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         const repairInfo = getSelectedRepairTotal();
 
         $('selectedCount').innerText = count;
+        if ($('selectedCountWord')) $('selectedCountWord').innerText = count === 1 ? 'game' : 'games';
         $('selectedSize').innerText = footprint.toFixed(1);
         $('remainderSize').innerText = remainder.toFixed(1);
         $('selectedPrice').innerText = 'RM' + Math.max(0, Math.round(details.subtotal) - state.discountRm);
@@ -1923,10 +1941,10 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         } else if (tierRec.hasWarning && tierRec.nudge) {
             subHtml = '<span class="checkout-nudge-action">Add ' + tierRec.nudge.remaining + ' more</span> — ' + tierRec.nudge.rate + '/game rate · Tap to review';
         } else if (tierRec.hasWarning && tierRec.remaining > 0 && (serviceType === 'jailbreak' || serviceType === 'system_setup') && count < 3) {
-            subHtml = `(${count} free games selected, ${tierRec.remaining} more available) · Tap to review`;
+            subHtml = `(${count} free game${count !== 1 ? 's' : ''} selected, ${tierRec.remaining} more available) · Tap to review`;
         } else if (serviceType === 'jailbreak' || serviceType === 'system_setup') {
             if (count === 0) subHtml = 'Package includes 3 games at no extra cost. Tap here to review & add remarks';
-            else if (count <= 3) subHtml = `(${count} free games selected, ${3 - count} more available) · Tap to review`;
+            else if (count <= 3) subHtml = `(${count} free game${count !== 1 ? 's' : ''} selected, ${3 - count} more available) · Tap to review`;
             else { const c = count - 3; subHtml = `(3 included + ${c} addon${c !== 1 ? 's' : ''}) · Tap to review`; }
         } else {
             subHtml = 'Tap here to review & add remarks';

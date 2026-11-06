@@ -425,9 +425,15 @@
         .game-cover-info::before, .game-row-info::before { content: ''; position: absolute; inset: -9px; border-radius: 50%; }
         .game-cover-info:hover, .game-row-info:hover { background: rgba(255, 192, 0, 0.3); }
         .game-cover-name { padding: 6px 8px 0; font-size: 11.5px; font-weight: 600; color: #f0e9d8; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px; }
-        .game-cover-meta { display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 2px 8px 8px; }
+        .game-cover-meta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 6px; padding: 2px 8px 8px; }
         .game-cover-size { color: #8a8272; font-size: 10.5px; font-weight: 600; white-space: nowrap; }
         .game-cover-badge { color: #ffc000; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; background: rgba(255, 192, 0, 0.12); border: 1px solid rgba(255, 192, 0, 0.35); white-space: nowrap; }
+        /* "2 Games" opens the pack, so it reads as a button. */
+        .game-cover-badge-btn, .game-count-badge-btn { font-family: inherit; line-height: 1.2; cursor: pointer; }
+        .game-cover-badge-btn:hover, .game-count-badge-btn:hover { background: rgba(255, 192, 0, 0.26); }
+        /* "2 picked" sits on the cover: the size/action row below it is only
+           ~150px wide and clipped the badge. */
+        .game-cover-picked { position: absolute; left: 5px; bottom: 5px; z-index: 2; color: #14110a; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: #ffc000; white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
         .game-card.hidden-game { background: #1a1508; border: 1px dashed #3a3018; opacity: 0.55; cursor: not-allowed; pointer-events: none; }
         .game-card.hidden-game .game-title { color: #8a8272; }
         .game-lock-icon { font-size: 15px; flex-shrink: 0; line-height: 1; opacity: 0.7; }
@@ -845,7 +851,7 @@
 
     <div class="checkout-bar" id="checkoutBar">
         <div class="checkout-info" onclick="openCartModal()">
-            <span id="selectedCount" style="color: #ffc000; font-weight: bold;">0</span> games 
+            <span id="selectedCount" style="color: #ffc000; font-weight: bold;">0</span> <span id="selectedCountWord">games</span> 
             (<span id="selectedSize" style="color: #ffc000; font-weight: bold;">0</span> GB selected | 
             <span id="remainderSize" style="color: #ffb74d; font-weight: bold;">0</span> GB left) | 
             <span id="selectedPrice" style="color: #ffc000; font-weight: bold;">RM0</span>
