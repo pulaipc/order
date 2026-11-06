@@ -24,6 +24,31 @@ if (-not (Test-Path $gameDirectoryPath)) {
 $resolvedGamePath = (Resolve-Path $gameDirectoryPath).Path
 Write-Host "[1/3] Scanning game folders at: $resolvedGamePath..." -ForegroundColor Cyan
 
+# DBI streams installs, so a game's source file never has to stay on the SD
+# card. What has to fit is the *installed* game, which is bigger than the
+# compressed NSZ/XCZ download. An NSZ/XCZ filename usually states that
+# uncompressed size, e.g. "Hollow Knight [0100...][v0] (3.55 GB).nsz"; when it
+# does, that figure is exact. Without the tag, allow 1.5x (the measured median
+# NSZ expansion is ~1.3x, and some titles compress far better). NSP/XCI are
+# already close to installed size, so a small 10% covers tickets and rounding.
+function Get-InstallBytes([System.IO.FileInfo]$file) {
+    $ext = $file.Extension.ToLowerInvariant()
+    $installed = [double]$file.Length
+    $baseName = [System.IO.Path]::GetFileNameWithoutExtension($file.Name)
+    $sizeTag = [regex]::Match($baseName, '\((\d+(?:\.\d+)?)\s*GB\)', 'IgnoreCase')
+    if ($ext -eq '.nsz' -or $ext -eq '.xcz') {
+        if ($sizeTag.Success) {
+            $stated = [double]::Parse($sizeTag.Groups[1].Value, [System.Globalization.CultureInfo]::InvariantCulture)
+            $installed = $stated * 1GB
+        } else {
+            $installed = $installed * 1.5
+        }
+    } else {
+        $installed = $installed * 1.1
+    }
+    return [long][math]::Ceiling($installed)
+}
+
 $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     if ($dir.Name -like ".*") { continue }
 
@@ -53,9 +78,15 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     # that game. A single game picked from a pack is copied (and sized) as
     # exactly these files by copygame.ps1.
     $memberBytes = @{}
+    # Installed bytes for the same keys (and for the folder as a whole), so the
+    # catalog can tell customers what the card actually has to hold.
+    $memberInstall = @{}
+    $totalInstallBytes = [long]0
     foreach ($f in $gameFiles) {
         $fullName = $f.FullName
         $fileName = [System.IO.Path]::GetFileNameWithoutExtension($f.Name)
+        $installBytes = Get-InstallBytes $f
+        $totalInstallBytes += $installBytes
 
         # Skip files inside DLC subfolders — any directory segment containing
         # "dlc" (e.g. "DLC", "dlc", "58 DLC", "dlc pack", etc.) is excluded.
@@ -69,6 +100,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
                 $v = [Convert]::ToUInt64($matches[1], 16)
                 $baseKey = ('{0:x16}' -f (($v - ($v % 4096)) - 4096)).Substring(0, 13)
                 $memberBytes[$baseKey] = [long]$memberBytes[$baseKey] + $f.Length
+                $memberInstall[$baseKey] = [long]$memberInstall[$baseKey] + $installBytes
             }
             continue
         }
@@ -99,6 +131,7 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
         if ($key.Length -gt 0) {
             $gameKeys[$key] = $true
             $memberBytes[$key] = [long]$memberBytes[$key] + $f.Length
+            $memberInstall[$key] = [long]$memberInstall[$key] + $installBytes
         }
 
         # Member display name: filename minus [] tags, minus the "(0.01 GB)"
@@ -136,7 +169,12 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
             # gb: this game's own size, for picking one game out of the pack.
             $memberGb = [math]::Round([long]$memberBytes[$_['key']] / 1GB, 2)
             $gbPart = ', gb: ' + $memberGb.ToString([System.Globalization.CultureInfo]::InvariantCulture)
-            '{ n: "' + $_['n'] + '"' + $tidPart + $gbPart + ' }'
+            # igb: what that pick takes on the card once installed. A pick only
+            # copies that member's files, so its own file total is the floor.
+            $memberPickBytes = [math]::Max([long]$memberInstall[$_['key']], [long]$memberBytes[$_['key']])
+            $memberIgb = [math]::Round($memberPickBytes / 1GB, 2)
+            $igbPart = ', igb: ' + $memberIgb.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+            '{ n: "' + $_['n'] + '"' + $tidPart + $gbPart + $igbPart + ' }'
         })
         $titlesField = ', titles: [' + ($memberJs -join ', ') + ']'
     }
@@ -145,7 +183,16 @@ $gameEntries = foreach ($dir in Get-ChildItem $resolvedGamePath -Directory) {
     # the "Newest added" sort on games.html.
     $addedField = ', added: "' + $dir.CreationTime.ToString('yyyy-MM-dd', [System.Globalization.CultureInfo]::InvariantCulture) + '"'
 
-    '      { name: "' + $cleanName + '", size: ' + $gbSize + ', fileCount: ' + $fileCount + $coverField + $addedField + $titlesField + ' }'
+    # Installed size, for storage fit on the order form. A folder is copied to
+    # the card as a whole, so it can never ask for less than its own file total
+    # (homebrew ports put the game in an atmosphere\ folder, and an offline mod
+    # can dwarf the NSP it patches). Zero means "not measured" (no files), and
+    # the site falls back to size + buffer.
+    if ($bytes -gt $totalInstallBytes) { $totalInstallBytes = [long]$bytes }
+    $igbSize = [math]::Round($totalInstallBytes / 1GB, 2)
+    $igbField = ', igb: ' + $igbSize.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+
+    '      { name: "' + $cleanName + '", size: ' + $gbSize + $igbField + ', fileCount: ' + $fileCount + $coverField + $addedField + $titlesField + ' }'
 }
 
 $currentDateIso = Get-Date -Format "o"

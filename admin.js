@@ -1357,13 +1357,14 @@
 
     /**
      * Installed footprint of the games on this order. Same rule as index.html:
-     * buffer each game, then sum, so the fit checks here match what the customer
-     * was shown. editGameTotalGb() stays the raw figure that is priced and stored.
+     * use the catalogue's measured `igb`, then sum, so the fit checks here
+     * match what the customer was shown. editGameTotalGb() stays the raw
+     * figure that is priced and stored.
      */
     function editGameFootprint() {
-        var sizes = editGameSizes();
         return orderEdit.games.reduce(function (sum, n) {
-            return sum + effectiveGb(sizes[n] || 0);
+            var entry = catalogEntryFor(n);
+            return sum + (entry ? installedGbOf(entry) : 0);
         }, 0);
     }
 
@@ -1605,7 +1606,7 @@
             var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
             html += '<button type="button" class="oe-opt" data-name="' + escapeHtml(g.name) + '">' +
                     '<span class="oe-opt-name">' + escapeHtml(g.name) + badgeHtml + '</span>' +
-                    '<span class="oe-opt-size">' + effectiveGb(g.size) + ' GB</span></button>';
+                    '<span class="oe-opt-size">' + installedGbOf(g) + ' GB</span></button>';
         });
         if (capped) html += '<div class="oe-opt-empty">' + matches.length +
                             ' shown &mdash; keep typing to narrow the list.</div>';
@@ -1632,7 +1633,7 @@
             var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
             html += '<div class="oe-opt">' +
                     '<span class="oe-opt-name">' + escapeHtml(name) + badgeHtml + '</span>' +
-                    '<span class="oe-opt-size">' + (sizes[name] != null ? effectiveGb(sizes[name]) + ' GB' : 'size n/a') + '</span>' +
+                    '<span class="oe-opt-size">' + (sizes[name] != null ? installedGbForName(name, sizes[name]) + ' GB' : 'size n/a') + '</span>' +
                     '<button type="button" class="oe-opt-remove" data-name="' + escapeHtml(name) +
                     '" aria-label="Remove ' + escapeHtml(name) + '">&times;</button></div>';
         });
@@ -2474,7 +2475,7 @@
                 item.className = 'modal-game-item';
                 var isDone = !!doneTicks[name];
                 if (isDone) item.classList.add('is-done');
-                var size = sizeMap[name] ? effectiveGb(sizeMap[name]) + ' GB' : '';
+                var size = sizeMap[name] ? installedGbForName(name, sizeMap[name]) + ' GB' : '';
                 // Multi-game pack badge (from catalog's fileCount)
                 var cat = catalogEntryFor(name);
                 var badgeHtml = (cat && cat.fileCount && cat.fileCount > 1)

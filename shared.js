@@ -107,7 +107,7 @@ function catalogIndex() {
         pickableMembers(g).forEach(function (m) {
             const name = packPickName(g, m);
             if (idx[name]) return;
-            idx[name] = { name: name, size: m.gb, fileCount: 1, titleId: m.tid, pack: g, member: m };
+            idx[name] = { name: name, size: m.gb, igb: m.igb, fileCount: 1, titleId: m.tid, pack: g, member: m };
         });
     });
     _catalogIndex = idx;
@@ -140,23 +140,51 @@ function gameCountTotal(names) {
 }
 
 /**
- * A game's real SD footprint after extraction/install is larger than its listed
- * download size, so storage has to be planned against raw * INSTALL_SIZE_BUFFER
- * or the shop is promised more than the card can actually hold.
+ * DBI streams the install from the SD card, so the card only has to hold the
+ * installed games - not the compressed NSZ/XCZ source files. The catalog
+ * carries that figure per game (`igb`), measured from the real files: an
+ * NSZ/XCZ filename states its uncompressed size, and plain NSP/XCI get a small
+ * overhead for tickets and block rounding.
  *
- * This buffers fit and display only: prices and the stored total_size_gb stay on
- * the raw catalog figure, so no quote moves because of it.
+ * Fit and display use the installed figure. Prices and the stored
+ * total_size_gb stay on the raw catalog `size`, so no quote moves.
  */
 var INSTALL_SIZE_BUFFER = 1.1;
 
-/** A listed game size as its installed footprint, to one decimal. */
+/** A listed game size as its installed footprint, to one decimal. Used only
+ *  when the catalog has no measured `igb` (older gameslist.js). */
 function effectiveGb(rawGb) {
     return Math.round((rawGb * INSTALL_SIZE_BUFFER) * 10) / 10;
 }
 
-/** Short label for a buffered total, e.g. " (after install ~10% bigger)". */
+/** Installed footprint of one catalog entry (or pack member), to one decimal.
+ *  Entries carry `igb`; pack members carry `gb`. Falls back to the buffered
+ *  raw size when the catalog was generated before `igb` existed. */
+function installedGbOf(entry) {
+    if (!entry) return 0;
+    const measured = Number(entry.igb);
+    if (measured > 0) return Math.round(measured * 10) / 10;
+    return effectiveGb(Number(entry.size != null ? entry.size : entry.gb) || 0);
+}
+
+/** Installed footprint of a stored game name, with a raw fallback size. */
+function installedGbForName(name, fallbackRawGb) {
+    const g = catalogEntryFor(name);
+    if (g) return installedGbOf(g);
+    return effectiveGb(Number(fallbackRawGb) || 0);
+}
+
+/** Installed GB total of a game-name list, using the catalog. */
+function gameInstallTotal(names) {
+    return (names || []).reduce(function (sum, n) {
+        const g = catalogEntryFor(n);
+        return sum + (g ? installedGbOf(g) : 0);
+    }, 0);
+}
+
+/** Label for a total that already counts installed size. */
 function installBufferNote() {
-    return ' (after install ~' + Math.round((INSTALL_SIZE_BUFFER - 1) * 100) + '% bigger)';
+    return ' (installed size)';
 }
 
 /** Cover art sources for a catalog title ID, best first. Nlib is the live
@@ -267,7 +295,7 @@ function buildMemberChip(m, pick) {
     // Order form only: a toggle to pick this one game instead of the pack.
     if (pick) {
         const picked = pick.isPicked(m);
-        const gb = effectiveGb(m.gb);
+        const gb = installedGbOf(m);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'member-pick' + (picked ? ' picked' : '');

@@ -387,8 +387,8 @@
             // the order, so it is counted separately and flagged in the list.
             if (!found) unknownSizeCount++;
             const size = found ? found.size : 0;
-            totalGb += found ? effectiveGb(size) : 0;
-            gamesWithSize.push({ name: name, size: size, known: !!found, fileCount: found ? found.fileCount : 1 });
+            totalGb += found ? installedGbOf(found) : 0;
+            gamesWithSize.push({ name: name, size: size, installGb: found ? installedGbOf(found) : 0, known: !!found, fileCount: found ? found.fileCount : 1 });
         });
 
         const repairs = getEnrichedRepairs(order);
@@ -484,7 +484,7 @@
                     html += '<div class="summary-game-item">';
                     html += '<div class="summary-game-name">' + escapeHtml(g.name) + badgeHtml + '</div>';
                     html += '<div class="summary-game-size' + (g.known ? '' : ' unknown') + '">' +
-                             (g.known ? effectiveGb(g.size).toFixed(1) + ' GB' : 'size n/a') + '</div>';
+                             (g.known ? g.installGb.toFixed(1) + ' GB' : 'size n/a') + '</div>';
                     html += '</div>';
                 });
                 if (unknownSizeCount) {
@@ -679,12 +679,14 @@
 
     const SD_REAL_CAPACITY_FACTOR = 0.93;
 
-    // Installed footprint of every selected game (raw sizes are stored raw).
-    // INSTALL_SIZE_BUFFER and effectiveGb() live in shared.js so the admin order
-    // editor plans on exactly the same figures as this form.
+    // Installed footprint of every selected game. The Map stores raw catalog
+    // sizes; the catalogue's measured `igb` (installed size) is what has to fit
+    // on the card, because DBI streams installs and the source file is never
+    // stored there. installedGbForName() and installedGbOf() live in shared.js
+    // so the admin order editor plans on exactly the same figures as this form.
     function selectedGamesFootprint() {
         let total = 0;
-        state.selectedGames.forEach(s => total += effectiveGb(s));
+        state.selectedGames.forEach((raw, name) => { total += installedGbForName(name, raw); });
         return total;
     }
 
@@ -1143,7 +1145,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         let acc = 0;
         const toRemove = [];
         state.selectedGames.forEach((sz, name) => {
-            const gb = effectiveGb(sz);
+            const gb = installedGbForName(name, sz);
             if (acc + gb > limit) toRemove.push(name);
             else acc += gb;
         });
@@ -1502,7 +1504,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         meta.className = 'game-cover-meta';
         const size = document.createElement('span');
         size.className = 'game-cover-size';
-        size.textContent = `${effectiveGb(g.size)} GB`;
+        size.textContent = `${installedGbOf(g)} GB`;
         meta.appendChild(size);
         if (g.fileCount && g.fileCount > 1) {
             // A button, so tapping "2 Games" opens the pack and shows that
@@ -1536,7 +1538,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) at the top before picking games!'); $('userFreeStorageInput').focus(); return; }
             const willSelect = !state.selectedGames.has(g.name);
             if (willSelect && wouldExceed(g)) {
-                alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your available remaining space (${state.usableStorageLimit} GB)!${pickHint(g)}`);
+                alert(`Cannot add "${g.name}" (${installedGbOf(g)} GB installed). It exceeds your available remaining space (${state.usableStorageLimit} GB)!${pickHint(g)}`);
                 return;
             }
             toggleGame(g.name, g.size, willSelect, card);
@@ -1578,7 +1580,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             // A pack too big as a whole stays visible while one of its games
             // still fits or is already picked, so it can be picked on its own.
             const packUsable = packPicksOf(g).length > 0 || smallestPickGb(g) <= availableSpace;
-            if (isSel || state.usableStorageLimit <= 0 || effectiveGb(g.size) <= availableSpace || packUsable) fitting.push(g);
+            if (isSel || state.usableStorageLimit <= 0 || installedGbOf(g) <= availableSpace || packUsable) fitting.push(g);
             else hidden.push(g);
         });
 
@@ -1597,7 +1599,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 if (e.target !== cb) cb.checked = !cb.checked;
 
                 if (cb.checked && wouldExceed(g)) {
-                    alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your available remaining space (${state.usableStorageLimit} GB)!${pickHint(g)}`);
+                    alert(`Cannot add "${g.name}" (${installedGbOf(g)} GB installed). It exceeds your available remaining space (${state.usableStorageLimit} GB)!${pickHint(g)}`);
                     cb.checked = false;
                     return;
                 }
@@ -1612,7 +1614,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 if (!validatePhoneProvided()) { cb.checked = false; return; }
                 if (!state.isStorageConfigured) { alert('Please enter your available Free Storage Space (GB) first!'); cb.checked = false; $('userFreeStorageInput').focus(); return; }
                 if (cb.checked && wouldExceed(g)) {
-                    alert(`Cannot add "${g.name}" (${effectiveGb(g.size)} GB after install). It exceeds your remaining usable storage (${state.usableStorageLimit} GB)!${pickHint(g)}`);
+                    alert(`Cannot add "${g.name}" (${installedGbOf(g)} GB installed). It exceeds your remaining usable storage (${state.usableStorageLimit} GB)!${pickHint(g)}`);
                     cb.checked = false;
                     return;
                 }
@@ -1645,7 +1647,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             infoDiv.appendChild(titleSpan);
             const sizeSpan = document.createElement('span');
             sizeSpan.className = 'game-size';
-            sizeSpan.textContent = `${effectiveGb(g.size)} GB`;
+            sizeSpan.textContent = `${installedGbOf(g)} GB`;
 
             card.appendChild(infoDiv);
             card.appendChild(sizeSpan);
@@ -1681,7 +1683,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 card.className = 'game-card hidden-game';
                 const count = g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                 var badgeHtml = count ? '<span class="game-count-badge">' + count + '</span>' : '';
-                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${hotBadgeHtml(g.name)}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${effectiveGb(g.size)} GB</span>`;
+                card.innerHTML = `<div class="game-info"><span class="game-lock-icon">&#128274;</span><span class="game-title">${g.name}${hotBadgeHtml(g.name)}</span>${badgeHtml}</div><span class="game-size" style="color:#8a8272;">${installedGbOf(g)} GB</span>`;
                 hiddenContainer.appendChild(card);
             });
             container.appendChild(hiddenContainer);
@@ -1723,8 +1725,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
     function wouldExceed(g) {
         if (!(state.usableStorageLimit > 0)) return false;
         let cur = selectedGamesFootprint();
-        packPicksOf(g).forEach(n => { cur -= effectiveGb(state.selectedGames.get(n)); });
-        return cur + effectiveGb(g.size) > state.usableStorageLimit;
+        packPicksOf(g).forEach(n => { cur -= installedGbForName(n, state.selectedGames.get(n)); });
+        return cur + installedGbOf(g) > state.usableStorageLimit;
     }
 
     function pickHint(g) {
@@ -1733,7 +1735,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
 
     /** Smallest installed size of a pickable member, or Infinity. */
     function smallestPickGb(g) {
-        return pickableMembers(g).reduce((min, m) => Math.min(min, effectiveGb(m.gb)), Infinity);
+        return pickableMembers(g).reduce((min, m) => Math.min(min, installedGbOf(m)), Infinity);
     }
 
     /** Swap the names in removeNames for one entry, keeping its place in the
@@ -1761,9 +1763,9 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             state.selectedGames.delete(name);
         } else {
             const packSelected = state.selectedGames.has(pack.name);
-            const cur = selectedGamesFootprint() - (packSelected ? effectiveGb(pack.size) : 0);
-            if (limit > 0 && cur + effectiveGb(m.gb) > limit) {
-                alert(`Cannot add "${m.n}" (${effectiveGb(m.gb)} GB after install). It exceeds your available remaining space (${limit} GB)!`);
+            const cur = selectedGamesFootprint() - (packSelected ? installedGbForName(pack.name, pack.size) : 0);
+            if (limit > 0 && cur + installedGbOf(m) > limit) {
+                alert(`Cannot add "${m.n}" (${installedGbOf(m)} GB installed). It exceeds your available remaining space (${limit} GB)!`);
                 return;
             }
             if (packSelected) {
@@ -1778,8 +1780,8 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             const picks = packPicksOf(pack);
             if (members.length === pack.titles.length && picks.length === members.length) {
                 let without = selectedGamesFootprint();
-                picks.forEach(n => { without -= effectiveGb(state.selectedGames.get(n)); });
-                if (!(limit > 0) || without + effectiveGb(pack.size) <= limit) {
+                picks.forEach(n => { without -= installedGbForName(n, state.selectedGames.get(n)); });
+                if (!(limit > 0) || without + installedGbOf(pack) <= limit) {
                     replaceSelected(picks, pack.name, pack.size);
                     setStatusMessage(`You picked every game in "${pack.name}", so it is now on your order as the full pack.`, '#00e676', 6000);
                 }
@@ -2385,7 +2387,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                     const gCount = g && g.fileCount && g.fileCount > 1 ? g.fileCount + ' Games' : '';
                     const badgeHtml = gCount ? '<span class="game-count-badge">' + gCount + '</span>' : '';
                     const titleSpan = document.createElement('span');
-                    titleSpan.innerHTML = `${idx}. ${name}${badgeHtml} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${effectiveGb(size)} GB)</span>`;
+                    titleSpan.innerHTML = `${idx}. ${name}${badgeHtml} ${tag} <span style="color:#ffc000; font-size:0.85em;">(${installedGbForName(name, size)} GB)</span>`;
                     const btn = document.createElement('button');
                     btn.className = 'remove-btn';
                     btn.textContent = 'Remove';
