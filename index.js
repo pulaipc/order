@@ -1513,6 +1513,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
             badge.className = 'game-cover-badge game-cover-badge-btn';
             badge.textContent = g.fileCount + ' Games';
             badge.title = 'See the ' + g.fileCount + ' games in this pack';
+            badge.appendChild(packBadgeChevron());
             badge.onclick = function (e) {
                 e.stopPropagation();
                 toggleGameDetailFloat(card, g, packPickOpts(g));
@@ -1632,6 +1633,7 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
                 badge.className = 'game-count-badge game-count-badge-btn';
                 badge.textContent = count;
                 badge.title = 'See the ' + g.fileCount + ' games in this pack';
+                badge.appendChild(packBadgeChevron());
                 badge.onclick = (e) => {
                     e.stopPropagation();
                     toggleGameDetailFloat(card, g, packPickOpts(g));
@@ -1812,6 +1814,15 @@ setStatusMessage('Order loaded successfully. Review and proceed to payment/modif
         b.textContent = n + ' picked';
         b.title = n + ' game' + (n !== 1 ? 's' : '') + ' from this pack on your order';
         return b;
+    }
+
+    /** The little ▾ that marks the game-count badge as something to tap. */
+    function packBadgeChevron() {
+        const c = document.createElement('span');
+        c.className = 'pack-badge-chev';
+        c.setAttribute('aria-hidden', 'true');
+        c.textContent = '\u25be';
+        return c;
     }
 
     function toggleGame(name, size, isChecked, cardEl) {
